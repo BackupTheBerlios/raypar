@@ -56,6 +56,9 @@
 // REVISION by Vader, on 1/29/2004
 // Comments: Read and write methods for all geometrical objects 
 //*********************************************************
+// REVISION by KIRILL, on 1/29/2004
+// Comments: default smoothness value for CBox changed to 1.0
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -92,11 +95,10 @@ public:
   //and the sphere is opaque by default
   CSphere();
   CSphere( const CVector &position
-            , double radius, const CVector &color, double Betta = 0.0
-            , double nRefr = 1.0  
+            , double radius, const CVector &color
+            , double Betta = 0.0, double nRefr = 1.0  
             , double outerBetta = 0.0, double outerRefr = 1.0
-            , double reflectionCoefficient = 1.0
-            , double smoothness = 1.0);
+            , double reflectionCoefficient = 1.0, double smoothness = 1.0);
   
   void SetPosition( const CVector &position);
   void SetRadius(double radius);
@@ -179,9 +181,8 @@ public:
   //e1,e2,e3 should be orthogonal to each other (but not necessarily equal)
   CBox(const CVector &position, const CVector &e0
     , const CVector &e1, const CVector &e2, const CVector &color = CVector(0,0,0)
-    , double Betta = 0.0, double nRefr = 1.0 
-    , double outerBetta = 0.0
-    , double outerRefr = 1.0, double reflectionCoefficient = 1.0, double smoothness = 0.0);
+    , double Betta = 0.0, double nRefr = 1.0, double outerBetta = 0.0
+    , double outerRefr = 1.0, double reflectionCoefficient = 1.0, double smoothness = 1.0);
 
   void SetPosition(const CVector &position);
   void SetOrientation(const CVector &e1, const CVector &e2, const CVector &e3);
@@ -234,8 +235,9 @@ private:
 public:
   CTriangle();
   CTriangle(const CVector &a, const CVector &b
-            , const CVector &c, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, 
-               double Betta = 0.0, double nRefr = 1.0);
+            , const CVector &c, const CVector &color
+            , double reflectionCoefficient = 1.0, double smoothness = 1.0
+            , double Betta = 0.0, double nRefr = 1.0);
   
   virtual int  Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect  ( const Ray &falling, Ray &reflected) const;
@@ -285,7 +287,7 @@ private:
   CPlane m_top;
 public:
   CCylinder();
-  CCylinder( CVector &base, CVector &direction, double length, double radius
+  CCylinder( const CVector &base, const CVector &direction, double length, double radius
              , const CVector &color, double reflectionCoefficient = 1.0
              , double smoothness = 1.0
              , double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0

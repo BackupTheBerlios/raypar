@@ -1068,11 +1068,10 @@ CCylinder::CCylinder()
 , m_radius(0)
 , m_base(0,0,0)
 , m_direction(0,0,0)
-//?K?  init mediums and planes!!!
 {}
 
 
-CCylinder::CCylinder( CVector &base, CVector &direction, double length, double radius, const CVector &color,
+CCylinder::CCylinder( const CVector &base, const CVector &direction, double length, double radius, const CVector &color,
                      double reflectionCoefficient, 
                      double smoothness, 
                      double Betta, double nRefr,
