@@ -64,6 +64,11 @@
 
 #define EPSILON (1E-9)
 
+//in some methods of CBox class n_number is an index of plane, which
+//intersects with current ray. This index corresponds numeration of
+//m_n[3] class members (normals). 0,1,2 - planes, so -1 means no intersection
+#define NO_INTERSECTION -1
+
 ///////////////////////////////////////////////////////////
 // CSphere
 

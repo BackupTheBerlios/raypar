@@ -114,12 +114,13 @@ CArchive& operator << (CArchive& ar, const Medium& m);
 CArchive& operator >> (CArchive& ar, Medium& m);
 
 ///////////////////////////////////////////////////////////
-//  Ray       ?K? decription?
-
+//  Ray   defines a ray by its origin and direction.
+//  All ray points can be represeted by (origin + t * direction), where
+//  t>=0 is real. And vice versa all such points belong to ray
 class	Ray
 {
 protected:
-  CVector	m_origin; //this id essentially a point  ?K?: What does this comment mean?
+  CVector	m_origin; //Ray initial point
   CVector	m_direction; // direction must be normalized
   
 public:
@@ -179,10 +180,11 @@ public:
   {}
 
 
-  // ?K?  No comment!!! What does this do with its perameters?
+  // Searches for intersection with 'ray', saves distance from ray origin
+  // to the intersection in 'distance' and returns intersection status
   virtual int Intersect( const Ray &ray, double &distance) const = 0;
 
-  // ?K?  No comment!!! What does this do with its perameters?
+  // Gets the reflected ray and saves the result in 'reflected'
   virtual void Reflect( const Ray &falling, Ray &reflected) const = 0;
 
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
@@ -306,7 +308,7 @@ public:
 
 
 ///////////////////////////////////////////////////////////
-//  CEnvironment - ?K? decription?
+//  CEnvironment - storage class for rhe whole scene
 
 class	CEnvironment
 {

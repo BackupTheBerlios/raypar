@@ -603,14 +603,14 @@ int CBox::Intersect(const Ray &ray, double &distance) const
     dirP = m_n[i] * direction;
     orP = m_n[i] * origin;
     
-    if(dirP > EPSILON) // t1 < t2   //?K? What does this comment mean???
+    if(dirP > EPSILON) // we initialize 2 intersections in such way, that t1 < t2   
     {
       t1 = -(m_d2[i] + orP) / dirP;
       t2 = -(m_d1[i] + orP) / dirP;
     }
     else
     {
-      if(dirP < EPSILON) // t1 < t2 //?K? What does this comment mean???
+      if(dirP < EPSILON) // we initialize 2 intersections in such way, that t1 < t2   
       {
         t1 = -(m_d1[i] + orP) / dirP;
         t2 = -(m_d2[i] + orP) / dirP;
@@ -709,8 +709,7 @@ void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium,
   if(IsInside(fallingOrigin)) //origin is outside
   {
     
-    if(n_number != -1)  //there is intersection   //?K? MAGIC NUMBER!
-      //?K? Why -1. Why not -117? Name your constants!!
+    if(n_number != NO_INTERSECTION)  
     {
       refracted.setOrigin(fallingOrigin + distance * fallingDirection);
       normal = m_n[n_number];
