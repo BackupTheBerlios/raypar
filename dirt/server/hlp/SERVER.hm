@@ -1,11 +1,13 @@
 // MAKEHELP.BAT generated Help Map file.  Used by SERVER.HPJ. 
  
 // Commands (ID_* and IDM_*) 
+HID_PROGRESS_INDICATOR                  0x10065
 HID_OPEN_SCENE                          0x18003
 HID_RUN                                 0x18006
 HID_OPEN_CAMERA                         0x18007
 HID_VIEW_LOGWINDOW                      0x18008
 HID_VIEW_OPTIONS                        0x1800A
+HID_STOP                                0x1800C
  
 // Prompts (IDP_*) 
 HIDP_SOCKETS_INIT_FAILED                0x30068
