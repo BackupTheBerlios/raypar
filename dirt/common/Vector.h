@@ -12,7 +12,16 @@
 // REVISION by Tonic on 11/01/2004
 // Comments: Added Normalize() method
 //
-//***********************************
+//*********************************************************
+// REVISION by KIRILL, on 1/14/2004 20:25:06
+// Comments: Length() error corrected - sqrt(.) added
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
+
 
 
 #if !defined(AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_)
@@ -85,25 +94,19 @@ public:
 	( fabs(z) < VECTOR_EQUAL_EPS ) ); }
 	
 	double Length (void) const
-	{ return x*x + y*y + z*z; }
+	{ return sqrt(x*x + y*y + z*z); }
 	
 	//sinonim for Length
 	double Len (void) const
 	{ return Length(); }
 	
 	//normalization to the length of 1
-	void Normalize(void)
-	{
-		double len = Length();
-		
-		if( len > VECTOR_EQUAL_EPS )
-		{
-			x = x/len;
-			y = y/len;
-			z = z/len;
-		}
-	}
-	
+	void  Normalize() {
+	  double len = Length();  
+	  if( len > VECTOR_EQUAL_EPS ){
+		  x /= len;  y /= len;  z /= len;
+    }    
+  }
 	
 #ifdef _DEBUG
 	void Dump(CDumpContext& dc = afxDump);
