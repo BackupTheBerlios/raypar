@@ -32,8 +32,8 @@
 #define DIALOG_DEFAULT_TOP 100
 
 
-//register section for MainFrame
-const char mainFrameSection[] = "Options\\DialogWindow";
+//register section for dialog
+const char dialogSection[] = "Options\\DialogWindow";
 
 
 /////////////////////////////////////////////////////////////////////////////

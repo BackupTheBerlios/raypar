@@ -90,6 +90,7 @@ END_MESSAGE_MAP()
 
 CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
 : CDialog(CClientDlg::IDD, pParent)
+, m_settings(dialogSection, DIALOG_DEFAULT_LEFT, DIALOG_DEFAULT_TOP, 0, 0)
 {
   //{{AFX_DATA_INIT(CClientDlg)
   m_edit_addr = _T("127.0.0.1");
