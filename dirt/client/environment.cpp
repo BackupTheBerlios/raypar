@@ -54,6 +54,9 @@
 // REVISION by Tonic, on 1/29/2004
 // Comments: Added default refraction function to CSolid
 //*********************************************************
+// REVISION by KIRILL, on 1/29/2004 21:35:10
+// Comments: Environment::Empty() in addition zeroes all scene parameters
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -361,6 +364,8 @@ void CEnvironment::Empty()
 {
   m_solids.Empty();
   m_lights.Empty();
+  m_AmbientColor = CVector(0,0,0);
+  m_scene_uid = 0;
 }
 
 void CEnvironment::Add ( CLight *light )

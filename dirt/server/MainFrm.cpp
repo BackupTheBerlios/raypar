@@ -46,6 +46,9 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)	
 	ON_WM_DESTROY()
   ON_MESSAGE( WM_USER_ADD_LOG_MSG, OnUserAddLogMessage )
+	ON_COMMAND(ID_STOP, OnStop)
+	ON_UPDATE_COMMAND_UI(ID_STOP, OnUpdateStop)
+	ON_UPDATE_COMMAND_UI(ID_RUN, OnUpdateRun)
 	//}}AFX_MSG_MAP
 	// Global help commands
 	ON_COMMAND(ID_HELP_FINDER, CFrameWnd::OnHelpFinder)
@@ -76,7 +79,7 @@ CMainFrame::CMainFrame()
   m_scene.SetSceneUID( 0 ); 
   glb_scene_builder = &m_scene_builder;
 	m_settings.SetSection(mainFrameSection);
-  
+  m_bServerStarted = false;
 }
 
 CMainFrame::~CMainFrame()
@@ -117,6 +120,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;      // fail to create
   }
 
+  m_toolbar_bmp_stop.LoadBitmap( IDB_TOOLBAR_BITMAP_STOP );
+  
   m_log_box.Attach( m_log_wnd.GetDlgItem( IDC_LOG_LIST )->m_hWnd );
 	  
   m_log_wnd.ShowWindow( SW_NORMAL );
@@ -204,11 +209,9 @@ void CMainFrame::OnViewOptions()
 
 void CMainFrame::OnRun() 
 {
-  // TODO: Add your command handler code here
-	//ErrorMessageWithBox("There is no realization yet");
-
   m_srv_ctrl.StartServer( 8700 );
-
+  m_bServerStarted = true;
+  Message("Servers started on port '8700'");  
 }
 
 extern FILE *yyin; //located in ray_lex.l.cpp    
@@ -223,8 +226,8 @@ void CMainFrame::OnOpenScene()
     m_scene_builder.Init(); //this will clean the scene
                //and set it uid to 0 - that means that the scene isn't loaded
     
-
-    yyin = fopen( ofd.GetPathName(), "r");
+    CString fname = ofd.GetPathName();
+    yyin = fopen( fname, "r");
     ASSERT( yyin );
     int ret = yyparse();
     if ( ret != 0 ){
@@ -234,7 +237,7 @@ void CMainFrame::OnOpenScene()
       m_scene.SetSceneUID(GetNewSceneUID());
       ASSERT( m_scene.IsValid() );
     }
-    Message( "%d linse parsed", m_scene_builder.GetCurrentLineNumber() );
+    Message( "'%s' parsed (%d lines)", (LPCSTR) fname, m_scene_builder.GetCurrentLineNumber() );
     fclose(yyin);
     yyin = 0;
   }else{
@@ -289,4 +292,22 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
     ret = 1; //this means that we've processed message
   }
   return ret; 
+}
+
+void CMainFrame::OnStop() 
+{  
+	m_srv_ctrl.StopServer();
+  m_bServerStarted = false;	
+}
+
+void CMainFrame::OnUpdateStop(CCmdUI* pCmdUI) 
+{
+	if ( !m_bServerStarted ) 
+    pCmdUI->Enable(FALSE);		
+}
+
+void CMainFrame::OnUpdateRun(CCmdUI* pCmdUI) 
+{
+	if ( m_bServerStarted ) 
+    pCmdUI->Enable(FALSE);	
 }

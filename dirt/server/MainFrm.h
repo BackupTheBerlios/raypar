@@ -82,6 +82,9 @@ protected:  // control bar embedded members
 	CToolBar    m_wndToolBar;
 	CChildView  m_wndView;
   CLogWnd     m_log_wnd;
+  CBitmap     m_toolbar_bmp_run;
+  CBitmap     m_toolbar_bmp_stop;
+  bool        m_bServerStarted;
 
   CWindowSettings m_settings;
   CEnvironment m_scene;
@@ -103,6 +106,9 @@ protected:
 	afx_msg void OnRun();
 	afx_msg void OnOpenScene();
 	afx_msg void OnDestroy();
+	afx_msg void OnStop();
+	afx_msg void OnUpdateStop(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateRun(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
