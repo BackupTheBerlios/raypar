@@ -1079,14 +1079,14 @@ CCylinder::CCylinder()
 {}
 
 
-CCylinder::CCylinder( Ray &axis, double length, double radius, const CVector &color,
+CCylinder::CCylinder( CVector &base, CVector &direction, double length, double radius, const CVector &color,
                      double reflectionCoefficient, 
                      double smoothness, 
                      bool isTransparent, double Betta, double nRefr,
                      double outerBetta, double outerRefr) : CSolid(reflectionCoefficient, smoothness, isTransparent)
 {
-  axis.getOrigin(m_base);
-  axis.getDirection(m_direction);
+  m_base = base;
+  m_direction = direction;
   m_direction.Normalize();
   m_length = length;
   m_radius = radius;
