@@ -216,22 +216,13 @@ extern int yyparse(void);
 
 void CMainFrame::OnOpenScene() 
 {
-//  OPENFILENAME ofn = {sizeof(ofn)};
-//  ofn.hwndOwner = *this;
-//  ofn.lpstrFilter = "*.sc";
-//  char file_name[MAX_PATH];
-//  file_name[0] = 0;
-//  ofn.lpstrFile = file_name;
-//  ofn.nMaxFile = MAX_PATH;
-//  ofn.lpstrTitle = "Open scene file..."
-//  BOOL ret = GetOpenFileName( ofn );
-
   CFileDialog ofd( TRUE, 0, 0, 0, "Scene Files (*.sc)|*.sc|All Files (*.*)", this);
   int ret = ofd.DoModal();
 
   if ( ret == IDOK ){
-    m_scene.Empty(); //we clean the scene
-    m_scene.SetSceneUID(0); //and set it uid to 0 - that means that the scene isn't loaded
+    m_scene_builder.Init(); //this will clean the scene
+               //and set it uid to 0 - that means that the scene isn't loaded
+    
 
     yyin = fopen( ofd.GetPathName(), "r");
     ASSERT( yyin );
@@ -243,7 +234,7 @@ void CMainFrame::OnOpenScene()
       m_scene.SetSceneUID(GetNewSceneUID());
       ASSERT( m_scene.IsValid() );
     }
-    
+    Message( "%d linse parsed", m_scene_builder.GetCurrentLineNumber() );
     fclose(yyin);
     yyin = 0;
   }else{

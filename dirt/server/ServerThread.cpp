@@ -57,7 +57,7 @@ CLinesController::CLinesController()
 
 CLinesController::~CLinesController()
 {
-  delete[] m_lines_info; //we have to free allocated memory
+  Free(); //we have to free allocated memory
 }
 
 //[Re]Initializes th object
@@ -81,6 +81,19 @@ void CLinesController::Init( int lines_count, int line_width, int search_step /*
   m_lines_info = new CLineItem[m_lines_count] ;
   for(int i=0; i<m_lines_count; i++ )
     m_lines_info->AllocateData( m_line_width );
+}
+
+//Frees the allocated memory
+void CLinesController::Free()
+{   
+  for(int i=0; i<m_lines_count; i++ )
+    m_lines_info->FreeData( m_line_width );
+  delete[] m_lines_info;
+  m_lines_info = 0;
+  m_lines_count = 0;
+  m_line_width = 0;
+  m_search_step = 0;
+  m_bCompleted = 0;
 }
 
 //Gives next line to render to client
@@ -243,20 +256,9 @@ int CServerControl::StartServer(int portNum)
   }
 
   //KIRIL: temp:
-  m_lines.Init(300,300);
-
-//  m_scene.Empty();
-//  m_scene.SetSceneUID(0);
-//  m_scene.SetAmbientColor(CVector(0.3,0,0));
-//  m_scene.Add( new CLight( 1.0, 1.0, 1.0, 0, 0, 4) );
-//  m_scene.Add( new CLight( 1.0, 1.0, 0, 0, 0, 6) );
-//  m_scene.Add( new CLight( 0, 1.0, 0, 1, -1, 2) );
-//  m_scene.Add( new CLight( 0, 0, 1.0, 1, 0, 2) );
-//  m_scene.Add( new CLight(1.0,0,0, 0,0,0) );
-//  m_scene.Add( new CSphere(  CVector(0,0,1), 0.4, CVector(1,1,1) ) );
-//  m_scene.Add( new CSphere(  CVector(1,0,0.5), 0.6, CVector(0,1,1) ) );
-  
+  m_lines.Init(400,300);
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
+
   return 0;
 }
 
@@ -301,7 +303,7 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
 
   CSingleLock lines_lock( &m_change_lines_mutex, TRUE );
 
-  *p_scene_id = 0;
+  *p_scene_id = m_scene.GetSceneUID();
   
   p_camera_info->m_camera_pos = CVector(0,0,0);
   p_camera_info->m_camera_y_axis = CVector(0,1,0);

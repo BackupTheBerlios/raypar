@@ -33,16 +33,17 @@ extern CServerSceneBuilder* glb_scene_builder;
 
 digit    [0-9]
 real    [+-]?{digit}+("."{digit}+)?
-ws        [ \t\n]*
+ws        [ \t]*
 
 %%
 
 {ws}+         ; /* skip spaces and new line simbols  ((\-\-)/[^\-])**/
+\n			  glb_scene_builder->IncreaseLineNumber(); /* ++line_num; */
 
 "/"+"*"                 BEGIN(COMMENT);
 <COMMENT>[^*\n]*        { glb_scene_builder->AddComment(yytext); /* eat anything that's not a '*' */ } 
 <COMMENT>"*"+[^*/\n]*   { glb_scene_builder->AddComment(yytext); /* eat up '*'s not followed by '/'s */ }
-<COMMENT>\n             /* ++line_num; */
+<COMMENT>\n             glb_scene_builder->IncreaseLineNumber(); /* ++line_num; */
 <COMMENT>"*"+"/"        BEGIN(INITIAL);
 
 
@@ -61,8 +62,9 @@ ws        [ \t\n]*
 
 
 
-SPHERE    return(IDSPHERE);
-LIGHT     return(IDLIGHT);
+Sphere			 return (IDSPHERE);
+Light			 return (IDLIGHT);
+SetAmbientColor  return (IDSETAMBIENTCOLOR);
 
 
 {real}  {

@@ -44,13 +44,19 @@ class CLinesController
     { 
       delete[] m_data;
     }
-
     
     void AllocateData(int line_width)
     {      
       ASSERT( line_width > 0 );
       m_line_width = line_width;
+      ASSERT( m_data == NULL );
       m_data =  new COLORREF[m_line_width];
+    }
+
+    void FreeData(int line_width)
+    {      
+      delete[] m_data;
+      m_data = 0;
     }
 
     int m_bGiven; //was the line already given?
@@ -63,8 +69,10 @@ class CLinesController
 public:   
    CLinesController();
   ~CLinesController();
-  //[Re]Initializes th object
-   void Init( int lines_count, int line_width, int search_step = 7 );
+  //[Re]Initializes the object
+  void Init( int lines_count, int line_width, int search_step = 7 );
+  //Frees the allocated memory and sets parameters to zero
+  void Free();
 
   //Gives next line to render to client
   //Negative if the scene was alredy finished

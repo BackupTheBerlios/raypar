@@ -23,11 +23,18 @@ static char THIS_FILE[]=__FILE__;
 
 CServerSceneBuilder::CServerSceneBuilder(CEnvironment& scene)
 : m_scene( scene )
-{
-}
+, m_bErrorOccured( false )
+{}
 
 CServerSceneBuilder::~CServerSceneBuilder()
+{}
+
+void CServerSceneBuilder::Init(void)
 {
+  m_scene.Empty();
+  m_scene.SetSceneUID( 0 );
+  ResetLineNumber();
+  ResetErrorFlag();
 }
 
 //zero if successfull
@@ -69,14 +76,27 @@ int CServerSceneBuilder::_AddSolid(CSolid* p_solid)
   }
 }
 
+//zero if successfull
+int CServerSceneBuilder::SetAmbientColor( const CVector& color )
+{
+  if( !color.IsNormalized() ){
+    ParserError( "Invalid color!");
+    return ERROR_INVALID_PARAMS; 
+  }else{
+    m_scene.SetAmbientColor( color );
+    return 0;
+  }   
+}
+
 
 void CServerSceneBuilder::AddComment(LPCSTR comment)
 {
-  ASSERT( 0 ); //wanna see 
+  //temp
   Message("[PARSER]  Comment =  '%s'", comment );
 }
 
 void CServerSceneBuilder::ParserError( LPCSTR error )
 {
+  SetErrorFlag();
   ErrorMessage("[PARSER]  ERROR =  '%s'", error );
 }

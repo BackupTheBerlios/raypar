@@ -30,7 +30,7 @@ void yyerror(const char* str_err)
 %}
 
 %start start
-%token REAL, IDSPHERE, IDLIGHT
+%token REAL, IDSPHERE, IDLIGHT, IDSETAMBIENTCOLOR
 
 %%
 
@@ -39,6 +39,7 @@ start : expr
 expr :
  |expr sphere 
  |expr light 
+ |expr setambientcolor
  ;
 
 
@@ -53,6 +54,14 @@ light : IDLIGHT '(' vector ','  vector ')' ';'
     glb_scene_builder->AddLight( $3.GetVector(), $5.GetVector() );  
  }
 ;
+
+setambientcolor: IDSETAMBIENTCOLOR '(' vector  ')' ';' 
+ {    
+    glb_scene_builder->SetAmbientColor( $3.GetVector() );  
+ }
+;
+
+
 
 
 vector : '[' REAL ',' REAL ',' REAL ']'
