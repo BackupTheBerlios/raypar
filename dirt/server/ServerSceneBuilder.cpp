@@ -49,6 +49,24 @@ int CServerSceneBuilder::AddPlane(const CVector& normal, double distance, const 
   return _AddSolid( new CPlane( normal, distance, color ) );
 }
 
+int CServerSceneBuilder::AddBox(const CVector &pos, const CVector &e0
+    , const CVector &e1, const CVector &e2, const CVector &color)
+{
+  return _AddSolid( new CBox( pos, e0, e1, e2, color ) );
+}
+
+int CServerSceneBuilder::AddTriangle(const CVector &a, const CVector &b
+                                      , const CVector &c, const CVector &color)
+{
+  return _AddSolid( new CTriangle(a, b, c, color) );
+}
+
+int CServerSceneBuilder::AddCylinder(const CVector &base, const CVector &direction
+                               , double length, double radius, const CVector &color)
+{
+  return _AddSolid( new CCylinder( base, direction, length, radius, color ) );
+}
+
 //zero if successfull
 int CServerSceneBuilder::AddLight(const CVector& pos, const CVector& color)
 {

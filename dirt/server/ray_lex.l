@@ -67,6 +67,8 @@ Light			 return ( IDLIGHT );
 SetAmbientColor  return ( IDSETAMBIENTCOLOR );
 Plane		     return ( IDPLANE ); 
 Triangle		 return ( IDTRIANGLE );
+Cylinder		 return ( IDCYLINDER );
+Box			     return ( IDBOX );
 
 
 {real}  {

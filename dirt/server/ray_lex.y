@@ -30,7 +30,8 @@ void yyerror(const char* str_err)
 %}
 
 %start start
-%token REAL, IDSPHERE, IDLIGHT, IDSETAMBIENTCOLOR, IDPLANE, IDTRIANGLE, dlm
+%token dlm, REAL, IDSPHERE, IDLIGHT, IDSETAMBIENTCOLOR, IDPLANE, IDTRIANGLE
+%token IDCYLINDER, IDBOX
 
 %%
 
@@ -41,6 +42,9 @@ expr :
  |expr light 
  |expr setambientcolor
  |expr plane
+ |expr box 
+ |expr triangle
+ |expr cylinder
  ;
 
 
@@ -68,7 +72,22 @@ plane : IDPLANE '(' VECTOR  dlm REAL dlm VECTOR ')' ';'
  }
 ;
 
+box : IDBOX '(' VECTOR dlm VECTOR dlm VECTOR dlm VECTOR dlm VECTOR ')' ';'
+ {
+    glb_scene_builder->AddBox( $3, $5, $7, $9, $11 );
+ }
+;
 
+triangle : IDTRIANGLE '(' VECTOR dlm VECTOR dlm VECTOR dlm VECTOR ')' ';'
+ {
+    glb_scene_builder->AddTriangle( $3, $5, $7, $9 );
+ }
+
+cylinder : IDCYLINDER '(' VECTOR dlm VECTOR dlm REAL dlm REAL dlm VECTOR ')' ';'
+ {
+    glb_scene_builder->AddCylinder( $3, $5, $7, $9, $11 );
+ } 
+ 
 
 VECTOR : '[' REAL dlm REAL dlm REAL ']'
  {

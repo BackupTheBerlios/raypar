@@ -33,8 +33,15 @@ public:
 
   //these functions add objects to scene. zero if successfull
   int AddSphere(const CVector& pos, double radius, const CVector& color);
-  int  AddLight(const CVector& pos, const CVector& color);
-  int  AddPlane(const CVector& normal, double distance, const CVector& color);
+  int AddPlane(const CVector& normal, double distance, const CVector& color);
+  int AddBox(const CVector &pos, const CVector &e0
+       , const CVector &e1, const CVector &e2, const CVector &color);
+  int AddTriangle(const CVector &a, const CVector &b, const CVector &c, const CVector &color);
+  int AddCylinder(const CVector &base, const CVector &direction
+       , double length, double radius, const CVector &color);
+
+  int AddLight(const CVector& pos, const CVector& color);
+  
 
   //zero if successfull
   int SetAmbientColor( const CVector& color );
