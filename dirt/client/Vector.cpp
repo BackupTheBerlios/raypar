@@ -37,4 +37,5 @@ void CVector::Dump(CDumpContext& dc /*= afxDump*/)
 {
   operator << (dc, *this);
 }
+
 #endif//_DEBUG

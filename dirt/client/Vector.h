@@ -97,7 +97,7 @@ inline CVector operator- (const CVector& v)
 inline CVector operator* ( double m, const CVector& v )
 {	return CVector(v.x*m, v.y*m, v.z*m); }
 
-//don't forget about devizion by ZERO !
+//don't forget about devision by ZERO !
 inline CVector operator/ ( const CVector& v, double d )
 {	return CVector(v.x/d, v.y/d, v.z/d); }
 
