@@ -175,7 +175,9 @@ void CMainFrame::OnViewLogwindow()
 void CMainFrame::OnViewOptions() 
 {
 	// TODO: Add your command handler code here
-	ErrorMessage("There is no realization yet");
+	//ErrorMessage("There is no realization yet");
+  COptionsDialog dlg(NULL, &m_serverOptions);
+  dlg.DoModal();
   
 }
 

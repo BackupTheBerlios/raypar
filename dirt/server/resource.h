@@ -7,7 +7,11 @@
 #define IDR_MAINFRAME                   128
 #define IDR_SERVERTYPE                  129
 #define IDD_DIALOG_LOG                  130
+#define IDD_DIALOG_OPTIONS              132
 #define IDC_LOG_LIST                    1001
+#define IDC_EDIT_WIDTH                  1001
+#define IDC_EDIT_HEIGHT                 1002
+#define IDC_EDIT_PORT                   1003
 #define ID_OPEN_SCENE                   32771
 #define ID_RUN                          32774
 #define ID_OPEN_CAMERA                  32775
@@ -19,9 +23,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        132
+#define _APS_NEXT_RESOURCE_VALUE        133
 #define _APS_NEXT_COMMAND_VALUE         32780
-#define _APS_NEXT_CONTROL_VALUE         1001
+#define _APS_NEXT_CONTROL_VALUE         1004
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -127,6 +127,14 @@ SOURCE=..\COMMON\msg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Options.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionsDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\ParserVar.cpp
 # End Source File
 # Begin Source File
@@ -227,6 +235,14 @@ SOURCE=.\MainFrm.h
 # Begin Source File
 
 SOURCE=..\COMMON\msg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Options.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\OptionsDialog.h
 # End Source File
 # Begin Source File
 

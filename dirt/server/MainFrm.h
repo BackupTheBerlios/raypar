@@ -27,6 +27,8 @@
 #include "LogWnd.h"
 #include "COMMON/LogBox.h"
 #include "ServerThread.h"
+#include "Options.h"
+#include "OptionsDialog.h"
 
 //We use this windows message and user code  in order to send 
 //information to the main thread. 
@@ -46,6 +48,7 @@ protected:
 public:
   CLogBox     m_log_box;
   CServerControl m_srv_ctrl;
+  COptions m_serverOptions;
 
 // Operations
 public:
