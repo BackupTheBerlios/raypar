@@ -177,7 +177,6 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "Open scene file...",          ID_OPEN_SCENE
-        MENUITEM "Open camera file...",         ID_OPEN_CAMERA
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
