@@ -34,15 +34,30 @@ enum MessageType {
 };
 
 
-//Adds an error message to (server|client) log depending on
-//what you are building
+//Adds an error message to log  (server or client - the program you build & execute )
 //Allows additional parameters as sprintf() does
 void ErrorMessage( LPCSTR text, ... );
 
-//Adds a message to (server|client) log depending on
-//what you are building
+
+//Adds a message to log  (server or client - the program you build & execute )
 //Allows additional parameters as sprintf() does
 void Message( LPCSTR text, ... );
+
+
+//  Extracts the error information from Exception class
+//  and adds the error message to log.
+//  If bShowMsgBox = TRUE displays message box with error message
+void ErrorMessageFromException( CException* ex, BOOL bShowMsgBox  = FALSE );
+
+
+//  Adds error_text to the log
+//  and displays message box with the error text
+void ErrorMessageWithBox(LPCSTR error_text);
+
+
+//  Builds error message for the provided error code.
+CString GetErrorMessageByErrorCode(DWORD errorCode);
+
 
 
 #endif  _MSG_H

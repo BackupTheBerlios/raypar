@@ -1,16 +1,15 @@
-//****************************************
+//*********************************************************
 //** LogBox.h **
 // Created By: KIRILL
-// On :11/2/2003 01:23:48
+// On: 11/2/2003 01:23:48
 // Comments: CLogBox class definition. CLogBox is a special kind 
 //       of CListBox which allows you to draw beautiful logs
-// 
 //
-//***********************************
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
-//***********************************
+//*********************************************************
 
 #if !defined(AFX_LOGBOX_H__0C5B1003_F4DA_4C72_A3C6_36472B76BD15__INCLUDED_)
 #define AFX_LOGBOX_H__0C5B1003_F4DA_4C72_A3C6_36472B76BD15__INCLUDED_
