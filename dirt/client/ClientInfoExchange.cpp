@@ -45,14 +45,21 @@ int DoGetSceneData(CArchive& arIn, CArchive& arOut, int session_id
 
 //Sends line data to the server
 int DoSendLine(CArchive& arIn, CArchive& arOut, int session_id
-      , int scene_uid, int line_num, void* p_data);
+      , int scene_uid, int line_num, int line_width, void* p_data);
 
 ///////////////////////////////////////////////////////////
 // ClientInfoExchange - does all the information exchange with server
-// CSocket& socket - socket, connected with server
-// CEnvironment*   - the scene, which could be loaded from server if need
-// CCamera*        - the camera, which position is received from the server
-int ClientInfoExchange(CSocket& socket, CEnvironment& scene, CCamera& camera)
+//
+// rendereded_line_number - number of rendered line, negative means no line were rendered
+//                            so we don't send line_data to server
+// COLORREF* line_data - redered line data
+// socket  - socket, connected with server
+// scene  - the scene, which could be loaded from server if need
+// camera  - the camera, which position is received from the server
+// line_number  - number of the line to render
+int ClientInfoExchange(int rendereded_line_number, COLORREF* line_data
+                       , CSocket& socket, CEnvironment& scene
+                        , CCamera& camera, int& line_number )
 {
   CSocketFile sock_file( &socket );
   CArchive arIn ( &sock_file, CArchive::load );
@@ -64,6 +71,21 @@ int ClientInfoExchange(CSocket& socket, CEnvironment& scene, CCamera& camera)
   ret = DoConnectionInit(arIn, arOut, &session_id);
   if (ret)  
     return ret; //error occured, terminating connection.
+
+  if ( rendereded_line_number >= 0 ){ //we've rendered a line
+    ASSERT( scene.GetSceneUID() >0 );
+    ASSERT( line_data );
+
+    int height, width;
+    camera.GetHeight( height );
+    camera.GetWidth ( width );
+    ASSERT( rendereded_line_number < height );
+
+    ret = DoSendLine(arIn, arOut, session_id, scene.GetSceneUID()
+                      , rendereded_line_number, width, line_data);
+    if (ret)  
+       return ret; //error occured, terminating connection.
+  }
 
   CCameraInfo camera_info;
   CImageLinesInfo image_lines_info;
@@ -80,6 +102,20 @@ int ClientInfoExchange(CSocket& socket, CEnvironment& scene, CCamera& camera)
               , camera_info.m_camera_y_axis
               , image_lines_info.m_image_width
               , image_lines_info.m_image_height );
+  
+
+  if ( image_lines_info.m_line_number >= image_lines_info.m_image_height )
+  {
+    ASSERT(0);
+    ErrorMessage("Wrong data received from server. Terminating the connection.");
+    return CIE_COMMUNICATION_ERROR;
+  }
+
+  //line number amy be negative. this means that the server don't want to 
+  line_number = image_lines_info.m_line_number;
+  
+  if( line_number <0 )
+    return CIE_SERVER_WAIT; //we should wait for a while
   
 
   BOOL b_scene_changed = FALSE;
@@ -210,10 +246,55 @@ int DoGetSceneData(CArchive& arIn, CArchive& arOut, int session_id
   //if *p_scene_changed == TRUE than p_scene isn't read.
   CGetSceneData::A get_scene_A( &server_session_id, p_scene_changed, p_scene);
   ret = get_scene_A.read( arIn );
+  
+  ASSERT( !*p_scene_changed ); //TEMP!!! ?K?
+
+  p_scene->SetSceneUID(scene_uid);
 
   if ( ret ){
     ASSERT( 0 );
     ErrorMessage("Error receiving data from server. Terminating connection.");
+    return CIE_COMMUNICATION_ERROR;
+  }
+
+  if ( server_session_id != session_id ){ 
+    //Server sent unknown session id. Very strange. We should terminate connection
+    ASSERT( 0 );
+    ErrorMessage("Wrong session id received from server. Terminating the connection.");
+    return CIE_COMMUNICATION_ERROR;
+  }
+  
+  return 0;
+}
+
+
+//Sends line data to the server
+int DoSendLine(CArchive& arIn, CArchive& arOut, int session_id
+      , int scene_uid, int line_num, int line_width, void* p_data)
+{
+  ASSERT( p_data );
+  
+  arOut << (int) CMD_SEND_LINE_DATA;
+ 
+  CSendLineData::Q send_line_Q( session_id, scene_uid, line_num, 
+                                  line_width, p_data);
+  int ret = send_line_Q.write( arOut );
+  arOut.Flush();
+
+  if ( ret ){
+    ASSERT( 0 );
+    ErrorMessage("Error sending data to server. Terminating connection.");
+    return CIE_COMMUNICATION_ERROR;
+  }
+
+  int server_session_id;
+  CSendLineData::A send_line_A( &server_session_id );
+  ret = send_line_A.read( arIn );
+
+  if ( ret ){ 
+    //Communication error. We should terminate connection
+    ASSERT( 0 );
+    ErrorMessage("Error receiving data from server. Terminating the connection.");
     return CIE_COMMUNICATION_ERROR;
   }
 

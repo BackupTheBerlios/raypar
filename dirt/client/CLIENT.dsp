@@ -108,6 +108,10 @@ SOURCE=.\ClientInfoExchange.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\ClientThread.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\environment.cpp
 # End Source File
 # Begin Source File
@@ -139,14 +143,6 @@ SOURCE=.\simpleTracer.cpp
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
-# End Source File
-# Begin Source File
-
-SOURCE=.\targa.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=.\TestDialog.cpp
 # End Source File
 # Begin Source File
 
@@ -210,10 +206,6 @@ SOURCE=.\StdAfx.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\TestDialog.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\trace.h
 # End Source File
 # Begin Source File
@@ -235,6 +227,10 @@ SOURCE=.\res\CLIENT.ico
 # Begin Source File
 
 SOURCE=.\res\CLIENT.rc2
+# End Source File
+# Begin Source File
+
+SOURCE=.\res\icon1.ico
 # End Source File
 # End Group
 # Begin Source File

@@ -17,6 +17,14 @@
 #endif // _MSC_VER > 1000
 
 #include "COMMON/LogBox.h"
+#include "simpletracer.h"
+#include "environment.h"
+#include "geometry.h"
+
+//Client thread use this message to inform main thread that 
+//line was rendered and the client thread finished its work
+#define WM_CLIENT_LINE_RENDERED ( WM_USER+23 )
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CClientDlg dialog
@@ -53,8 +61,22 @@ public:
 protected:
 	HICON m_hIcon;  
 
+  CEnvironment m_scene;
+  CCamera   m_camera;
+  int m_line_to_render;
+  COLORREF * m_line_data;
+
   //renders line of image
-  COLORREF* RenderImageLine(CEnvironment& scene, CCamera& camera, int line_number);
+  void StartRenderThread(CEnvironment& scene, CCamera& camera, int line_number);
+
+  //is called when new line was rendered and client thread terminates 
+  LRESULT OnLineRendered(WPARAM wParam, LPARAM lParam);
+
+  //does all information exchange with server
+  void DoCommunications(void);
+
+  //starts client rendering process
+  void RenderImageLine(void);
 
 	// Generated message map functions
 	//{{AFX_MSG(CClientDlg)

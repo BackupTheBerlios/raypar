@@ -285,7 +285,11 @@ private:
   CPlane m_top;
 public:
   CCylinder();
-  CCylinder( CVector &base, CVector &direction, double length, double radius, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0, double outerRefr = 1.0 );
+  CCylinder( CVector &base, CVector &direction, double length, double radius
+             , const CVector &color, double reflectionCoefficient = 1.0
+             , double smoothness = 1.0, bool isTransparent = false
+             , double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0
+             , double outerRefr = 1.0 );
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;

@@ -28,16 +28,15 @@
 #include "geometry.h"
 //#include "TestDialog.h"
 #include "ClientInfoExchange.h"
+#include "ClientThread.h"
 
-//#include <atlimage.h>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
 
-//for debug purposes
-#define RENDER_FULL_IMAGE()  1
 
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
@@ -80,8 +79,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 };
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
-  //{{AFX_MSG_MAP(CAboutDlg)
-  // No message handlers
+  //{{AFX_MSG_MAP(CAboutDlg)    
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -98,6 +96,8 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
   // Note that LoadIcon does not require a subsequent DestroyIcon in Win32
   m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
   m_bWannaClose = false;
+  m_line_to_render = -1; //negative means that nothing was rendered yet
+  m_line_data = 0;
 };
 
 void CClientDlg::DoDataExchange(CDataExchange* pDX)
@@ -120,6 +120,7 @@ BEGIN_MESSAGE_MAP(CClientDlg, CDialog)
   //ON_BN_CLICKED(IDC_BUTTON_TEST, OnButtonTest)
   ON_BN_CLICKED(IDC_BUTTON_START, OnButtonStart)
   ON_WM_KEYDOWN()
+  ON_MESSAGE( WM_CLIENT_LINE_RENDERED, OnLineRendered )
   //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -315,12 +316,47 @@ BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 
 void CClientDlg::OnButtonStart() 
 {
-  if (!UpdateData())   //invalid input data entered
+  if ( !UpdateData() )   //invalid input data entered
     return;
 
-  CEnvironment scene;
-  CCamera camera;
+  DoCommunications();
+};
 
+void CClientDlg::RenderImageLine()
+{
+  Message("RenderImageLine");
+  ASSERT( m_line_to_render >=0 );
+  ASSERT( m_scene.IsValid() );
+
+  SClientThreadParam *cp = new SClientThreadParam; //this memory will be freed
+                                              //by the client thread
+  cp->camera = &m_camera;
+  cp->scene = &m_scene;  
+  cp->line_number = m_line_to_render;
+  cp->hwnd_main = *this;
+
+  int width;
+  m_camera.GetWidth( width );
+  ASSERT( width>=0 );
+  m_line_data = new COLORREF[width];
+  cp->data = m_line_data;
+
+  CWinThread* thr = StartClientThread(cp);
+  ASSERT( thr );
+}
+
+//Client thread use WM_CLIENT_LINE_RENDERED message to inform main thread that 
+//new line was rendered and client thread finished its work
+LRESULT CClientDlg::OnLineRendered(WPARAM wParam, LPARAM lParam)
+{
+  Message("OnLineRendered");
+  DoCommunications();
+  return 1; //this means that we've processed the message
+}
+
+
+void CClientDlg::DoCommunications(void)
+{
   TRY{
     CSocket socket;
     BOOL res;
@@ -334,53 +370,34 @@ void CClientDlg::OnButtonStart()
       if (!res){        
         CString err_text = GetErrorMessageByErrorCode();
         ErrorMessageWithBox( err_text );
-      }else{   
-        int line_number;
-        int ret = ClientInfoExchange(socket, scene, camera, line_number);
+      }else{           
+        int new_line_to_render;
+        int ret = ClientInfoExchange(m_line_to_render, m_line_data
+             , socket, m_scene, m_camera, new_line_to_render );
+        if (m_line_data){
+          delete[] m_line_data;
+          m_line_data = 0;
+        }
+        m_line_to_render = new_line_to_render;
+          
         socket.Close();
         if ( CIE_NORMAL_RENDER_RETURN != ret )
           ErrorMessage("Error %d!", ret);
         else{
-          RenderImageLine( scene, camera );          
+          if( m_line_to_render >=0 )
+            RenderImageLine();
         }
       }
     }
   }
   CATCH(CArchiveException, pEx){
     //this exception probably means that the connection was closed
-    #ifdef _DEBUG
-      ErrorMessageFromException(pEx);
-    #endif//DEBUG
+    //so we ignore it
+  }AND_CATCH(CFileException, pEx){
+    //this exception probably means that the connection was closed
+    //so we ignore it
   }AND_CATCH_ALL(pEx){
     ErrorMessageFromException(pEx, TRUE);
   }
   END_CATCH_ALL
-};
-
-COLORREF* CClientDlg::RenderImageLine(CEnvironment& scene, CCamera& camera, int line_number)
-{
-  int  imgWidth, imgHeight;
-  camera.GetWidth( imgWidth );
-  camera.GetHeight( imgHeight );
- 
-  COLORREF * data = new COLORREF[imgWidth]; 
-
-  SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
-  tracer.SetBackgroundColor( CVector(0,0,0.5) );
-
-  Medium			medium;
-  medium.Betta = 0;
-  medium.nRefr = 1;
-  CVector	color;
-
-  for( int i = 0; i < imgWidth; i ++){      
-    RenderPixel( scene, medium, camera, tracer, i,j,color);
-
-    BYTE c_red =   (BYTE) (color.x*255.0);
-    BYTE c_green = (BYTE) (color.y*255.0);
-    BYTE c_blue =  (BYTE) (color.z*255.0);
-
-    data[i] = RGB(c_blue, c_green, c_red); //Exactly this order!
-      
-  };
 }
