@@ -173,8 +173,7 @@ int  CLinesController::GetLine2Render(void)
       }
   }
 
-  if (line_num < 0){    
-    ASSERT( 0 ); //all lines completed!
+  if (line_num < 0){
     m_bCompleted = true;
     return -1; //negative - no lines to render
   }

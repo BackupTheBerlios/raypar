@@ -52,7 +52,6 @@ expr :
  |expr box 
  |expr triangle
  |expr cylinder 
- |error { yyerrok; }
  ;
 
 

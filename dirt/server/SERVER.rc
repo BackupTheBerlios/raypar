@@ -364,9 +364,10 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_RUN                  "Run or stop rendering process"
+    ID_RUN                  "Run rendering process"
     ID_VIEW_LOGWINDOW       "Show or hide the log window\nToggle log window"
     ID_VIEW_OPTIONS         "Display options page"
+    ID_STOP                 "Stop rendering process"
 END
 
 #endif    // English (U.S.) resources
