@@ -55,7 +55,7 @@ CArchive& operator << (CArchive& ar, const CVector& v)
 
 CArchive& operator >> (CArchive& ar, CVector& v)
 {
-  ASSERT( ar.IsStoring() );
+  ASSERT( ar.IsLoading() );
   ar >> v.x >> v.y >> v.z;
   return ar;
 }
