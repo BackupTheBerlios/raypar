@@ -161,19 +161,23 @@ protected:
   bool m_isTransparent;
   
 public:
-   
-  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 ) 
-    : m_color(0,0,0)    
+
+  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0
+          , bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 ) 
+  : m_color(0,0,0)
   {
     m_reflectionCoefficient =  reflectionCoefficient;
     m_smoothness = smoothness;
-    m_isTransparent = false;
-
+    m_isTransparent = isTransparent;
+    medium.Betta = Betta;
+    medium.nRefr = nRefr;
+  
     ASSERT( IsValid() );
   };
 
   virtual ~CSolid()
   {}
+
 
   // ?K?  No comment!!! What does this do with its perameters?
   virtual int Intersect( const Ray &ray, double &distance) const = 0;
@@ -181,18 +185,15 @@ public:
   // ?K?  No comment!!! What does this do with its perameters?
   virtual void Reflect( const Ray &falling, Ray &reflected) const = 0;
 
-  //do nothing by default as Solid is by default opaque 
-  // ?K?  What does this do with its perameters?
-  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const 
-  {}  //?K?  must be = 0;
-  
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
+
   //returns the color of the point, in which given ray
   //intersects the solid
   //by default (in this class) always returns white
   //can be redefined returning to check whether there is actually
   //an intersection, to support colored and textured objects
   virtual void GetColor( const Ray &falling, CVector &color) const;
-  
+
   //the refractable object may be opaque
   //which is a default value
   //if we change this, we should redefine
@@ -231,13 +232,13 @@ public:
     ASSERT( smoothness > VECTOR_EQUAL_EPS );
     m_smoothness = smoothness;
   };
- 
-   virtual void SetColor( const CVector &color )
-   {
-     ASSERT( color.IsNormalized() );
-     m_color = color;
-   };
 
+  virtual void SetColor( const CVector &color )
+  {
+    ASSERT( color.IsNormalized() );
+    m_color = color;
+  };
+  
   //checks wether the oject is valid
   virtual int IsValid(void) const;
 
@@ -272,82 +273,6 @@ protected:
 
   //helper function - creates and returns object be its ObjectID
   static CSolid* NewObjectByID(int id);
-
-=======
-  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 ) :
-      m_color(0,0,0)
-      {
-        m_reflectionCoefficient =  reflectionCoefficient;
-        m_smoothness = smoothness;
-        m_isTransparent = isTransparent;
-        medium.Betta = Betta;
-        medium.nRefr = nRefr;
-        
-        ASSERT( IsValid() );
-      };
-      
-      // ?K?  No comment!!! What does this do with its perameters?
-      virtual int Intersect( const Ray &ray, double &distance) const = 0;
-      
-      // ?K?  No comment!!! What does this do with its perameters?
-      virtual void Reflect( const Ray &falling, Ray &reflected) const = 0;
-      
-      virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
-      
-      //returns the color of the point, in which given ray
-      //intersects the solid
-      //by default (in this class) always returns white
-      //can be redefined returning to check whether there is actually
-      //an intersection, to support colored and textured objects
-      virtual void GetColor( const Ray &falling, CVector &color) const;
-      
-      //the refractable object may be opaque
-      //which is a default value
-      //if we change this, we should redefine
-      //Refract and GetInnerMedium functions
-      virtual bool IsTransparent(void) const
-      {
-        return m_isTransparent;
-      };
-      
-      virtual double GetReflectionCoefficient(void) const
-      {
-        return m_reflectionCoefficient;
-      };
-      
-      virtual void SetReflectionCoefficient(double reflectionCoefficient)
-      {
-        //do not touch ">=" here!!
-        //reflectionCoefficient CANNOT be negative, even if
-        //its absolute value is very small
-        ASSERT( (reflectionCoefficient >= 0) && !(reflectionCoefficient > 1.0) );
-        m_reflectionCoefficient = reflectionCoefficient;
-      };
-      
-      //smoothness is the exponent of the cosine of
-      //angle between normale direction and light direction
-      //in computing the lighting. The more id the smoothness
-      //the more focused spot is left by a light source
-      //see SimpleTracer::ProcessLights for usage
-      virtual double GetSmoothness(void) const
-      {
-        return m_smoothness;
-      };
-      
-      virtual void SetSmoothness(double smoothness )
-      {
-        ASSERT( smoothness > VECTOR_EQUAL_EPS );
-        m_smoothness = smoothness;
-      };
-      
-      virtual void SetColor( const CVector &color )
-      {
-        ASSERT( color.IsNormalized() );
-        m_color = color;
-      };
-      
-      virtual int IsValid(void) const;
->>>>>>> 1.22
 }; 
 
 ///////////////////////////////////////////////////////////

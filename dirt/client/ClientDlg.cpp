@@ -27,6 +27,7 @@
 #include "simpletracer.h"
 #include "geometry.h"
 #include "TestDialog.h"
+#include "ClientInfoExchange.h"
 
 //#include <atlimage.h>
 #ifdef _DEBUG
@@ -88,8 +89,8 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
 : CDialog(CClientDlg::IDD, pParent)
 {
   //{{AFX_DATA_INIT(CClientDlg)
-  m_edit_addr = _T("");
-  m_edit_port = 0;
+  m_edit_addr = _T("127.0.0.1");
+  m_edit_port = 8700;
   //}}AFX_DATA_INIT
   // Note that LoadIcon does not require a subsequent DestroyIcon in Win32
   m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -152,6 +153,7 @@ BOOL CClientDlg::OnInitDialog()
   int ret = m_log_box.Attach( GetDlgItem( IDC_LOG_LIST )->m_hWnd ); //We have to attach 
   //m_log_box to the dialog item
   ASSERT( ret ); //Check whether we've attached successfully or not
+
   return TRUE;  // return TRUE  unless you set the focus to a control
 };
 
@@ -213,6 +215,19 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 }
 
 
+BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam) 
+{
+  //to prevent closing by pressing ENTER or ESC we ignore IDOK and IDCANCEL commands
+  //but to allow closing by pressing cross button we have to check wether we have
+  //received WM_SYSCOMMAND + SC_CLOSE message or not. We do this in OnSysCommand() function
+  //and set the value m_bWannaClose there.
+
+  if ( (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) && !m_bWannaClose )
+    return TRUE;
+  else
+    return CDialog::OnCommand(wParam, lParam);
+};
+
 void CClientDlg::OnButtonTest() 
 {
   //KIRILL: Temporal button and function for testing of some features
@@ -229,8 +244,8 @@ void CClientDlg::OnButtonTest()
   //CColorSphere	solidObject2(sphereCenter2, 2,white);
   //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
   //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
-  //CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
-  //            CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
+  CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
+                 CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
 
   CVector			a(-1, -2, 0.5), b(1,-2,0.5), c(0,1,0.5);
   CTriangle		solidObject3( a, b, c, red, 0.1, 1.0, true);
@@ -252,19 +267,20 @@ void CClientDlg::OnButtonTest()
   CVector			color;
   Medium			medium;
 
-  cylinder.SetSmoothness(5);
+//  cylinder.SetSmoothness(5);
   medium.Betta = 0;
   medium.nRefr = 1;
-  //camera.Yaw(-0.8);
-  //camera.Shift(-3);
+  //camera.Yaw(-0.4);
+  camera.Shift(1);
   //camera.Move(-3);
   //scene.Add( &solidObject );
   //solidObject.SetSmoothness( 10 );
   //scene.Add( &solidObject2 );
   scene.Add( &solidObject3 );
   scene.Add( &cylinder );
+
   //scene.Add( &lightSource );
-  scene.Add( &lightSource2 );
+//  scene.Add( &lightSource2 );
   //scene.Add( &lightSource3 );
   //scene.Add( &lightSource4 );
 
@@ -275,7 +291,7 @@ void CClientDlg::OnButtonTest()
   for( int i = 0; i < imgWidth; i ++)
     for (int j = 0; j < imgHeight; j++)
     {
-      CRenderer::RenderPixel( scene, medium, camera, tracer, i,j,color);
+      RenderPixel( scene, medium, camera, tracer, i,j,color);
 
       BYTE c_red = (char) (color.x*255.0);
       BYTE c_green = (char) (color.y*255.0);
@@ -296,44 +312,74 @@ void CClientDlg::OnButtonStart()
   if (!UpdateData())   //invalid input data entered
     return;
 
-  TRY{
-    CSocket* sock= new CSocket;
-    BOOL res;
-    res = sock->Create();
+  CEnvironment scene;
+  CCamera camera;
 
-    if (!res){
-      DWORD err = GetLastError();
-      CString err_text = GetErrorMessageByErrorCode(err);
+  TRY{
+    CSocket socket;
+    BOOL res;
+    res = socket.Create();
+
+    if (!res){      
+      CString err_text = GetErrorMessageByErrorCode();
       ErrorMessageWithBox( err_text );
     }else{
-      res = sock->Connect(m_edit_addr, m_edit_port);
-      if (!res){
-        DWORD err = GetLastError();
-        CString err_text = GetErrorMessageByErrorCode(err);
+      res = socket.Connect(m_edit_addr, m_edit_port);
+      if (!res){        
+        CString err_text = GetErrorMessageByErrorCode();
         ErrorMessageWithBox( err_text );
-      }else{
-        sock->Close();
+      }else{   
+        int ret = ClientInfoExchange(socket, scene, camera);
+        socket.Close();
+        if ( CIE_NORMAL_RENDER_RETURN != ret )
+          ErrorMessage("Error %d!", ret);
+        else{
+          RenderImage( scene, camera );          
+        }
       }
     }
   }
   CATCH(CMemoryException, pEx){
     ErrorMessageFromException(pEx, TRUE);
-    AfxAbort(); //can do nothing :)
+    AfxAbort(); //can do nothing
   }AND_CATCH_ALL(pEx){
     ErrorMessageFromException(pEx, TRUE);
   }
   END_CATCH_ALL
 };
 
-BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam) 
+void CClientDlg::RenderImage(CEnvironment& scene, CCamera& camera)
 {
-  //to prevent closing by pressing ENTER or ESC we ignore IDOK and IDCANCEL commands
-  //but to allow closing by pressing cross button we have to check wether we have
-  //received WM_SYSCOMMAND + SC_CLOSE message or not. We do this in OnSysCommand() function
-  //and set the value m_bWannaClose there.
+  int  imgWidth, imgHeight;
+  camera.GetWidth( imgWidth );
+  camera.GetHeight( imgHeight );
 
-  if ( (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) && !m_bWannaClose )
-    return TRUE;
-  else
-    return CDialog::OnCommand(wParam, lParam);
-};
+  ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
+  COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
+
+  SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
+  tracer.SetBackgroundColor( CVector(0,0,0.5) );
+
+  Medium			medium;
+  medium.Betta = 0;
+  medium.nRefr = 1;
+  CVector	color;
+
+  for( int i = 0; i < imgWidth; i ++)
+    for (int j = 0; j < imgHeight; j++)
+    {      
+      RenderPixel( scene, medium, camera, tracer, i,j,color);
+
+      BYTE c_red = (char) (color.x*255.0);
+      BYTE c_green = (char) (color.y*255.0);
+      BYTE c_blue = (char) (color.z*255.0);
+
+      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
+      //image.SetPixelRGB( i,j, c_red, c_green, c_blue);
+    };
+
+  CTestDialog test_dlg( imgWidth, imgHeight, img);
+  test_dlg.DoModal();
+  //image.Save("out.bmp");
+  delete[] img;
+}

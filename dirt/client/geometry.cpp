@@ -53,6 +53,12 @@
 // REVISION by Vader, on 1/26/2004 
 // Comments: IsValid() added for CBox and CPlane
 //*********************************************************
+// REVISION by KIRILL, on 1/28/2004 23:59:21
+// Comments: read/write methods for CSphere added.
+//*********************************************************
+// REVISION by KIRILL, on 1/29/2004 02:33:45
+// Comments: default CTriangle constructor added
+//*********************************************************
 // REVISION by Tonic, on 01/29/2004
 // Comments: Modified CPlane, CTriangle constructors to 
 // support transparency, modified CBox::IsValid
@@ -70,280 +76,8 @@ static char THIS_FILE[] = __FILE__;
 #include "stdafx.h"
 #include "geometry.h"
 
-void CCylinder::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside ) const
-{
-  Ray reflected;
-  Reflect( falling, reflected );
-  CVector fallingOrigin, fallingDirection, reflectedDirection, normale, reflectedOrigin;
-  falling.getOrigin(fallingOrigin);
-  reflected.getOrigin(reflectedOrigin);
-  refracted.setOrigin( reflectedOrigin );
-  falling.getDirection(fallingDirection);
-  reflected.getDirection(reflectedDirection);
-  normale = reflectedDirection - fallingDirection;
-  normale.Normalize();
-  
-  double horizontalProjection = (fallingOrigin - m_base)*m_direction;
-  if(horizontalProjection > 0 && 
-    horizontalProjection < m_length && 
-    (fallingOrigin - m_base)*(fallingOrigin - m_base) - horizontalProjection*horizontalProjection < m_radius*m_radius)
-  {
-    //the ray begins inside the cylinder
-    CVector parallelComponent = (fallingDirection - (fallingDirection*normale) * normale)*m_innerMedium.nRefr/m_outerMedium.nRefr;
-    if( geq(parallelComponent.Length(),1))
-    {
-      //full inner reflection
-      refracted.setDirection( reflectedDirection );
-      refractedMedium.Betta = m_innerMedium.Betta;
-      refractedMedium.nRefr = m_innerMedium.nRefr;
-      outside = false;
-    }
-    else
-    {
-      //refracted ray went outside of the cylinder
-      CVector refractedDirection = parallelComponent - normale*sqrt( 1 - parallelComponent*parallelComponent);
-      refracted.setDirection( refractedDirection );
-      refractedMedium.Betta = m_outerMedium.Betta;
-      refractedMedium.nRefr = m_outerMedium.nRefr;
-      outside = true;
-    }
-  }
-  else
-  {
-    //the ray begins outside
-    CVector parallelComponent = (fallingDirection - (fallingDirection*normale) * normale)*m_outerMedium.nRefr/m_innerMedium.nRefr;
-    if( geq(parallelComponent.Length(),1))
-    {
-      //full inner reflection. The ray stayed outside
-      refracted.setDirection( reflectedDirection );
-      refractedMedium.Betta = m_outerMedium.Betta;
-      refractedMedium.nRefr = m_outerMedium.nRefr;
-      outside = true;
-    }
-    else
-    {
-      //refracted ray went inside the cylinder
-      CVector refractedDirection = parallelComponent - normale*sqrt( 1 - parallelComponent*parallelComponent);
-      refracted.setDirection( refractedDirection );
-      refractedMedium.Betta = m_innerMedium.Betta;
-      refractedMedium.nRefr = m_innerMedium.nRefr;
-      outside = false;
-    }
-  }
-};
 
-void CCylinder::Reflect( const Ray &falling, Ray &reflected) const
-{
-  double distance = INFINITY;
-  
-  if( !Intersect( falling, distance ) )
-    return;
-  
-  CVector point, direction;
-  falling.getDirection(direction);
-  falling.getPoint( distance, point );
-  reflected.setOrigin( point );
-  
-  //if the point is on one of the covers
-  CVector normale;
-  if ( eq( (point - m_base)*m_direction, 0) || eq( (point - m_base)*m_direction, m_length))
-  {
-    //if the point is on one of the covers
-    normale = m_direction;
-  }
-  else
-  {
-    //the normale is the corresponding radius, normalized to the length of one
-    normale = (point - m_base - ((point - m_base)*m_direction)*m_direction);
-    normale.Normalize();
-  };
-  CVector newDirection = direction - 2*normale *(normale *direction);
-  reflected.setDirection(newDirection);
-};
-
-int CCylinder::Intersect( const  Ray &ray, double &distance ) const
-{
-  ASSERT( distance > 0 );
-  
-  //first check intersection with the top and bottom covers
-  double topDistance, bottomDistance;
-  int topIntersection, bottomIntersection;
-  topDistance = bottomDistance = distance;
-  
-  bottomIntersection = m_bottom.Intersect( ray, bottomDistance );
-  topIntersection = m_top.Intersect( ray, topDistance );
-  
-  if( bottomIntersection && topIntersection)
-  {
-    //we intersect with poth planes
-    //and the ray origin is therefore outside of the cylinder
-    double newDistance = min(topDistance, bottomDistance);
-    CVector point;
-    ray.getPoint( newDistance, point );
-    //distance to cover center in the nearest plane
-    double planeDistance = (point - ((topDistance < bottomDistance) ? (m_base + m_length*m_direction) : m_base)).Length();
-    if( planeDistance < m_radius )
-    {
-      //intersection with the cover
-      distance = newDistance;
-      return 1;
-    }
-    //may be an intersection with lateral surface, to be checked later
-  }
-  else if(bottomIntersection || topIntersection)
-  {
-    //the ray origin is between the covers containing planes
-    double newDistance = min(topDistance, bottomDistance);
-    bool isBottom = (topDistance > bottomDistance) ? true : false;
-    CVector point, center;
-    ray.getPoint( newDistance, point );
-    center = isBottom ? m_base : (m_base + m_length*m_direction);
-    double planeDistance;
-    planeDistance = (point - center).Length();
-    if( planeDistance < m_radius )
-    {
-      //there is an intersection with the cover
-      //if the ray origin is inside, this is what we need
-      CVector rayOrigin;
-      ray.getOrigin(rayOrigin);
-      if( ((rayOrigin - point)*(rayOrigin - point) - ((rayOrigin - point)*m_direction)*((rayOrigin - point)*m_direction)) < m_radius*m_radius )
-      {
-        distance = newDistance;
-        return 1;
-      };
-    };
-    //may be an intersection with lateral surface, to be checked later
-  };
-  
-  //no intersection with the covers, so check for the intersection with the lateral surface
-  CVector rayOrigin, rayDirection;
-  ray.getOrigin(rayOrigin);
-  ray.getDirection(rayDirection);
-  
-  //The equation is | point - cylOrigin - cylDirection(cylDirection, point - cylOrigin) | = r
-  //it determines the points of ray intersection with the endless cylinder
-  CVector a = rayOrigin - m_base - m_direction*(m_direction*(rayOrigin - m_base));
-  CVector b = rayDirection - m_direction*(m_direction*rayDirection);
-  
-  //the equation is |a + bt| = r
-  //equivalent to a^2 + 2(a,b)t + b^2t = r^2
-  
-  //first check whether |b| != 0
-  if( leq( b.Length(), 0) )
-  {
-    //the ray is parallel to the axis
-    //no intersection because possible covers intersection has been already investigated
-  }
-  else
-  {
-    //the equation is indeed quadratic
-    double discriminant = pow( a*b, 2.0) - b*b*(a*a - m_radius*m_radius);
-    
-    //we have no more than 1 intersection with the endless
-    //cylinder, so retun no intersection
-    if( leq(discriminant,0) )
-    {
-      return 0;
-    }
-    else
-    {
-      double t1 = (-(a*b) + sqrt(discriminant))/(b*b);
-      double t2 = (-(a*b) - sqrt(discriminant))/(b*b);
-      double t;
-      //now choose which root to check
-      if(leq(min(t1,t2),0))
-        t = max(t1,t2);
-      else
-        t = min(t1,t2);
-      
-      //we intersect the endless cylinder close enough to the ray origin
-      //VECTOR_EQUAL_EPS - zatychka
-      if( (t > VECTOR_EQUAL_EPS) && (t < distance))
-      {
-        //check if we are between the covers containing planes
-        CVector point;
-        ray.getPoint( t, point );
-        double height = (point - m_base)*m_direction;
-        if( (height > 0) && (height < m_length))
-        {
-          distance = t;
-          return 1;
-        };
-      };
-    };
-  };
-  //no intersection
-  return 0;
-};
-
-CCylinder::CCylinder( Ray &axis, double length, double radius, const CVector &color,
-                     double reflectionCoefficient, 
-                     double smoothness, 
-                     bool isTransparent, double Betta, double nRefr,
-                     double outerBetta, double outerRefr) : CSolid(reflectionCoefficient, smoothness, isTransparent)
-{
-  axis.getOrigin(m_base);
-  axis.getDirection(m_direction);
-  m_direction.Normalize();
-  m_length = length;
-  m_radius = radius;
-  m_bottom.SetPosition( m_direction , -m_base*m_direction );
-  m_top.SetPosition( m_direction, -m_base*m_direction - m_length );
-  
-  m_innerMedium.Betta = Betta;
-  m_innerMedium.nRefr = nRefr;
-  m_outerMedium.Betta = outerBetta;
-  m_outerMedium.nRefr = outerRefr;
-  
-  SetColor( color );
-  
-  ASSERT( IsValid() );
-};
-
-int CCylinder::IsValid(void) const
-{
-  if( !CSolid::IsValid() )
-    return 0;
-  
-  if( (m_length < VECTOR_EQUAL_EPS) || (m_length > INFINITY))
-    return 0;
-  
-  if( (m_radius < VECTOR_EQUAL_EPS) || (m_radius > INFINITY))
-    return 0;
-  
-  if ( !geq(m_innerMedium.Betta,0) )
-    return 0;
-  
-  if ( !geq(m_innerMedium.nRefr,0) )
-    return 0;
-  
-  if ( !geq(m_outerMedium.Betta,0) )
-    return 0;
-  
-  if ( !geq(m_outerMedium.nRefr,0) )
-    return 0;
-  
-  CVector normale;
-  m_bottom.getNormale( normale );
-  if( !leq((normale - m_direction).Length(),0) )
-    return 0;
-  
-  m_top.getNormale( normale );
-  if( !leq((normale - m_direction).Length(),0) )
-    return 0;
-  
-  double bottomDistance, topDistance;
-  m_bottom.getDistance( bottomDistance );
-  m_top.getDistance( topDistance );
-  
-  if( !leq(fabs(m_direction*m_base + bottomDistance), 0) )
-    return 0;
-  
-  if( !leq(fabs(bottomDistance - topDistance - m_length),0) )
-    return 0;
-  
-  return 1;
-};
+#define ERROR_WRONG_DATA 1
 
 ///////////////////////////////////////////////////////////
 //  CSphere
@@ -369,6 +103,49 @@ CSphere::CSphere( const CVector &position, double radius, const CVector &color, 
   
   ASSERT( IsValid() );
 };
+
+int CSphere::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  
+  WriteThisClassId( ar );
+  ar << m_position;
+  ar << m_radius;
+  ar << m_color;
+  ar << m_innerMedium;
+  ar << m_outerMedium;
+  return 0;
+}
+
+int CSphere::read (CArchive& ar)
+{
+  ar >> m_position;
+  ar >> m_radius;
+  ar >> m_color;
+  ar >> m_innerMedium;
+  ar >> m_outerMedium;
+
+  if ( !IsValid() ){
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  }  
+  return 0;
+}
+
+
+int  CSphere::IsValid(void) const
+{
+  if( !CSolid::IsValid() )  return 0;
+  
+  if( !(m_radius > VECTOR_EQUAL_EPS) || !(m_radius < INFINITY) )  return 0;  
+  if ( !geq(m_innerMedium.Betta,0) ) return 0;
+  if ( !geq(m_innerMedium.nRefr,0) ) return 0;
+  if ( !geq(m_outerMedium.Betta,0) ) return 0;
+  if ( !geq(m_outerMedium.nRefr,0) ) return 0;
+  
+  return 1;
+};
+
 
 void CSphere::SetPosition( const CVector &position )
 {
@@ -577,28 +354,6 @@ void CSphere::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedi
   }
 };
 
-int  CSphere::IsValid(void) const
-{
-  if( !CSolid::IsValid() )
-    return 0;
-  
-  if( !(m_radius > VECTOR_EQUAL_EPS) || !(m_radius < INFINITY) )
-    return 0;
-  
-  if ( !geq(m_innerMedium.Betta,0) )
-    return 0;
-  
-  if ( !geq(m_innerMedium.nRefr,0) )
-    return 0;
-  
-  if ( !geq(m_outerMedium.Betta,0) )
-    return 0;
-  
-  if ( !geq(m_outerMedium.nRefr,0) )
-    return 0;
-  
-  return 1;
-};
 
 ///////////////////////////////////////////////////////////////////
 // CPlane 
@@ -1067,12 +822,24 @@ int CBox::IsValid(void) const
 // CTriangle
 ///////////////////////////////////////////////////////////
 
+
+
+CTriangle::CTriangle()
+: m_a(0,0,0)
+, m_b(0,0,0)
+, m_c(0,0,0)
+, m_normal(0,0,0)
+, m_distance(0)
+{}
+
+
 CTriangle::CTriangle(const CVector &a, const CVector &b, 
                      const CVector &c, const CVector &color,
                      double reflectionCoefficient, 
                      double smoothness, 
                      bool isTransparent, double Betta, double nRefr) 
-                     : CSolid(reflectionCoefficient, smoothness, isTransparent, Betta, nRefr)
+
+: CSolid(reflectionCoefficient, smoothness, isTransparent, Betta, nRefr)
 {
   //compute two sides dot product
   //if it is really a triangle, it wil be nonzero
@@ -1191,3 +958,284 @@ int CTriangle::IsValid(void) const
   
   return 1;
 };
+
+
+
+///////////////////////////////////////////////////////////
+//  CCylinder
+
+CCylinder::CCylinder()
+: m_length(0)
+, m_radius(0)
+, m_base(0,0,0)
+, m_direction(0,0,0)
+//?K?  init mediums and planes!!!
+{}
+
+
+CCylinder::CCylinder( Ray &axis, double length, double radius, const CVector &color,
+                     double reflectionCoefficient, 
+                     double smoothness, 
+                     bool isTransparent, double Betta, double nRefr,
+                     double outerBetta, double outerRefr) : CSolid(reflectionCoefficient, smoothness, isTransparent)
+{
+  axis.getOrigin(m_base);
+  axis.getDirection(m_direction);
+  m_direction.Normalize();
+  m_length = length;
+  m_radius = radius;
+  m_bottom.SetPosition( m_direction , -m_base*m_direction );
+  m_top.SetPosition( m_direction, -m_base*m_direction - m_length );
+  
+  m_innerMedium.Betta = Betta;
+  m_innerMedium.nRefr = nRefr;
+  m_outerMedium.Betta = outerBetta;
+  m_outerMedium.nRefr = outerRefr;
+  
+  SetColor( color );
+  
+  ASSERT( IsValid() );
+};
+
+
+int CCylinder::IsValid(void) const
+{
+  if( !CSolid::IsValid() ) return 0;
+  
+  if( (m_length < VECTOR_EQUAL_EPS) || (m_length > INFINITY)) return 0;  
+  if( (m_radius < VECTOR_EQUAL_EPS) || (m_radius > INFINITY)) return 0;
+  
+  if ( !geq(m_innerMedium.Betta,0) ) return 0;  
+  if ( !geq(m_innerMedium.nRefr,0) ) return 0;
+  if ( !geq(m_outerMedium.Betta,0) ) return 0;
+  if ( !geq(m_outerMedium.nRefr,0) ) return 0;
+  
+  CVector normale;
+  m_bottom.getNormale( normale );
+  if( !leq((normale - m_direction).Length(),0) ) 
+    return 0;
+  
+  m_top.getNormale( normale );
+  if( !leq((normale - m_direction).Length(),0) ) 
+    return 0;
+  
+  double bottomDistance, topDistance;
+  m_bottom.getDistance( bottomDistance );
+  m_top.getDistance( topDistance );
+  
+  if( !leq(fabs(m_direction*m_base + bottomDistance), 0) ) 
+    return 0;
+  if( !leq(fabs(bottomDistance - topDistance - m_length),0) ) 
+    return 0;
+  
+  return 1;
+};
+
+
+void CCylinder::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside ) const
+{
+  Ray reflected;
+  Reflect( falling, reflected );
+  CVector fallingOrigin, fallingDirection, reflectedDirection, normale, reflectedOrigin;
+  falling.getOrigin(fallingOrigin);
+  reflected.getOrigin(reflectedOrigin);
+  refracted.setOrigin( reflectedOrigin );
+  falling.getDirection(fallingDirection);
+  reflected.getDirection(reflectedDirection);
+  normale = reflectedDirection - fallingDirection;
+  normale.Normalize();
+  
+  double horizontalProjection = (fallingOrigin - m_base)*m_direction;
+  if(horizontalProjection > 0 && 
+    horizontalProjection < m_length && 
+    (fallingOrigin - m_base)*(fallingOrigin - m_base) - horizontalProjection*horizontalProjection < m_radius*m_radius)
+  {
+    //the ray begins inside the cylinder
+    CVector parallelComponent = (fallingDirection - (fallingDirection*normale) * normale)*m_innerMedium.nRefr/m_outerMedium.nRefr;
+    if( geq(parallelComponent.Length(),1))
+    {
+      //full inner reflection
+      refracted.setDirection( reflectedDirection );
+      refractedMedium.Betta = m_innerMedium.Betta;
+      refractedMedium.nRefr = m_innerMedium.nRefr;
+      outside = false;
+    }
+    else
+    {
+      //refracted ray went outside of the cylinder
+      CVector refractedDirection = parallelComponent - normale*sqrt( 1 - parallelComponent*parallelComponent);
+      refracted.setDirection( refractedDirection );
+      refractedMedium.Betta = m_outerMedium.Betta;
+      refractedMedium.nRefr = m_outerMedium.nRefr;
+      outside = true;
+    }
+  }
+  else
+  {
+    //the ray begins outside
+    CVector parallelComponent = (fallingDirection - (fallingDirection*normale) * normale)*m_outerMedium.nRefr/m_innerMedium.nRefr;
+    if( geq(parallelComponent.Length(),1))
+    {
+      //full inner reflection. The ray stayed outside
+      refracted.setDirection( reflectedDirection );
+      refractedMedium.Betta = m_outerMedium.Betta;
+      refractedMedium.nRefr = m_outerMedium.nRefr;
+      outside = true;
+    }
+    else
+    {
+      //refracted ray went inside the cylinder
+      CVector refractedDirection = parallelComponent - normale*sqrt( 1 - parallelComponent*parallelComponent);
+      refracted.setDirection( refractedDirection );
+      refractedMedium.Betta = m_innerMedium.Betta;
+      refractedMedium.nRefr = m_innerMedium.nRefr;
+      outside = false;
+    }
+  }
+};
+
+void CCylinder::Reflect( const Ray &falling, Ray &reflected) const
+{
+  double distance = INFINITY;
+  
+  if( !Intersect( falling, distance ) )
+    return;
+  
+  CVector point, direction;
+  falling.getDirection(direction);
+  falling.getPoint( distance, point );
+  reflected.setOrigin( point );
+  
+  //if the point is on one of the covers
+  CVector normale;
+  if ( eq( (point - m_base)*m_direction, 0) || eq( (point - m_base)*m_direction, m_length))
+  {
+    //if the point is on one of the covers
+    normale = m_direction;
+  }
+  else
+  {
+    //the normale is the corresponding radius, normalized to the length of one
+    normale = (point - m_base - ((point - m_base)*m_direction)*m_direction);
+    normale.Normalize();
+  };
+  CVector newDirection = direction - 2*normale *(normale *direction);
+  reflected.setDirection(newDirection);
+};
+
+int CCylinder::Intersect( const  Ray &ray, double &distance ) const
+{
+  ASSERT( distance > 0 );
+  
+  //first check intersection with the top and bottom covers
+  double topDistance, bottomDistance;
+  int topIntersection, bottomIntersection;
+  topDistance = bottomDistance = distance;
+  
+  bottomIntersection = m_bottom.Intersect( ray, bottomDistance );
+  topIntersection = m_top.Intersect( ray, topDistance );
+  
+  if( bottomIntersection && topIntersection)
+  {
+    //we intersect with poth planes
+    //and the ray origin is therefore outside of the cylinder
+    double newDistance = min(topDistance, bottomDistance);
+    CVector point;
+    ray.getPoint( newDistance, point );
+    //distance to cover center in the nearest plane
+    double planeDistance = (point - ((topDistance < bottomDistance) ? (m_base + m_length*m_direction) : m_base)).Length();
+    if( planeDistance < m_radius )
+    {
+      //intersection with the cover
+      distance = newDistance;
+      return 1;
+    }
+    //may be an intersection with lateral surface, to be checked later
+  }
+  else if(bottomIntersection || topIntersection)
+  {
+    //the ray origin is between the covers containing planes
+    double newDistance = min(topDistance, bottomDistance);
+    bool isBottom = (topDistance > bottomDistance) ? true : false;
+    CVector point, center;
+    ray.getPoint( newDistance, point );
+    center = isBottom ? m_base : (m_base + m_length*m_direction);
+    double planeDistance;
+    planeDistance = (point - center).Length();
+    if( planeDistance < m_radius )
+    {
+      //there is an intersection with the cover
+      //if the ray origin is inside, this is what we need
+      CVector rayOrigin;
+      ray.getOrigin(rayOrigin);
+      if( ((rayOrigin - point)*(rayOrigin - point) - ((rayOrigin - point)*m_direction)*((rayOrigin - point)*m_direction)) < m_radius*m_radius )
+      {
+        distance = newDistance;
+        return 1;
+      };
+    };
+    //may be an intersection with lateral surface, to be checked later
+  };
+  
+  //no intersection with the covers, so check for the intersection with the lateral surface
+  CVector rayOrigin, rayDirection;
+  ray.getOrigin(rayOrigin);
+  ray.getDirection(rayDirection);
+  
+  //The equation is | point - cylOrigin - cylDirection(cylDirection, point - cylOrigin) | = r
+  //it determines the points of ray intersection with the endless cylinder
+  CVector a = rayOrigin - m_base - m_direction*(m_direction*(rayOrigin - m_base));
+  CVector b = rayDirection - m_direction*(m_direction*rayDirection);
+  
+  //the equation is |a + bt| = r
+  //equivalent to a^2 + 2(a,b)t + b^2t = r^2
+  
+  //first check whether |b| != 0
+  if( leq( b.Length(), 0) )
+  {
+    //the ray is parallel to the axis
+    //no intersection because possible covers intersection has been already investigated
+  }
+  else
+  {
+    //the equation is indeed quadratic
+    double discriminant = pow( a*b, 2.0) - b*b*(a*a - m_radius*m_radius);
+    
+    //we have no more than 1 intersection with the endless
+    //cylinder, so retun no intersection
+    if( leq(discriminant,0) )
+    {
+      return 0;
+    }
+    else
+    {
+      double t1 = (-(a*b) + sqrt(discriminant))/(b*b);
+      double t2 = (-(a*b) - sqrt(discriminant))/(b*b);
+      double t;
+      //now choose which root to check
+      if(leq(min(t1,t2),0))
+        t = max(t1,t2);
+      else
+        t = min(t1,t2);
+      
+      //we intersect the endless cylinder close enough to the ray origin
+      //VECTOR_EQUAL_EPS - zatychka
+      if( (t > VECTOR_EQUAL_EPS) && (t < distance))
+      {
+        //check if we are between the covers containing planes
+        CVector point;
+        ray.getPoint( t, point );
+        double height = (point - m_base)*m_direction;
+        if( (height > 0) && (height < m_length))
+        {
+          distance = t;
+          return 1;
+        };
+      };
+    };
+  };
+  //no intersection
+  return 0;
+};
+
+

@@ -248,7 +248,7 @@ int CServerControl::StartServer(int portNum)
   m_scene.Add( new CLight( 0, 1.0, 0, 1, -1, 2) );
   m_scene.Add( new CLight( 0, 0, 1.0, 1, 0, 2) );
   m_scene.Add( new CLight(1.0,0,0, 0,0,0) );
-  m_scene.Add( new CSphere(  CVector(0,0,1), 0.7, CVector(1,1,1) ) );
+  m_scene.Add( new CSphere(  CVector(0,0,1), 0.4, CVector(1,1,1) ) );
   m_scene.Add( new CSphere(  CVector(1,0,0.5), 0.6, CVector(0,1,1) ) );
 
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
