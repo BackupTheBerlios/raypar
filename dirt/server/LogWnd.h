@@ -36,14 +36,13 @@ public:
 // Implementation
 protected:
   CWindowSettings m_settings;
-  //!!! temporary
-  void UNKNOWN_FUNCTION();
-
+  
 	// Generated message map functions
 	//{{AFX_MSG(CLogWnd)
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
   afx_msg void OnSysCommand( UINT nID, LPARAM lParam );
+  afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

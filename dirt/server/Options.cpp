@@ -61,8 +61,8 @@ const int def_server_port  = 8700;
 
 const int def_window_top = 100;
 const int def_window_left = 100;
-const int def_window_width = 640;
-const int def_window_height = 480;
+const int def_window_width = 400;
+const int def_window_height = 300;
 
 
 void COptions::SaveDataToReg()
@@ -108,7 +108,7 @@ CWindowSettings::CWindowSettings()
 , m_y (0)
 , m_cx (0)
 , m_cy (0)
-, m_lpszSection (s_options_section)
+, m_lpszSection ("")
 {
 }
 

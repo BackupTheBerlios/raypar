@@ -66,6 +66,7 @@ void COptionsDialog::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(COptionsDialog, CDialog)
 	//{{AFX_MSG_MAP(COptionsDialog)
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -84,4 +85,12 @@ void COptionsDialog::OnOK()
     
 	  CDialog::OnOK(); //data correct so we may close dialog
   } 
+}
+
+void COptionsDialog::OnDestroy() 
+{
+	CDialog::OnDestroy();
+	
+	// TODO: Add your message handler code here
+	
 }

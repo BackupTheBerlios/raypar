@@ -37,6 +37,7 @@ BEGIN_MESSAGE_MAP(CLogWnd, CDialog)
 	//{{AFX_MSG_MAP(CLogWnd)
 	ON_WM_SIZE()
 	ON_WM_CREATE()
+  ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -78,8 +79,8 @@ void CLogWnd::OnSysCommand( UINT nID, LPARAM lParam )
     CDialog::OnSysCommand(nID, lParam);
 }
 
-// temporary function
-void CLogWnd::UNKNOWN_FUNCTION()
+
+void CLogWnd::OnDestroy() 
 {
   CRect rect;
   GetWindowRect(rect);
@@ -90,4 +91,5 @@ void CLogWnd::UNKNOWN_FUNCTION()
   m_settings.SetCy(rect.bottom - rect.top);
   
   m_settings.SaveDataToReg();
+	CDialog::OnDestroy();	
 }

@@ -51,6 +51,7 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(COptionsDialog)
 	virtual void OnOK();
+	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
