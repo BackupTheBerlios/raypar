@@ -43,8 +43,15 @@ public:
 public:
 	virtual ~CChildView();
 
+  //bitmap_bits may be 0
+  void SetBitmapParams(int width, int height, void* bitmap_bits);
+
 	// Generated message map functions
 protected:
+  int m_bitmap_width;
+  int m_bitmap_height;
+  void* m_bitmap_bits;
+
 	//{{AFX_MSG(CChildView)
 	afx_msg void OnPaint();
 	//}}AFX_MSG

@@ -95,9 +95,14 @@ public:
   int GetWidth(void) const { return m_line_width; }
   int GetHeight(void) const { return m_lines_count; }
   int GetSceneUID(void) const { return m_scene_uid; }
+  bool IsCompleted(void) const { return m_bCompleted; }
 
   //returns the percentage of rendered lines
   int GetRenderedPercent(void) const;
+
+  //allocates memry and create bitmap bits from 
+  //received image lines. must be called only when the scene is done
+  void* CLinesController::BuildBitmapBits(void) const;
 
 protected:
   int  m_search_step;   //search step - is used in GetNextLine2Render algorithm
@@ -136,8 +141,12 @@ class CServerControl {
 public:
   CServerControl(CEnvironment& scene);
   ~CServerControl();
+  
+  //  Creates socket and starts listening
+  //  returns 0 if successful
+  int StartServer(CWnd* p_frame, int portNum, int imageWidth, int imageHeight);
 
-  int StartServer(CWnd* p_frame, int portNum);
+  //Stops server and closes listening socket
   int StopServer();
   
   
@@ -169,10 +178,16 @@ public:
   // line_data - image line data
   void LineReceived(int scene_id, int line_num, int pixel_count, COLORREF* line_data);
 
+  //allocates memry and create bitmap bits from 
+  //received image lines. must be called only when the scene is done
+  void* BuildBitmapBits(void) const;
+
+  int GetWidth(void) const { return m_lines.GetWidth(); }
+  int GetHeight(void) const { return m_lines.GetHeight(); }
+  
 
 protected:
   void AcceptClient(void);
-
   
 protected:  
   CServerSocket m_srv_sock;  //server socket - is used for Listen()
@@ -195,9 +210,7 @@ protected:
 
 ///////////////////////////////////////////////////////////
 
-//void StartServerThread( void * param );
-
-CWinThread* StartClientThread( void * param );
+CWinThread* StartServerThread( void * param );
 //void StopServerThread();
 
 

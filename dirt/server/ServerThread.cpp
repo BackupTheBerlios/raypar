@@ -6,7 +6,7 @@
 //
 //*********************************************************
 // REVISION by KIRILL, on 1/30/2004 03:15:22
-// Comments: ServerThreadFunction renamed to ClientThreadFunction
+// Comments: ServerThreadFunction renamed to ServerThreadFunction
 //
 //*********************************************************
 // REVISION by ..., on ...
@@ -191,6 +191,8 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
   ASSERT( AfxIsValidAddress(line_data, sizeof(COLORREF)*m_line_width ) );
   ASSERT( m_lines_info );
 
+  Message("Line was rendered '%d'", line_num);
+
   CLineItem& li = m_lines_info[line_num];  
   
   if ( li.m_bReceived )   
@@ -205,7 +207,7 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
   //Now we check whether we have finished the picture or no;
   bool bFoundNotReceived = false;
   //we start from the end. It seems to be more efficient
-  for(int i=m_lines_count; i>=0 && bFoundNotReceived; i--)
+  for(int i=m_lines_count; i>=0 && !bFoundNotReceived; i--)
     if (! m_lines_info[i].m_bReceived )
       bFoundNotReceived = true;
 
@@ -223,6 +225,25 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
 int CLinesController::GetRenderedPercent(void) const
 {
   return m_rendered_count*100/m_lines_count;
+}
+
+//allocates memry and create bitmap bits from 
+//received image lines. must be called only when the scene is done
+void* CLinesController::BuildBitmapBits(void) const
+{
+  ASSERT( m_bCompleted );  
+  ASSERT( m_lines_info );
+
+  COLORREF* m_data = new COLORREF[ m_lines_count * m_line_width ];
+
+  COLORREF* cur_p = m_data;
+  for(int i=0; i<m_lines_count; i++ ){
+    ASSERT( m_lines_info[i].m_bReceived );
+    memcpy( cur_p, m_lines_info[i].m_data, sizeof(COLORREF)*m_line_width );
+    cur_p += m_line_width;
+  }
+
+  return m_data;
 }
 
 ///////////////////////////////////////////////////////////
@@ -262,13 +283,13 @@ CServerControl::CServerControl(CEnvironment& scene)
 
 CServerControl::~CServerControl()
 {  
+  m_lines.Free();
 }
 
 
 //  Creates socket and starts listening
 //  returns 0 if successful
-//
-int CServerControl::StartServer(CWnd* p_frame, int portNum)
+int CServerControl::StartServer(CWnd* p_frame, int portNum, int imageWidth, int imageHeight)
 {
   ASSERT( p_frame );
   m_p_frame = p_frame;
@@ -282,7 +303,7 @@ int CServerControl::StartServer(CWnd* p_frame, int portNum)
 
   //KIRILL: temp:
   int scene_uid = m_scene.GetSceneUID();
-  m_lines.Init( scene_uid, 1000,1000 );
+  m_lines.Init( scene_uid, imageWidth, imageHeight );
   m_bSceneCompleted = false;
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
 
@@ -307,7 +328,7 @@ void CServerControl::AcceptClient()
   cl_sock.Detach(); 
   sp->p_srv_ctrl = this;
 
-  CWinThread* srv_thr = StartClientThread( sp );
+  CWinThread* srv_thr = StartServerThread( sp );
   if ( !srv_thr ){
     ErrorMessageWithBox( "Unable to create server thread!" );
     delete sp; //we have to do this
@@ -381,7 +402,7 @@ void CServerControl::LineReceived(int scene_id, int line_num
 {
   m_lines_change_cs.Lock();
 
-  if ( scene_id != m_lines.GetHeight()  && scene_id != m_lines.GetSceneUID() 
+  if ( pixel_count = m_lines.GetWidth()  && scene_id == m_lines.GetSceneUID() 
        && line_num >= 0 && line_num < m_lines.GetHeight())  
      //client've rendered the scene which we are interested in. 
      //and number of pixels client rendered equals to the number we are interested in
@@ -402,12 +423,19 @@ void CServerControl::LineReceived(int scene_id, int line_num
 }
 
 
+//allocates memry and create bitmap bits from 
+//received image lines. must be called only when the scene is done
+void* CServerControl::BuildBitmapBits(void) const
+{
+  ASSERT( m_lines.IsCompleted() );
+  return m_lines.BuildBitmapBits();
+}
 
 ///////////////////////////////////////////////////////////
-//  ClientThreadFunction
+//  ServerThreadFunction
 //
 
-UINT ClientThreadFunction( void* param )
+UINT ServerThreadFunction( void* param )
 {  
   SServerThreadParam * sp = (SServerThreadParam*) param;
   ASSERT( AfxIsValidAddress(param, sizeof (SServerThreadParam ) ) );
@@ -487,10 +515,6 @@ UINT ClientThreadFunction( void* param )
                 bEnd = true;
             break;
           }
-
-        int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
-               int current_session_id, CServerControl* p_srv_ctrl)
-
         default:{
             ASSERT(0);
             ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );
@@ -504,19 +528,22 @@ UINT ClientThreadFunction( void* param )
   CATCH(CArchiveException, e)
   {
     //this exception probably means that the connection was closed
-    #ifdef _DEBUG
-      ErrorMessageFromException(e);
-    #endif//DEBUG
+  }AND_CATCH(CFileException, pEx){
+    //this exception probably means that the connection was closed
+    //so we ignore it
+  }AND_CATCH_ALL(pEx){
+    ErrorMessageFromException(pEx, TRUE);
   }
-  END_CATCH
+  END_CATCH_ALL
+  
 
   return 0;
 }
 
 
-CWinThread* StartClientThread( void * param )
+CWinThread* StartServerThread( void * param )
 {  
-  return AfxBeginThread( ClientThreadFunction, param );
+  return AfxBeginThread( ServerThreadFunction, param );
 }
 
 void StopServerThread()

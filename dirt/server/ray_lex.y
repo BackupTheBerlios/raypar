@@ -8,7 +8,7 @@
 #define YYSTYPE CVar
 #define YYDEBUG 1
 
-void* alloca(int size){ return new BYTE[size]; }
+void* alloca(int size){ return malloc(size); }
 
 
 
@@ -81,5 +81,4 @@ VECTOR : '[' REAL dlm REAL dlm REAL ']'
 %%
 
 
-// WWWWWW
 

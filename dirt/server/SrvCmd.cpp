@@ -227,7 +227,7 @@ int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
   COLORREF* data = 0;
 
   CSendLineData::Q send_line_Q( &session_id, &scene_uid, &line_num, 
-                                  &pixels_count, &data);
+                                  &pixels_count, (void**) &data);
   int ret = send_line_Q.read( arIn );
 
   if ( ret ){
@@ -247,7 +247,7 @@ int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
   }
   
   //store image line data 
-  p_srv_ctrl->LineReceived( scene_uid, line_num, pixels_count, data )
+  p_srv_ctrl->LineReceived( scene_uid, line_num, pixels_count, data );
   delete[] data; //free the memory
   
   CSendLineData::A send_line_A( current_session_id );

@@ -62,11 +62,10 @@ public:
 protected: 
 	DECLARE_DYNAMIC(CMainFrame)
 
-// Attributes
+// Attributes 
 public:
   CLogBox     m_log_box;
-  CServerControl m_srv_ctrl;
-  COptions m_serverOptions;
+  CServerControl m_srv_ctrl;  
 
 // Operations
 public:
@@ -94,11 +93,13 @@ protected:  // control bar embedded members
   CBitmap     m_toolbar_bmp_run;
   CBitmap     m_toolbar_bmp_stop;
   bool        m_bServerStarted;
+  COptions    m_serverOptions;
 
   CWindowSettings m_settings;
   CEnvironment m_scene;
   CServerSceneBuilder m_scene_builder;
   int m_last_scene_uid;
+  void* m_bitmap_lines;
 
   int GetNewSceneUID(void) { return ++m_last_scene_uid; }
 

@@ -83,11 +83,14 @@ CMainFrame::CMainFrame()
   glb_scene_builder = &m_scene_builder;
 	m_settings.SetSection(mainFrameSection);
   m_bServerStarted = false;
+  m_bitmap_lines = 0;
 }
 
 CMainFrame::~CMainFrame()
 {
   glb_scene_builder = 0;
+  if ( m_bitmap_lines )
+    delete[] m_bitmap_lines;
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -138,9 +141,9 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   cy = m_settings.GetCy();
 
   SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
+  SetWindowText( "DiRT server" );
 
-  //KIRILL: Dummy caption generator
-  SetWindowText( "SERVER [FPS = 3] [ 4 clients ]" );
+  m_serverOptions.GetDataFromReg();
 
 	return 0;
 }
@@ -211,7 +214,13 @@ void CMainFrame::OnViewOptions()
 
 void CMainFrame::OnRun() 
 {
-  m_srv_ctrl.StartServer( this, 8700 );
+  if ( m_bitmap_lines ){
+    delete[] m_bitmap_lines;
+    m_bitmap_lines = 0;
+  }
+
+  m_srv_ctrl.StartServer( this, 8700, m_serverOptions.GetImageWidth()
+                            , m_serverOptions.GetImageHeight() );
   m_bServerStarted = true;
   Message("Servers started on port '8700'");  
 }
@@ -302,6 +311,13 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
 LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 {
   int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
+
+  ASSERT( m_bitmap_lines == NULL );
+  m_bitmap_lines = m_srv_ctrl.BuildBitmapBits();
+  m_wndView.SetBitmapParams( m_srv_ctrl.GetWidth()
+                             , m_srv_ctrl.GetHeight(), m_bitmap_lines );
+  m_wndView.Invalidate(); 
+  m_wndView.UpdateWindow();
   return 1; //this means that we've processed the message
 }
 
@@ -313,7 +329,6 @@ LRESULT CMainFrame::OnServerLineRendered(WPARAM wParam, LPARAM lParam)
 {
   ASSERT( wParam >=0 && wParam <= 100 ); //wParam is the percentage 
                                         //of completed lines
-
   char buf[20];
   sprintf(buf, "%d %%", wParam);
   int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, buf);
