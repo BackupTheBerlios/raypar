@@ -72,7 +72,7 @@ CLinesController::~CLinesController()
 //[Re]Initializes th object
 // search step is used in GetNeaxtLine2Render algorithm
 void CLinesController::Init( int scene_uid, int lines_count
-                            , int line_width, int search_step /*= 7*/ )
+                            , int line_width, int search_step /*= 90247*/ )
 {
   ASSERT( lines_count > 0 );
   ASSERT( line_width > 0 );
@@ -124,31 +124,22 @@ int  CLinesController::GetLine2Render(void)
 
   int search_step = m_search_step;
 
-  int start = rand() % search_step;
+  int start = rand() % m_lines_count;
   int line_num;
 
-  //First we are trying to find nongiven line itereating with decreasing step
-  //If we have found nothing 
-
+  //First we are trying to find nongiven line itereating with step m_search_step
+  
   bool bFound=false, bEverythingGiven = false;
-  for ( int i=start; !bFound && !bEverythingGiven; ){        
-    if (! m_lines_info[i].m_bGiven ){
-      m_lines_info[i].m_bGiven = true;
-      m_lines_info[i].m_timestamp_given = GetTickCount();
+  int index = start;
+
+  for ( int counter = 0; !bFound && counter < m_lines_count; counter++){
+    if (! m_lines_info[index].m_bGiven ){
+      m_lines_info[index].m_bGiven = true;
+      m_lines_info[index].m_timestamp_given = GetTickCount();
       bFound = true;
-      line_num = i;
-    }else{
-      int ni = i + search_step;
-      if ( ni >= m_lines_count ){
-        ni %= m_lines_count;
-        search_step--;
-        if ( 0==search_step )
-          bEverythingGiven = true;
-        if ( 1==m_search_step )
-          ni = 0; //we must be careful not to jump over 0
-      }
-      i = ni;
+      line_num = index;
     }
+    index =  (index + m_search_step) % m_lines_count;
   }
 
   if (bFound){
@@ -156,12 +147,14 @@ int  CLinesController::GetLine2Render(void)
     return line_num;
   }
 
+  
+  //All lines were already given and we search the one which was given the first 
+  //out of those which were not rendered yet.
+  
   DWORD min_timestamp_given = 0;
   line_num = -1;
 
-  //All lines were already given and we search the one which was given the first 
-  //out of those which were not rendered yet.
-  for( i=0; i<m_lines_count; i++ ){
+  for( int i=0; i<m_lines_count; i++ ){
     CLineItem& li = m_lines_info[i];
     
     ASSERT( li.m_bGiven ); // We have alredy checked that 
@@ -174,6 +167,7 @@ int  CLinesController::GetLine2Render(void)
   }
 
   if (line_num < 0){
+    ASSERT( 0 ); //that's impossible! This means that the scene was already finished
     m_bCompleted = true;
     return -1; //negative - no lines to render
   }

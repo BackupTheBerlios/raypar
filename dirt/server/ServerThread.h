@@ -68,16 +68,15 @@ protected:
   };
 
 public:   
-   CLinesController();
+  CLinesController();
   ~CLinesController();
   //[Re]Initializes the object
   // scene_uid - uid of current scene
   // lines_count - image height
   // line_width  - image width
   // search_step - this number is used in GetNextLine2Render algorithm. 
-                  //must be positive and for better perfomance must be small enough.
-                  //Read GetNextLine2Render for details
-  void Init( int scene_uid, int lines_count, int line_width, int search_step = 7 );
+                  //must be prime number greater than lines_count
+  void Init( int scene_uid, int lines_count, int line_width, int search_step = 90247 );
 
   //Frees the allocated memory and sets parameters to zero
   void Free();
