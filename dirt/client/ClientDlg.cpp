@@ -127,7 +127,6 @@ BEGIN_MESSAGE_MAP(CClientDlg, CDialog)
   //{{AFX_MSG_MAP(CClientDlg)
   ON_WM_SYSCOMMAND()
   ON_WM_DESTROY()
-  ON_WM_CLOSE()
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
   ON_BN_CLICKED(IDC_BUTTON_START, OnButtonStart)
@@ -219,14 +218,19 @@ void CClientDlg::OnDestroy()
 {
   CRect rect;
   GetWindowRect(rect);
-  
   m_settings.SetX(rect.left);
   m_settings.SetY(rect.top);
 //  Do not need to store size for dialog
   m_settings.SetCx(rect.right - rect.left);
   m_settings.SetCy(rect.bottom - rect.top);
-  
   m_settings.SaveDataToReg();
+
+  UpdateData(TRUE);
+  m_options.SetConnectPeriod(m_connect_period);
+  m_options.SetServerPort(m_edit_port);
+  m_options.SetMode(m_b_standalone);
+  m_options.SetServerAddress(m_edit_addr);
+  m_options.SaveDataToReg();
   
   m_thread_params.bShouldExit = true; //notidy the client thread that it 
   m_thread_params.process_params_event.PulseEvent(); //
@@ -236,13 +240,6 @@ void CClientDlg::OnDestroy()
   CDialog::OnDestroy();
 };
 
-void CClientDlg::OnClose()
-{
-  UpdateData(TRUE);
-  m_options.SaveDataToReg();
-
-  CDialog::OnClose();
-}
 
 
 // If you add a minimize button to your dialog, you will need the code below
