@@ -35,6 +35,10 @@
 // Comments: vector multiplication added
 //
 //*********************************************************
+// REVISION by KIRILL, on 1/24/2004 04:34:17
+// Comments: IsNormalized() method added
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -82,22 +86,22 @@ public:
   
   //operators
   
-  CVector operator+ (const CVector& v) 
+  CVector operator+ (const CVector& v)  const
   {	return CVector(x + v.x, y + v.y, z+v.z); }
   
-  CVector operator- (const CVector& v) 
+  CVector operator- (const CVector& v) const
   {	return CVector(x - v.x, y - v.y, z-v.z); }
   
   void operator+= (const CVector& v)
   {	x+=v.x;	y+=v.y;	z+=v.z; }
   
-  void operator-= (const CVector& v)
+  void operator-= (const CVector& v) 
   {	x-=v.x;	y-=v.y;	z-=v.z; }
   
   void operator*= (double m)
   {	x*=m; y*=m; z*=m; }
   
-  CVector operator* ( double m )
+  CVector operator* ( double m ) const
   {	return CVector(x*m, y*m, z*m); }
   
   //don't forget about devizion by ZERO !
@@ -105,11 +109,11 @@ public:
   {	x/=d; y/=d; z/=d; }
   
   //scalar multiplication
-  double operator* ( const  CVector& v )
+  double operator* ( const  CVector& v ) const
   {	return v.x*x + v.y*y + v.z*z; }
 
   //vector multiplication
-  CVector operator^ ( const  CVector& v )
+  CVector operator^ ( const  CVector& v ) const
   {	return CVector(v.z*y - v.y*z, v.x*z - v.z*x, v.y*x - v.x*y); }
   
   //*************
@@ -148,7 +152,14 @@ public:
     }    
   }
 
+  // checks whether all coords are in [0,1]
+  int IsNormalized(void) const  {
+     return ( geq(x, 0) && leq(x, 1) 
+           && geq(y, 0) && leq(y, 1) 
+           && geq(z, 0) && leq(z, 1) );
+  }
   
+
     
 //#ifdef _DEBUG
 //  void Dump(CDumpContext& dc = afxDump);

@@ -13,13 +13,13 @@
 // and don't understand your (TONIC's) idea of header formating :)
 //***********************************
 // REVISION by Tonic, on 14/11/2003
-// Comments:	Adding functionality to Environment( Intersect method )
+// Comments:  Adding functionality to Environment( Intersect method )
 //***********************************
 // REVISION by Tonic, on 12/01/2004
-// Comments:	Getters and setters for Ray, Light
-//				components, getter for Enviroment light sources
-//				Added CVector position to Light, modified constructors
-//				Added Ray constructor without parameters
+// Comments:  Getters and setters for Ray, Light
+//        components, getter for Enviroment light sources
+//        Added CVector position to Light, modified constructors
+//        Added Ray constructor without parameters
 //***********************************
 // REVISION by Tonic, on 1/13/2004
 // Comments: Added normalization to Ray::setDirection so that
@@ -38,16 +38,252 @@
 // REVISION by Tonic, on 01/16/2004
 // Comments: Added Ray::getPoint
 //*********************************************************
+// REVISION by KIRILL, on 1/24/2004 03:42:00
+// Comments: Some refactoring was done
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//*********************************************************
 
 #include "stdafx.h"
 #include "environment.h"
 
-void Ray::getPoint( double distance, CVector &point)
+
+
+///////////////////////////////////////////////////////////
+//  Ray       ?K? decription?
+///////////////////////////////////////////////////////////
+
+
+Ray::Ray( const CVector &origin, const CVector &direction )
+{
+  ASSERT( direction.Length() != 0);
+  
+  m_origin = origin;
+  m_direction = direction;
+  m_direction.Normalize();
+};
+
+void Ray::operator = (const Ray& r)
+{
+  m_origin = r.m_origin;
+  m_direction = r.m_direction;
+}
+
+void Ray::getPoint( double distance, CVector &point) const
 {
   point = m_origin + distance*m_direction;
 };
 
-CCamera::CCamera( CVector &eyePoint, CVector &viewDir, CVector &topDir, int width, int height )
+void Ray::getDirection(CVector &direction) const
+{
+  // = is overridden operator, just makes the components the same
+  direction = m_direction;
+};
+
+void Ray::setDirection( const CVector &direction)
+{
+  ASSERT( direction.Length() != 0);
+  
+  // = is overridden operator, just makes the components the same
+  m_direction = direction;
+  
+  //make the direction length 1
+  (m_direction).Normalize();
+};
+
+void Ray::getOrigin(CVector &origin) const
+{
+  // = is overridden operator, just makes the components the same
+  origin = m_origin;
+};
+
+void Ray::setOrigin( const CVector &origin)
+{
+  // = is overridden operator, just makes the components the same
+  m_origin = origin;
+};
+
+
+
+
+///////////////////////////////////////////////////////////
+//  CSolid    - interface for a geometric object
+///////////////////////////////////////////////////////////
+
+
+// ?K? What is the purpose for this method to live?
+// ?K? Maybe it must be killed and become =0 ?
+
+void CSolid::GetColor( const Ray &falling, CVector &color) const 
+{
+  //do not check whether there is even a ray
+  //just return white
+  //more strict implementations in descendants
+  color.x = color.y = color.z = 1;
+};
+
+
+
+
+///////////////////////////////////////////////////////////
+// CLight     - model of an abstract light source
+///////////////////////////////////////////////////////////
+
+CLight::CLight()
+: m_color(1,1,1)
+{}
+
+CLight::CLight(  const CVector &color,  const CVector &position )
+: m_color( color )
+, m_position( position )
+{
+  ASSERT( color.IsNormalized() );  
+}
+
+CLight::CLight( double r, double g, double b, double x, double y, double z)
+: m_color(r,g,b)
+, m_position(x,y,z)
+{
+  ASSERT( m_color.IsNormalized() );
+};
+
+void CLight::getPosition(CVector &position) const
+{
+  position = m_position;
+};
+
+void CLight::setPosition( const CVector &position) 
+{
+  m_position = position;
+};
+
+void CLight::getColor(CVector &color) const
+{
+  color = m_color;
+};
+
+void CLight::setColor( const CVector &color) 
+{
+  ASSERT( color.IsNormalized() );  
+  m_color = color;
+};
+
+
+
+
+///////////////////////////////////////////////////////////
+//  Environment - ?K? decription?
+///////////////////////////////////////////////////////////
+
+Environment::Environment( )
+: m_AmbientColor(0,0,0)
+{}
+
+Environment::~Environment () 
+{
+  //do nothing as contained objects may be reused
+}
+
+void Environment::Add ( CLight *light )
+{
+  ASSERT( light != NULL );
+  
+  int i;
+  int lightsCount = m_lights.GetSize();
+  
+  
+  //check if this element is already present
+  //if it holds, do not add repeatedly, just return
+  for( i = 0; i < lightsCount; i++ )
+    {
+    if( m_lights.GetAt(i) == light )
+      return;
+    }
+  //actually add light source to environment
+  m_lights.Add(light);
+};
+
+void Environment::Add ( CSolid *solid )
+{
+  ASSERT( solid != NULL );
+  
+  int i;
+  int solidsCount = m_solids.GetSize();
+  
+  //check if this element is already present
+  //if it holds, do not add repeatedly, just return
+  for( i = 0; i < solidsCount; i++ )
+    {
+    if( m_solids.GetAt(i) == solid )
+      return;
+    }
+  //actually add element to environment
+  m_solids.Add(solid);
+};
+
+
+void  Environment::SetAmbientColor( const CVector &AmbientColor )
+{
+  ASSERT( AmbientColor.IsNormalized() );  
+
+  m_AmbientColor = AmbientColor;
+};
+
+void  Environment::GetAmbientColor( CVector &AmbientColor ) const
+{
+  AmbientColor = m_AmbientColor;
+}
+
+void Environment::getLightByNumber(int number, CLight &light) const
+{
+  //there is a light source with such a number
+  ASSERT( (number >= 0) && (number < m_lights.GetSize()) );
+  
+  light = *(m_lights.GetAt(number));
+};
+
+
+//determines the closest intersected object and distance
+CSolid * Environment::Intersect (  const Ray &ray, double &t ) const
+{
+  CSolid*  closestObj = NULL;
+  //do not allow intersections with objects
+  //farther than t away
+  double  closestDist = t;
+  int solidsCount = m_solids.GetSize();
+  
+  //for every object
+  for ( int i = 0; i < solidsCount; i++ )
+    {
+    //find intersection
+    if ( m_solids.GetAt(i) -> Intersect ( ray, t ) != 0 )
+    {
+      //check distance
+      if ( t < closestDist )
+      {
+        //update if closer
+        closestDist = t;
+        closestObj  = m_solids.GetAt(i);
+      }
+    };
+    };
+  
+  t = closestDist;
+  return closestObj;
+};
+
+
+
+///////////////////////////////////////////////////////////
+//CCamera    - this class is fully responsible for transformation
+//              between pixel coordinates of the picture to traced rays
+//
+///////////////////////////////////////////////////////////
+
+
+CCamera::CCamera( const CVector &eyePoint, const CVector &viewDir, 
+                 const CVector &topDir, int width, int height )
 {
   //Check that width and height are both positive
   ASSERT( width > 0 && height >0);
@@ -55,16 +291,17 @@ CCamera::CCamera( CVector &eyePoint, CVector &viewDir, CVector &topDir, int widt
   //check that view direction and top direction are not parallel
   double lengthProduct = viewDir.Length() * topDir.Length();
   double scalarProduct = fabs( viewDir * topDir );
-  ASSERT( scalarProduct < lengthProduct - VECTOR_EQUAL_EPS );
+  ASSERT( scalarProduct < lengthProduct - VECTOR_EQUAL_EPS );  // ?K? Are you sure ???
+                                            // ?K? Maybe you mean "+ VECTOR_EQUALS_EPSILON"?
   
   m_width = width;
   m_height = height;
   m_eyePoint = eyePoint;
   m_viewDir = viewDir;
   m_topDir = topDir;
-  m_minViewAngle = 0.1;
-  m_maxViewAngle = 3.0;
-  m_verticalAngle = m_horizontalAngle = 1.57;
+  m_minViewAngle = 0.1;  // ?K? Why? 
+  m_maxViewAngle = 3.0;  // ?K? Why?
+  m_verticalAngle = m_horizontalAngle = 1.57; // ?K? Why? 
   
   m_viewDir.Normalize();
   m_topDir.Normalize();
@@ -122,13 +359,13 @@ void CCamera::Pitch( double angle )
 
 void CCamera::SetVerticalAngle(double angle)
 {
-		ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
+    ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
     m_verticalAngle = angle;
 };
 
 void CCamera::SetHorizontalAngle(double angle)
 {
-		ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
+    ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
     m_horizontalAngle = angle;
 };
 
@@ -144,42 +381,42 @@ void CCamera::SetWidth(int width)
   m_width = width;
 };
 
-void CCamera::GetVerticalAngle(double &verticalAngle)
+void CCamera::GetVerticalAngle(double &verticalAngle) const
 {
   verticalAngle = m_verticalAngle;
 };
 
-void CCamera::GetEyePoint( CVector &eyePoint )
+void CCamera::GetEyePoint( CVector &eyePoint ) const
 {
   eyePoint = m_eyePoint;
 };
 
-void CCamera::GetViewDir( CVector &viewDir )
+void CCamera::GetViewDir( CVector &viewDir ) const
 {
   viewDir = m_viewDir;
 };
 
-void CCamera::GetTopDir( CVector &topDir )
+void CCamera::GetTopDir( CVector &topDir ) const
 {
   topDir = m_topDir;
 };
 
-void CCamera::GetWidth(int &width)
+void CCamera::GetWidth(int &width) const
 {
   width = m_width;
 };
 
-void CCamera::GetHeight(int &height)
+void CCamera::GetHeight(int &height) const
 {
   height = m_height;
 };
 
-void CCamera::GetHorizontalAngle(double &horizontalAngle)
+void CCamera::GetHorizontalAngle(double &horizontalAngle) const
 {
   horizontalAngle = m_horizontalAngle;
 };
 
-void CCamera::PixelRay(int x, int y, Ray &ray)
+void CCamera::PixelRay(int x, int y, Ray &ray) const
 {
   //check whether the pixel is actually
   //within picture bounds
@@ -221,201 +458,4 @@ void CCamera::UpdateHorizontalDir(void)
   m_horDir.Normalize();
 };
 
-void CSolid::GetColor( Ray &falling, CVector &color)
-{
-  //do not check whether there is even a ray
-  //just return white
-  //more strict implementations in descendants
-  color.x = color.y = color.z = 1;
-};
 
-void	Environment::SetAmbientColor(  CVector &AmbientColor )
-{
-  ASSERT( 0.0 <= AmbientColor.x && AmbientColor.x <= 1.0);
-  ASSERT( 0.0 <= AmbientColor.y && AmbientColor.y <= 1.0);
-  ASSERT( 0.0 <= AmbientColor.z && AmbientColor.z <= 1.0);
-  
-  m_AmbientColor = AmbientColor;
-};
-
-void	Environment::GetAmbientColor( CVector &AmbientColor )
-{
-  ASSERT( &AmbientColor != NULL);
-  
-  AmbientColor = m_AmbientColor;
-}
-
-CLight::CLight( double r, double g, double b, double x, double y, double z)
-{
-  ASSERT( 0.0 <= r && r <= 1.0);
-  ASSERT( 0.0 <= g && g <= 1.0);
-  ASSERT( 0.0 <= b && b <= 1.0);
-  
-  m_color.x = r;
-  m_color.y = g;
-  m_color.z = b;
-  m_position.x = x;
-  m_position.y = y;
-  m_position.z = z;
-};
-
-void CLight::getPosition(CVector &position)
-{
-  position = m_position;
-};
-
-void CLight::setPosition( CVector &position)
-{
-  m_position = position;
-};
-
-void CLight::getColor(CVector &color)
-{
-  color = m_color;
-};
-
-void CLight::setColor( CVector &color)
-{
-  ASSERT( (color.x >= 0) && (color.x <= 1) );
-  ASSERT( (color.y >= 0) && (color.y <= 1) );
-  ASSERT( (color.z >= 0) && (color.z <= 1) );
-  
-  m_color = color;
-};
-
-void Environment::getLightByNumber(int number, CLight &light)
-{
-  //there is a light source with such a number
-  ASSERT( (number >= 0) && (number < m_lights.GetSize()) );
-  
-  light = *(m_lights.GetAt(number));
-};
-
-void Ray::getDirection(CVector &direction)
-{
-  // = is overridden operator, just makes the components the same
-  direction = m_direction;
-};
-
-void Ray::setDirection( CVector &direction)
-{
-  ASSERT( direction.Length() != 0);
-  
-  // = is overridden operator, just makes the components the same
-  m_direction = direction;
-  
-  //make the direction length 1
-  (m_direction).Normalize();
-};
-
-
-void Ray::getOrigin(CVector &origin)
-{
-  // = is overridden operator, just makes the components the same
-  origin = m_origin;
-};
-
-
-void Ray::setOrigin( CVector &origin)
-{
-  // = is overridden operator, just makes the components the same
-  m_origin = origin;
-};
-
-Ray::Ray(  CVector &origin,  CVector &direction )
-{
-  ASSERT( direction.Length() != 0);
-  
-  m_origin = origin;
-  m_direction = direction;
-  (m_direction).Normalize();
-};
-
-//determines the closest intersected object and distance
-CSolid * Environment::Intersect (  Ray &ray, double &t )
-{
-  CSolid*	closestObj = NULL;
-  //do not allow intersections with objects
-  //farther than t away
-  double	closestDist = t;
-  int solidsCount = m_solids.GetSize();
-  
-  //for every object
-  for ( int i = 0; i < solidsCount; i++ )
-		{
-    //find intersection
-    if ( m_solids.GetAt(i) -> Intersect ( ray, t ) != 0 )
-    {
-      //check distance
-      if ( t < closestDist )
-      {
-        //update if closer
-        closestDist = t;
-        closestObj  = m_solids.GetAt(i);
-      }
-    };
-		};
-  
-  t = closestDist;
-  return closestObj;
-};
-
-
-Environment::Environment( )
-{
-  //	m_solids.SetSize(10,5);
-  //  m_lights.SetSize(10,5);
-  m_AmbientColor.x = m_AmbientColor.y = m_AmbientColor.z = 0.2;
-};
-
-void Environment::Add ( CLight *light )
-{
-  ASSERT( light != NULL );
-  
-  int i;
-  int lightsCount = m_lights.GetSize();
-  
-  
-  //check if this element is already present
-  //if it holds, do not add repeatedly, just return
-  for( i = 0; i < lightsCount; i++ )
-		{
-    if( m_lights.GetAt(i) == light )
-      return;
-		}
-  //actually add light source to environment
-  m_lights.Add(light);
-};
-
-void Environment::Add ( CSolid *solid )
-{
-  ASSERT( solid != NULL );
-  
-  int i;
-  int solidsCount = m_solids.GetSize();
-  
-  //check if this element is already present
-  //if it holds, do not add repeatedly, just return
-  for( i = 0; i < solidsCount; i++ )
-		{
-    if( m_solids.GetAt(i) == solid )
-      return;
-		}
-  //actually add element to environment
-  m_solids.Add(solid);
-};
-
-CLight::CLight()
-{
-  m_color.x = m_color.y = m_color.z = 1.0;
-};
-
-CLight::CLight(  CVector &color,  CVector &position )
-{
-  ASSERT( (color.x >= 0) && (color.x <= 1) );
-  ASSERT( (color.y >= 0) && (color.y <= 1) );
-  ASSERT( (color.z >= 0) && (color.z <= 1) );
-  
-  m_color = color;
-  m_position = position;
-};

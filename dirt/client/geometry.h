@@ -31,6 +31,13 @@
 // REVISION by Vader, on 01/23/2004
 // Comments: Added CBox class (supports refraction)
 //*********************************************************
+// REVISION by KIRILL, on 1/24/2004 03:42:00
+// Comments: Some refactoring was done
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//*********************************************************
+
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
@@ -39,12 +46,17 @@
 
 #define EPSILON (1E-9)
 
+///////////////////////////////////////////////////////////
+// CSphere
+
 class CSphere : public CSolid
 {
   CVector m_position;
-  double m_radius, m_reflectionCoefficient;
-  bool m_isTransparent;
-  Medium m_innerMedium, m_outerMedium;
+  double  m_radius;
+  double  m_reflectionCoefficient;
+  bool    m_isTransparent;
+  Medium  m_innerMedium;
+  Medium  m_outerMedium;
   
 public:
   //constructors
@@ -52,119 +64,129 @@ public:
   //innerMedium is air (Betta=0, nRefr = 1)
   //and the sphere is opaque by default
   CSphere();
-  CSphere( CVector &position, double radius, double Betta = 0.0, double nRefr = 1.0 , bool isTransparent = false, double outerBetta = 0.0, double outerRefr = 1.0, double reflectionCoefficient = 1.0);
+  CSphere( const CVector &position
+            , double radius, double Betta = 0.0
+            , double nRefr = 1.0 , bool isTransparent = false 
+            , double outerBetta = 0.0, double outerRefr = 1.0
+            , double reflectionCoefficient = 1.0);
   
-  virtual bool IsTransparent(void)
-  {
-    return m_isTransparent;
-  };
+  virtual bool IsTransparent(void) const 
+  { return m_isTransparent; }
   
-  virtual double GetReflectionCoefficient(void)
-  {
-    return m_reflectionCoefficient;
-  };
+  virtual double GetReflectionCoefficient(void) const
+  { return m_reflectionCoefficient; }
   
-  void SetPosition( CVector &position);
+  void SetPosition( const CVector &position);
   void SetRadius(double radius);
   
-  virtual int Intersect(  Ray &ray, double &distance) ;
-  virtual void Reflect( Ray &falling, Ray &reflected) ;
-  virtual void Refract( Ray &falling, Ray &refracted, Medium &refractedMedium);
+  virtual int Intersect(  const Ray &ray, double &distance) const;
+  virtual void Reflect( const Ray &falling, Ray &reflected) const;
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
 };
 
+///////////////////////////////////////////////////////////////////
+// CPlane 
+// ?K? Will you remove this class ?
 
 class CColorSphere : public CSphere
 {
-private:
-		CVector m_color;
+  CVector m_color;
     
 public:
-    CColorSphere();
-	CColorSphere(CVector &position, double radius, CVector &color);
-    CColorSphere(CVector &position, double radius);
-    virtual void GetColor( Ray &falling, CVector &color);
-    void SetColor( CVector &color );
+  CColorSphere();
+  CColorSphere(const CVector &position, double radius, const CVector &color);
+  CColorSphere(const CVector &position, double radius);
+  virtual void GetColor( const Ray &falling, CVector &color) const;
+  void SetColor( const CVector &color );
 };
 
+///////////////////////////////////////////////////////////////////
+// CPlane 
 
 class CPlane : public CSolid
 {
   CVector m_n;    // Plane is defined by equation
-  double m_D;	  // (n,r) + D = 0;   |n| = 1 !!!
+  double m_D;    // (n,r) + D = 0;   |n| = 1 !!!
   // D - is distance from center (may be <0)
   
 public:
   //construction
   CPlane();
-  CPlane( CVector &n, double D);
+  CPlane( const CVector &n, double D);
   CPlane(double a, double b, double c, double d); // for   ax + by + cz + d = 0
   
-  void SetPosition( CVector &n, double D);
+  void SetPosition( const CVector &n, double D);
   void SetPosition(double a, double b, double c, double d);
   
-  virtual int Intersect(  Ray &ray, double &distance) ;
-  virtual void Reflect( Ray &falling, Ray &reflected) ;
+  virtual int Intersect( const Ray &ray, double &distance) const;
+  virtual void Reflect( const Ray &falling, Ray &reflected) const;
 };
 
+///////////////////////////////////////////////////////////////////
+// CBox
 
 class CBox : public CSolid
 {
-private:
-    CVector m_position;  //the first corner
-    CVector m_e[3]; //3 main edges, that form orthogonal basis
-    CVector m_n[3]; //normals to sides, sides are (r, m_n)+ m_di = 0;
-    double m_d1[3],m_d2[3]; //distances in plane equation m_d1[i] < m_d2[i];
-    double m_reflectionCoefficient;
-    bool m_isTransparent;
-    Medium m_innerMedium, m_outerMedium;
+  CVector m_position;  //the first corner
+  CVector m_e[3]; //3 main edges, that form orthogonal basis
+  CVector m_n[3]; //normals to sides, sides are (r, m_n)+ m_di = 0;
+  double m_d1[3],m_d2[3]; //distances in plane equation m_d1[i] < m_d2[i];
+  double m_reflectionCoefficient;
+  bool m_isTransparent;
+  Medium m_innerMedium, m_outerMedium;
 
-    void InitNormals();
-   
 public:
-    CBox();
-    //e1,e2,e3 should be orthogonal to each other (but not necessarily equal)
-    CBox(CVector &position, CVector &e1, CVector &e2, CVector &e3, double Betta = 0.0, double nRefr = 1.0 , bool isTransparent = false, double outerBetta = 0.0, double outerRefr = 1.0, double reflectionCoefficient = 1.0);
+  CBox();
+  //e1,e2,e3 should be orthogonal to each other (but not necessarily equal)
+  CBox(const CVector &position, const CVector &e1
+    , const CVector &e2, const CVector &e3
+    , double Betta = 0.0, double nRefr = 1.0 
+    , bool isTransparent = false, double outerBetta = 0.0
+    , double outerRefr = 1.0, double reflectionCoefficient = 1.0);
 
-    void SetPosition(CVector &position);
-    void SetOrientation(CVector &e1, CVector &e2, CVector &e3);
+  void SetPosition(const CVector &position);
+  void SetOrientation(const CVector &e1, const CVector &e2, const CVector &e3);
 
-    virtual double GetReflectionCoefficient(void)
-    {
-        return m_reflectionCoefficient;
-    };
-    virtual bool IsTransparent(void)
-    {
-        return m_isTransparent;
-    };
+  virtual double GetReflectionCoefficient(void) const
+  { return m_reflectionCoefficient; }
 
-    int IsInside(CVector &vector);   //checks whether point lies inside box
-    virtual int Intersect(  Ray &ray, double &distance); //returns 1 if ray intersects side with normal m_d[0];
-                                                         //returns 2 if ray intersects side with normal m_d[1];
-                                                         //returns 3 if ray intersects side with normal m_d[2];
-                                                         //returns 0 if there is no intersection
-    virtual void Reflect( Ray &falling, Ray &reflected) ;
-    virtual void Refract( Ray &falling, Ray &refracted, Medium &refractedMedium);        
+  virtual bool IsTransparent(void) const
+  { return m_isTransparent; };
+
+  int IsInside(const CVector &vector) const;   //checks whether point lies inside box
+  virtual int Intersect(  const Ray &ray, double &distance) const; 
+     //returns 1 if ray intersects side with normal m_d[0];
+     //returns 2 if ray intersects side with normal m_d[1];
+     //returns 3 if ray intersects side with normal m_d[2];
+     //returns 0 if there is no intersection
+
+  virtual void Reflect( const Ray &falling, Ray &reflected) const;
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;        
+
+protected:
+  void InitNormals();
 };
 
+///////////////////////////////////////////////////////////////////
+// CTriangle
 
 class CTriangle : public CSolid
 {
 private:
-		CVector m_a, m_b, m_c, m_color, m_normal;
-    double m_distance;
-    
-    //plane equation is (m_normal,x) = m_distance
-    int planeIntersect( Ray &ray, double &distance);
+  CVector m_a, m_b, m_c, m_color, m_normal;
+  double m_distance;
     
 public:
-  CTriangle(CVector &a, CVector &b, CVector &c, CVector &color);
-		//white by default
-		//CTriangle(CVector &a, CVector &b, CVector &c);
+  CTriangle(const CVector &a, const CVector &b
+            , const CVector &c, const CVector &color);
   
-		virtual void GetColor( Ray &falling, CVector &color);
-    virtual int Intersect(  Ray &ray, double &distance);
-    virtual void Reflect( Ray &falling, Ray &reflected);
-    
+  virtual void GetColor ( const Ray &falling, CVector &color) const;
+  virtual int  Intersect( const Ray &ray, double &distance) const;
+  virtual void Reflect  ( const Ray &falling, Ray &reflected) const;
+
+protected:
+  //plane equation is (m_normal,x) = m_distance
+  int planeIntersect( const Ray &ray, double &distance) const;    
 };
 
 #endif //CLIENT_GEOMETRY_H_INCLUDED
