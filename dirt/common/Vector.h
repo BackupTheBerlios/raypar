@@ -9,6 +9,11 @@
 // Comments: Fixed a bug in CVector operator =, added missing z component assignment
 //
 //***********************************
+// REVISION by Tonic on 11/01/2004
+// Comments: Added Normalize() method
+//
+//***********************************
+
 
 #if !defined(AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_)
 #define AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_
@@ -29,68 +34,80 @@ public:
 	CVector() : x(0), y(0), z(0) {}
 	CVector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
 	CVector(const CVector &v) : x(v.x), y(v.y), z(v.z) {}  
-		
+	
 	//operators
-
-  CVector operator+ (const CVector& v) 
+	
+	CVector operator+ (const CVector& v) 
 	{	return CVector(x + v.x, y + v.y, z+v.z); }
-
+	
 	CVector operator- (const CVector& v) 
 	{	return CVector(x - v.x, y - v.y, z-v.z); }
-
+	
 	void operator+= (const CVector& v)
 	{	x+=v.x;	y+=v.y;	z+=v.z; }
-
-  void operator-= (const CVector& v)
+	
+	void operator-= (const CVector& v)
 	{	x-=v.x;	y-=v.y;	z-=v.z; }
 	
 	void operator*= (double m)
 	{	x*=m; y*=m; z*=m; }
-
-  CVector operator* ( double m )
+	
+	CVector operator* ( double m )
 	{	return CVector(x*m, y*m, z*m); }
-
-  //don't forget about devizion by ZERO !
-  void operator/= ( double d )
+	
+	//don't forget about devizion by ZERO !
+	void operator/= ( double d )
 	{	x/=d; y/=d; z/=d; }
-  
+	
 	//scalar multiplication
-  double operator* ( const  CVector& v )
+	double operator* ( const  CVector& v )
 	{	return v.x*x + v.y*y + v.z*z; }
-
- 	//*************
+	
+	//*************
 	//operator =
 	//last modified by Tonic on 12/11/2003
 	//bugfix, added missing z=v.z
 	//*************
 	CVector& operator= ( const CVector& v )
 	{	x=v.x; y=v.y; z=v.z;	return *this;}
-
-  //Be carefull with this operator!
-  int operator == ( const CVector& v ) const
-  { return ( ( fabs(v.x-x) < VECTOR_EQUAL_EPS) && 
-             ( fabs(v.y-y) < VECTOR_EQUAL_EPS) && 
-             ( fabs(v.z-z) < VECTOR_EQUAL_EPS ) ); }
-
-  //Checks whether Vector equals to zero
-  //Be careful with this function!
-  int IsZero (void) const
-  { return ( ( fabs(x) < VECTOR_EQUAL_EPS ) && 
-             ( fabs(y) < VECTOR_EQUAL_EPS ) &&
-             ( fabs(z) < VECTOR_EQUAL_EPS ) ); }
-
-  double Length (void) const
-  { return x*x + y*y + z*z; }
-
-  //sinonim for Length
-  double Len (void) const
-  { return Length(); }
-
-
-
-  #ifdef _DEBUG
-  void Dump(CDumpContext& dc = afxDump);
-  #endif//_DEBUG
+	
+	//Be carefull with this operator!
+	int operator == ( const CVector& v ) const
+	{ return ( ( fabs(v.x-x) < VECTOR_EQUAL_EPS) && 
+	( fabs(v.y-y) < VECTOR_EQUAL_EPS) && 
+	( fabs(v.z-z) < VECTOR_EQUAL_EPS ) ); }
+	
+	//Checks whether Vector equals to zero
+	//Be careful with this function!
+	int IsZero (void) const
+	{ return ( ( fabs(x) < VECTOR_EQUAL_EPS ) && 
+	( fabs(y) < VECTOR_EQUAL_EPS ) &&
+	( fabs(z) < VECTOR_EQUAL_EPS ) ); }
+	
+	double Length (void) const
+	{ return x*x + y*y + z*z; }
+	
+	//sinonim for Length
+	double Len (void) const
+	{ return Length(); }
+	
+	//normalization to the length of 1
+	void Normalize(void)
+	{
+		double len = Length();
+		
+		if( len > VECTOR_EQUAL_EPS )
+		{
+			x = x/len;
+			y = y/len;
+			z = z/len;
+		}
+	}
+	
+	
+#ifdef _DEBUG
+	void Dump(CDumpContext& dc = afxDump);
+#endif//_DEBUG
 };
 
 //unary minus operator

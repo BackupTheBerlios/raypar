@@ -6,7 +6,7 @@
 //
 //***********************************
 
-#include "Vector.h"
+#include "..\common\vector.h"
 #include "environment.h"
 
 class Tracer
