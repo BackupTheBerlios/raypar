@@ -22,6 +22,15 @@
 // using VECTOR_EQUAL_EPS
 //
 //*********************************************************
+// REVISION by KIRILL, on 1/23/2004 04:51:54
+// Comments: Storing/loading operators >> & << added
+//   debug storing operators removed
+//
+//*********************************************************
+// REVISION by KIRILL, on 1/23/2004 04:57:08
+// Comments: double comparison functions slightly modified
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -37,27 +46,22 @@
 #include <math.h>
 #define VECTOR_EQUAL_EPS (1E-7)
 
-static bool eq(double a, double b)
+//nonzero if a == b
+inline int eq(double a, double b)
 {
-  if( fabs(a-b) < VECTOR_EQUAL_EPS )
-    return true;
-  else return false;
+  return ( fabs(a-b) < VECTOR_EQUAL_EPS );
 };
 
-//true if a >= b
-static bool geq(double a, double b)
+//nonzero if a >= b
+inline int geq(double a, double b)
 {
-  if( a > b - VECTOR_EQUAL_EPS )
-    return true;
-  else return false;
+  return ( a > b - VECTOR_EQUAL_EPS );    
 };
 
-//true if a <= b
-static bool leq(double a, double b)
-{
-  if( a < b + VECTOR_EQUAL_EPS )
-    return true;
-  else return false;
+//nonzero if a <= b
+inline int leq(double a, double b)
+{ 
+  return ( a < b + VECTOR_EQUAL_EPS );    
 };
 
 class CVector
@@ -133,10 +137,12 @@ public:
       x /= len;  y /= len;  z /= len;
     }    
   }
+
   
-#ifdef _DEBUG
-  void Dump(CDumpContext& dc = afxDump);
-#endif//_DEBUG
+    
+//#ifdef _DEBUG
+//  void Dump(CDumpContext& dc = afxDump);
+//#endif//_DEBUG
 };
 
 //unary minus operator
@@ -150,6 +156,9 @@ inline CVector operator* ( double m, const CVector& v )
 inline CVector operator/ ( const CVector& v, double d )
 {	return CVector(v.x/d, v.y/d, v.z/d); }
 
-CDumpContext& operator << (CDumpContext& dc, const CVector& v);
+//CDumpContext& operator << (CDumpContext& dc, const CVector& v);
 
+//Storing and loading operators
+CArchive& operator << (CArchive& ar, const CVector& v);
+CArchive& operator >> (CArchive& ar, CVector& v);
 #endif // !defined(AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_)

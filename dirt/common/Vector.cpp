@@ -8,6 +8,10 @@
 // REVISION by KIRILL, on 11/8/2003 20:46:01
 // Comments: unnecessary include of "CLIENT.H" removed
 //
+//*********************************************************
+// REVISION by KIRILL, on 1/23/2004 04:52:22
+// Comments: Storing/loading operators >> & << added
+//
 //***********************************
 // REVISION by ..., on ...
 // Comments: ...
@@ -25,17 +29,33 @@ static char THIS_FILE[]=__FILE__;
 #endif
 
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
+//
+//CDumpContext& operator << (CDumpContext& dc, const CVector& v)
+//{
+//  dc << "(" << v.x << ", " << v.y <<", " << v.z <<")";
+//  return dc;
+//}
+//
+//void CVector::Dump(CDumpContext& dc /*= afxDump*/)
+//{
+//  operator << (dc, *this);
+//}
+//
+//#endif//_DEBUG
 
-CDumpContext& operator << (CDumpContext& dc, const CVector& v)
+
+//Storing and loading operators
+CArchive& operator << (CArchive& ar, const CVector& v)
 {
-  dc << "(" << v.x << ", " << v.y <<", " << v.z <<")";
-  return dc;
+  ASSERT( ar.IsStoring() );
+  ar << v.x << v.y << v.z;
+  return ar;
 }
 
-void CVector::Dump(CDumpContext& dc /*= afxDump*/)
+CArchive& operator >> (CArchive& ar, CVector& v)
 {
-  operator << (dc, *this);
+  ASSERT( ar.IsStoring() );
+  ar >> v.x >> v.y >> v.z;
+  return ar;
 }
-
-#endif//_DEBUG
