@@ -14,6 +14,30 @@
 #include "stdafx.h"
 #include "protocol.h"
 #include "msg.h"
+#include "vector.h"
+
+
+/////////////////////////////////////////////////
+// CameraInfo
+
+CArchive& CameraInfo::operator << (CArchive& ar)
+{
+  ASSERT( ar.IsStoring() );
+  ar << m_camera_pos;
+  ar << m_camera_z_axis;
+  ar << m_camera_y_axis;
+  return ar;
+}
+CArchive& CameraInfo::operator >> (CArchive& ar)
+{
+  ASSERT( ar.IsLoading() );
+  ar >> m_camera_pos;
+  ar >> m_camera_z_axis;
+  ar >> m_camera_y_axis;
+  return ar;
+}
+
+
 
 /////////////////////////////////////////////////
 // ConnectionInit
@@ -32,36 +56,26 @@ int ConnectionInit::Q::read(CArchive& ar)
 {
   int ret = 0; //return code
   ASSERT( ar.IsLoading() );
-  TRY
-  {  
-    ar >> m_client_protocol_version;
-  }
-  CATCH_ALL(pEx)
-  {  
-    ErrorMessageFromException(pEx);
-    ret = 1;
-  }
-  END_CATCH_ALL
-
-  return ret;
+  ar >> m_client_protocol_version;
+  return 0;
 }
 
 int ConnectionInit::Q::write(CArchive& ar)
 {
   int ret = 0; //return code
-  ASSERT( ar.IsStoring() );
-  TRY
-  {  
+  //ASSERT( ar.IsStoring() );
+  //TRY
+  //{  
     ar << m_client_protocol_version;
-  }
-  CATCH_ALL(pEx)
-  {  
-    ErrorMessageFromException(pEx);
-    ret = 1;
-  }
-  END_CATCH_ALL
+  //}
+  //CATCH_ALL(pEx)
+  //{  
+//    ErrorMessageFromException(pEx);
+//    ret = 1;
+//  }
+//  END_CATCH_ALL
 
-  return ret;
+  return 0;
 }
 
 ///////////////////////////////////////////////////////////
@@ -80,32 +94,17 @@ int ConnectionInit::A::read(CArchive& ar)
 {
   int ret = 0; //return code
   ASSERT( ar.IsLoading() );
-  TRY
-  {  
-    ar >> m_server_protocol_version;
-  }
-  CATCH_ALL(pEx)
-  {  
-    ErrorMessageFromException(pEx);
-    ret = 1;
-  }
-  END_CATCH_ALL
-
-  return ret;
+  ar >> m_server_protocol_version;
+  ar >> m_session_id;
+  return 0;
 }
 
 int ConnectionInit::A::write(CArchive& ar)
 {
   int ret = 0; //return code
   ASSERT( ar.IsStoring() );
-  TRY {  
-    ar << m_server_protocol_version;
-  }
-  CATCH_ALL(pEx) {  
-    ErrorMessageFromException(pEx);
-    ret = 1;
-  }END_CATCH_ALL
-
+  ar << m_server_protocol_version;
+  ar << m_session_id;
   return ret;
 }
 
