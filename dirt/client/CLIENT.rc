@@ -102,6 +102,14 @@ BEGIN
     PUSHBUTTON      "Test",IDC_BUTTON_TEST,275,42,38,14
 END
 
+IDD_TEST_DIALOG DIALOG DISCARDABLE  0, 0, 417, 302
+STYLE WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Test Dialog"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,360,281,50,14
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -168,6 +176,14 @@ BEGIN
         RIGHTMARGIN, 313
         TOPMARGIN, 7
         BOTTOMMARGIN, 193
+    END
+
+    IDD_TEST_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 410
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 295
     END
 END
 #endif    // APSTUDIO_INVOKED

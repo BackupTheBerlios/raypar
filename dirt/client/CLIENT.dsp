@@ -138,6 +138,10 @@ SOURCE=.\targa.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\TestDialog.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\utils.cpp
 # End Source File
 # Begin Source File
@@ -187,6 +191,10 @@ SOURCE=.\simpleTracer.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\TestDialog.h
 # End Source File
 # Begin Source File
 

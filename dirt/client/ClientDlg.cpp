@@ -230,7 +230,7 @@ void CClientDlg::OnButtonTest()
 	SimpleTracer	testedTracer;
 
 	CVector			sphereCenter(0,0,5);
-	Solid			* solidObject = new Sphere(&sphereCenter, 1);
+	Solid			* solidObject = new CSphere(&sphereCenter, 1);
 	Light			* lightSource = new Light( 1.0, 1.0, 1.0, 500, 500 ,500);
 	CVector			planePoint;
 	CVector			origin(0,0,0);
