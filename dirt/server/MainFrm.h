@@ -97,9 +97,9 @@ protected:  // control bar embedded members
 
   CWindowSettings m_settings;
   CEnvironment m_scene;
+  CCamera m_camera; //temp
   CServerSceneBuilder m_scene_builder;
-  int m_last_scene_uid;
-  void* m_bitmap_lines;
+  int m_last_scene_uid;  
 
   int GetNewSceneUID(void) { return ++m_last_scene_uid; }
 

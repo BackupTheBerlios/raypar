@@ -76,7 +76,7 @@ static UINT indicators[] =
 
 CMainFrame::CMainFrame()
 : m_scene_builder( m_scene )
-, m_srv_ctrl( m_scene )
+, m_srv_ctrl()
 , m_settings(mainFrameSection, MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
                              , MAINFRAME_DEFAULT_WIDTH, MAINFRAME_DEFAULT_HEIGHT)
 {	
@@ -84,15 +84,12 @@ CMainFrame::CMainFrame()
   m_scene.SetSceneUID( 0 ); 
   glb_scene_builder = &m_scene_builder;
 	m_settings.SetSection(mainFrameSection);
-  m_bServerStarted = false;
-  m_bitmap_lines = 0;
+  m_bServerStarted = false;  
 }
 
 CMainFrame::~CMainFrame()
 {
-  glb_scene_builder = 0;
-  if ( m_bitmap_lines )
-    delete[] m_bitmap_lines;
+  glb_scene_builder = 0;  
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -218,17 +215,16 @@ void CMainFrame::OnViewOptions()
 
 void CMainFrame::OnRun() 
 {
-  if ( m_bitmap_lines ){
-    delete[] m_bitmap_lines;
-    m_bitmap_lines = 0;
-  }
+  m_camera.SetWidth(  m_serverOptions.GetImageWidth() );
+  m_camera.SetHeight( m_serverOptions.GetImageHeight() );
+  m_camera.SetEyePoint(CVector(0,0,0));//temp KIRILL
 
-  int ret = m_srv_ctrl.StartServer( this, m_serverOptions.GetServerPort()
-                            , m_serverOptions.GetImageWidth()
-                            , m_serverOptions.GetImageHeight() );
+  int ret = m_srv_ctrl.StartServer( this, m_serverOptions.GetServerPort(),
+                             &m_scene, &m_camera );
+
   if ( !ret ){
     m_bServerStarted = true;
-    Message("Servers started on port '%d'", m_serverOptions.GetServerPort());
+    Message("Server started on port '%d'", m_serverOptions.GetServerPort());
   }else{
     ErrorMessage("Unable to start server!");
   }
@@ -239,8 +235,7 @@ extern FILE *yyin; //located in ray_lex.l.cpp
 extern int yyparse(void);
 
 void CMainFrame::OnOpenScene() 
-{
-  m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
+{  
   CFileDialog ofd( TRUE, 0, 0, 0, "Scene Files (*.sc)|*.sc|All Files (*.*)", this);
   int ret = ofd.DoModal();
 
@@ -253,12 +248,16 @@ void CMainFrame::OnOpenScene()
     ASSERT( yyin );
     int ret = yyparse();
     if ( ret != 0 ){
-      ErrorMessage( "yyparse returned error '%d'", ret );
+      char err_buf[128];
+      sprintf(err_buf, "Wrong scene. Parsing stopped on line %d", 
+                        m_scene_builder.GetCurrentLineNumber() );
+      ErrorMessageWithBox( err_buf );
       m_scene.Empty();
-      //yyerrok;
+      m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "");      
     }else{    
       m_scene.SetSceneUID(GetNewSceneUID());
       ASSERT( m_scene.IsValid() );
+      m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Loaded");
     }
     Message( "'%s' parsed (%d lines)", (LPCSTR) fname, m_scene_builder.GetCurrentLineNumber() );
     fclose(yyin);
@@ -321,17 +320,29 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
 //that the scene rendering was finished (it is sent once per scene)
 LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 {
-  m_srv_ctrl.StopServer();
-  m_bServerStarted = false;	
-  
-  int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
+  static int count = 0;  //temp!!!
+  count++;
 
-  ASSERT( m_bitmap_lines == NULL );
-  m_bitmap_lines = m_srv_ctrl.BuildBitmapBits();
+  afxDump << "OnServerFinishedScene()\n";
+
+  void* bitmap_lines = m_srv_ctrl.BuildBitmapBits();
   m_wndView.SetBitmapParams( m_srv_ctrl.GetWidth()
-                             , m_srv_ctrl.GetHeight(), m_bitmap_lines );
-  m_wndView.Invalidate(); 
-  m_wndView.UpdateWindow();
+                             , m_srv_ctrl.GetHeight(), bitmap_lines );
+  delete[] bitmap_lines;
+
+  int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
+  if ( count > 5 ){
+    m_srv_ctrl.StopServer();
+    m_bServerStarted = false;	    
+  }else{
+    //temp
+    m_camera.SetEyePoint( CVector(0, 0, count/10.0) );
+    m_srv_ctrl.SetNewScene(&m_scene, &m_camera);    
+  }
+
+  m_wndView.Invalidate();  //we should repaint the window but we do it only
+  m_wndView.UpdateWindow(); //here not to waste server time
+
   return 1; //this means that we've processed the message
 }
 
@@ -354,7 +365,7 @@ LRESULT CMainFrame::OnServerLineRendered(WPARAM wParam, LPARAM lParam)
 void CMainFrame::OnStop() 
 {  
 	m_srv_ctrl.StopServer();
-  m_bServerStarted = false;	
+  m_bServerStarted = false;
 }
 
 void CMainFrame::OnUpdateStop(CCmdUI* pCmdUI) 

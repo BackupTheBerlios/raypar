@@ -495,7 +495,6 @@ void CServerControl::WantStartReadScene()
   CSingleLock m_reading_lock(&m_reading_count_cs, TRUE);
   m_reading_clients_count++;
   m_can_modify_scene_event.ResetEvent(); //someone is reading scene!
-  afxDump <<"ResetEvent, cl_cnt = " << m_reading_clients_count << "\n";
 }
 
 //client should call this after it finished reading the scene
@@ -506,10 +505,8 @@ void CServerControl::FinishedReadingScene()
 
   ASSERT( m_reading_clients_count>=0 );
   
-  if( m_reading_clients_count == 0 ){  
-    m_can_read_scene_event.SetEvent();
-    afxDump <<"SetEvent\n";
-  }
+  if( m_reading_clients_count == 0 )
+    m_can_modify_scene_event.SetEvent();
 }
 
 
@@ -523,7 +520,7 @@ void CServerControl::SetNewScene(CEnvironment* p_scene, CCamera* p_camera)
   ASSERT( p_camera->GetWidth()  == m_lines.GetWidth() );
 
   m_can_read_scene_event.ResetEvent();
-  WaitForSingleObject( m_can_read_scene_event, INFINITE );
+  WaitForSingleObject( m_can_modify_scene_event, INFINITE );
   m_scene = p_scene;
   m_camera = p_camera;
 
