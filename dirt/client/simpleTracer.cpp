@@ -173,6 +173,7 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
       
       //now process the refracted ray
       if( nearestObject->GetReflectionCoefficient() < 1 - VECTOR_EQUAL_EPS ) //solid is NOT opaque
+
       {
         Ray refracted;
         bool newOutside;
