@@ -5,7 +5,15 @@
 // Comments: Geometry objects class methods implementation
 //
 //*********************************************************
-
+// REVISION by KIRILL, on 1/14/2004 20:54:59
+// Comments: error in Sphere::reflect and Plane::reflect
+//  with ASSERT(.) corrected
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
 
 #include "stdafx.h"
 #include "geometry.h"
@@ -14,8 +22,8 @@
 ////////////////////////////// Sphere methods //////////////////////////////
 
 Sphere::Sphere()
-{
-	position.x = 0;
+{  
+  position.x = 0;
 	position.y = 0;
 	position.z = 0;
 	radius = 1;
@@ -85,7 +93,12 @@ void Sphere::reflect(Ray *falling, Ray *reflected)
 	CVector fallingOrigin,fallingDirection;
 	CVector reflectedOrigin,reflectedDirection;
 
-	ASSERT (Intersect(falling, &distance)); //gets the distance
+  
+  // 	ASSERT (Intersect(falling, &distance)); This does NOTHING in RELEASE version.
+  //                                          Intersect() is NOT called.
+
+  int ret = Intersect(falling, &distance); //gets the distance
+	ASSERT (ret); 
 	
 	falling->getOrigin(&fallingOrigin);
 	falling->getDirection(&fallingDirection);
@@ -189,9 +202,10 @@ void Plane::reflect(Ray *falling, Ray *reflected)
 	CVector fallingOrigin,fallingDirection;
 	CVector reflectedOrigin,reflectedDirection;
 
-	ASSERT (Intersect(falling, &distance)); //gets the distance
-	
-	falling->getOrigin(&fallingOrigin);
+	int ret = Intersect(falling, &distance); //gets the distance
+	ASSERT (ret); 
+  
+  falling->getOrigin(&fallingOrigin);
 	falling->getDirection(&fallingDirection);
 
 	reflectedOrigin = fallingOrigin + distance * fallingDirection;
