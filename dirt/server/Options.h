@@ -42,6 +42,8 @@ protected:
   int m_imageHeight; //rendered image height
   int m_imageWidth; //rendered image width
   int m_serverPort;  //server port
+  BOOL m_b_saveFile;
+  CString m_filename;
 
 protected:
   //Checks all values and modifies invalid members to its valid default combinations
@@ -63,9 +65,13 @@ public:
   int GetImageHeight(void) const {return m_imageHeight;}
   int GetImageWidth(void) const {return m_imageWidth;}
   int GetServerPort(void) const {return m_serverPort;}
+  BOOL DoSaveFile(void) const {return m_b_saveFile;}
+  CString GetFileName(void) const {return m_filename;}
   void SetImageHeight(int imageHeight) {m_imageHeight = imageHeight;}
   void SetImageWidth(int imageWidth) {m_imageWidth = imageWidth;}
   void SetServerPort(int serverPort) {m_serverPort = serverPort;}
+  void SetSaveFile(BOOL b_saveFile){m_b_saveFile = b_saveFile;}
+  void SetFilename(CString filename){m_filename = filename;}
 };
 
 class CWindowSettings

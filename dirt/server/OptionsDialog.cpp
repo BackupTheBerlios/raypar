@@ -36,6 +36,8 @@ COptionsDialog::COptionsDialog(CWnd* pParent /*=NULL*/)
 	m_width = 0;
 	m_height = 0;
 	m_port = 0;  
+	m_b_savePicture = FALSE;
+	m_fileName = _T("");
 	//}}AFX_DATA_INIT
 }
 
@@ -44,9 +46,6 @@ COptionsDialog::COptionsDialog(CWnd* pParent, COptions *serverOptions)
 {
   ASSERT( serverOptions );
 	m_serverOptions = serverOptions;
-  m_width = serverOptions->GetImageWidth();
-	m_height = serverOptions->GetImageHeight();
-	m_port = serverOptions->GetServerPort();
 }
 
 
@@ -60,13 +59,17 @@ void COptionsDialog::DoDataExchange(CDataExchange* pDX)
 	DDV_MinMaxInt(pDX, m_height, 1, MAX_IMAGE_HEIGHT);
 	DDX_Text(pDX, IDC_EDIT_PORT, m_port);
 	DDV_MinMaxInt(pDX, m_port, 1, MAX_SERVER_PORT);
+	DDX_Check(pDX, IDC_CHECK_SAVE, m_b_savePicture);
+	DDX_Text(pDX, IDC_EDIT_FILENAME, m_fileName);
 	//}}AFX_DATA_MAP
 }
 
 
 BEGIN_MESSAGE_MAP(COptionsDialog, CDialog)
 	//{{AFX_MSG_MAP(COptionsDialog)
-	ON_WM_DESTROY()
+ // ON_WM_INITDIALOG()
+  ON_WM_DESTROY()
+	ON_BN_CLICKED(IDC_CHECK_SAVE, OnCheckSave)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -81,10 +84,24 @@ void COptionsDialog::OnOK()
     //correct data were entered
     m_serverOptions->SetImageHeight(m_height);
     m_serverOptions->SetImageWidth(m_width);
-    m_serverOptions->SetServerPort(m_port);  
+    m_serverOptions->SetServerPort(m_port);
+    m_serverOptions->SetSaveFile(m_b_savePicture);
+    m_serverOptions->SetFilename(m_fileName);
     
 	  CDialog::OnOK(); //data correct so we may close dialog
   } 
+}
+
+BOOL COptionsDialog::OnInitDialog()
+{
+  m_width = m_serverOptions->GetImageWidth();
+	m_height = m_serverOptions->GetImageHeight();
+	m_port = m_serverOptions->GetServerPort();
+  m_b_savePicture = m_serverOptions->DoSaveFile();
+  m_fileName = m_serverOptions->GetFileName();
+  UpdateData(FALSE);
+  OnCheckSave();
+  return TRUE;
 }
 
 void COptionsDialog::OnDestroy() 
@@ -93,4 +110,12 @@ void COptionsDialog::OnDestroy()
 	
 	// TODO: Add your message handler code here
 	
+}
+
+void COptionsDialog::OnCheckSave() 
+{
+	// TODO: Add your control notification handler code here
+  UpdateData(TRUE);
+  GetDlgItem( IDC_EDIT_FILENAME )->EnableWindow(m_b_savePicture);
+  GetDlgItem( IDC_STATIC_FILENAME )->EnableWindow(m_b_savePicture);
 }

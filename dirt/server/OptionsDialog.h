@@ -28,6 +28,7 @@ class COptionsDialog : public CDialog
 public:
 	COptionsDialog(CWnd* pParent = NULL);   // standard constructor
   COptionsDialog(CWnd* pParent, COptions* serverOptions);   // standard constructor
+  BOOL OnInitDialog();
 
 // Dialog Data
 	//{{AFX_DATA(COptionsDialog)
@@ -35,6 +36,8 @@ public:
 	int		m_width;
 	int		m_height;
 	int		m_port;
+	BOOL	m_b_savePicture;
+	CString	m_fileName;
 	//}}AFX_DATA
 
 
@@ -52,6 +55,7 @@ protected:
 	//{{AFX_MSG(COptionsDialog)
 	virtual void OnOK();
 	afx_msg void OnDestroy();
+	afx_msg void OnCheckSave();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

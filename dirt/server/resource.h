@@ -14,6 +14,9 @@
 #define IDC_EDIT_WIDTH                  1001
 #define IDC_EDIT_HEIGHT                 1002
 #define IDC_EDIT_PORT                   1003
+#define IDC_CHECK_SAVE                  1004
+#define IDC_EDIT_FILENAME               1005
+#define IDC_STATIC_FILENAME             1006
 #define ID_OPEN_SCENE                   32771
 #define ID_RUN                          32774
 #define ID_OPEN_CAMERA                  32775
@@ -28,7 +31,7 @@
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32783
-#define _APS_NEXT_CONTROL_VALUE         1004
+#define _APS_NEXT_CONTROL_VALUE         1007
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

@@ -52,6 +52,8 @@ const char s_options_section[] = "Options";
 const char s_image_width[]  = "ImageWidth";
 const char s_image_height[] = "ImageHeight";
 const char s_server_port[]  = "ServerPort";
+const char s_do_save[] = "DoSave";
+const char s_filename[] = "FileName";
 
 const char s_window_left[] = "WindowLeft";
 const char s_window_top[] = "WindowTop";
@@ -65,6 +67,8 @@ const char s_window_height[] = "WindowHeight";
 const int def_image_width  = 400;
 const int def_image_height = 300;
 const int def_server_port  = 8700;
+const BOOL def_do_save = TRUE;
+const char def_filename[] = "Result.bmp";
 
 const int def_window_top = 100;
 const int def_window_left = 100;
@@ -83,6 +87,8 @@ void COptions::SaveDataToReg()
   p_app->WriteProfileInt(s_options_section, s_image_width, m_imageWidth );
   p_app->WriteProfileInt(s_options_section, s_image_height, m_imageHeight );
   p_app->WriteProfileInt(s_options_section, s_server_port, m_serverPort );
+  p_app->WriteProfileInt(s_options_section, s_do_save, m_b_saveFile );
+  p_app->WriteProfileString(s_options_section, s_filename, m_filename);
 }
 
 void COptions::GetDataFromReg()
@@ -94,6 +100,8 @@ void COptions::GetDataFromReg()
   m_imageWidth  = p_app->GetProfileInt(s_options_section, s_image_width,  def_image_width  );
   m_imageHeight = p_app->GetProfileInt(s_options_section, s_image_height, def_image_height );
   m_serverPort  = p_app->GetProfileInt(s_options_section, s_server_port,  def_server_port  );
+  m_b_saveFile = p_app->GetProfileInt(s_options_section, s_do_save,  def_do_save  );
+  m_filename = p_app->GetProfileString(s_options_section, s_filename,  def_filename );  
   ModifyInvalid(); //we check data and modify invalid ones which might be read from registry
 }
 
@@ -107,6 +115,8 @@ void COptions::ModifyInvalid()
 
   if ( m_serverPort < 1 || m_serverPort > 65535 ) //65535 - max port number
     m_serverPort = def_server_port;
+
+  //!!! here check m_filename !!!
 }
 
 
