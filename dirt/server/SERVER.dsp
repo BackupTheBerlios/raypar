@@ -158,6 +158,10 @@ SOURCE=..\common\SceneArray.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SceneList.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\SERVER.cpp
 # End Source File
 # Begin Source File
@@ -293,6 +297,10 @@ SOURCE=.\Resource.h
 # Begin Source File
 
 SOURCE=..\common\SceneArray.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\SceneList.h
 # End Source File
 # Begin Source File
 
