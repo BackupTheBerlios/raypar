@@ -416,8 +416,8 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
                                           //we lock the access to the lines info
 
   p_camera_info->m_camera_pos = m_camera->GetEyePoint();
-  p_camera_info->m_camera_y_axis = CVector(0,1,0);
-  p_camera_info->m_camera_z_axis = CVector(0,0,1);
+  p_camera_info->m_camera_y_axis = m_camera->GetTopDir();
+  p_camera_info->m_camera_z_axis = m_camera->GetViewDir();
   
   *p_scene_id = m_scene->GetSceneUID(); 
   ASSERT( *p_scene_id > 0);//zero or negative scene id means that 
@@ -516,6 +516,7 @@ void CServerControl::SetNewScene(CEnvironment* p_scene, CCamera* p_camera)
 
   CSingleLock lines_lock(&m_lines_change_cs, TRUE); //lock lines access
   m_lines.ResetAllLines();
+  m_lines.SetSceneUID(p_scene->GetSceneUID());
 
   m_can_read_scene_event.SetEvent(); //allow clients to work
 }

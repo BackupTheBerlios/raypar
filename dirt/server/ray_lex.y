@@ -18,7 +18,6 @@ static char THIS_FILE[] = __FILE__;
 void* alloca(int size){ return malloc(size); }
 
 
-
 extern int yylex();
 extern CServerSceneBuilder* glb_scene_builder;
 
@@ -38,11 +37,23 @@ void yyerror(const char* str_err)
 
 %start start
 %token dlm, REAL, IDSPHERE, IDLIGHT, IDSETAMBIENTCOLOR, IDPLANE, IDTRIANGLE
-%token IDCYLINDER, IDBOX
+%token IDCYLINDER, IDBOX, IDRENDER
 
 %%
 
-start : expr
+start : render
+
+render : 
+  | render IDRENDER '(' VECTOR dlm VECTOR dlm VECTOR ')' data
+    {
+	  glb_scene_builder->SetupCamera($4, $6, $8);
+    }
+ ;
+
+data: '{' expr '}'
+  | ';'
+ ;
+
 
 expr :
  |expr light 
@@ -57,7 +68,7 @@ expr :
 
 sphere : IDSPHERE '(' VECTOR  dlm REAL dlm VECTOR ')' ';' 
  {    
-    glb_scene_builder->AddSphere( $3.GetVector(), $5.GetDouble(), $7.GetVector() );  
+    glb_scene_builder->AddSphere( $3, $5, $7 );  
  }
 ;
 

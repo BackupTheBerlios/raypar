@@ -68,12 +68,13 @@ public:
   //Nonzero if the image is completed
   int LineWasRendered(int line_num, COLORREF* line_data);
 
-
   //getters
   int GetWidth(void) const { return m_line_width; }
   int GetHeight(void) const { return m_lines_count; }
   int GetSceneUID(void) const { return m_scene_uid; }
   bool IsCompleted(void) const { return m_bCompleted; }
+
+  void SetSceneUID(int scene_uid) { ASSERT( m_scene_uid >0 ); m_scene_uid = scene_uid; }
 
   //returns the percentage of rendered lines
   int GetRenderedPercent(void) const;

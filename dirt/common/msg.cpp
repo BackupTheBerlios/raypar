@@ -23,6 +23,8 @@ static char THIS_FILE[] = __FILE__;
 #include <stdio.h>
 #include <stdarg.h>
 
+#define USE_TIMED_LOGS() 1
+
 #define MAX_MESSAGE_LEN 512 
 
 #if IS_SERVER()
@@ -45,7 +47,7 @@ static void _LogMessage( MessageType type, LPCSTR format, va_list args )
 {
   ASSERT( type >= msgNORMAL && type < msgLAST );
 
-  static char msg_buf[MAX_MESSAGE_LEN];
+  char msg_buf[MAX_MESSAGE_LEN];
 
   int ret = _vsnprintf(msg_buf, MAX_MESSAGE_LEN, format, args );
 
@@ -54,13 +56,22 @@ static void _LogMessage( MessageType type, LPCSTR format, va_list args )
        //the length of the formated message is more than MAX_MESSAGE_LEN
        //We must set LAST char of msg_buf to 0 manually 
        //to define the end of the string
+
+  CString msg_text;
   
+  #if USE_TIMED_LOGS()
+  CTime time = CTime::GetCurrentTime();   
+  msg_text = time.Format("[%H:%M:%S] "); //add time to message
+  #endif//USE_TIME_LOG
+  
+  msg_text += msg_buf;
+
   #if IS_SERVER()
-  ServerLogMessage( msg_buf, type );
+  ServerLogMessage( msg_text, type );
   #endif//IS_SERVER
 
   #if IS_CLIENT()
-  ClientLogMessage( msg_buf, type );
+  ClientLogMessage( msg_text, type );
   #endif//IS_CLIENT
 }
 

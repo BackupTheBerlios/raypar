@@ -23,7 +23,7 @@ void CSceneList::Add(CEnvironment *scene, CCamera *camera)
   else
     sceneToAdd = scene;
   
-  m_scenes.Add(scene);
+  m_scenes.Add(sceneToAdd);
   m_cameras.Add(camera);
   m_counter++;
 };
@@ -50,7 +50,6 @@ void CSceneList::Empty(void)
 
 void CSceneList::EmptyCPtrArray( const CPtrArray &array )
 {
-  ASSERT( m_counter > 0 );
   for( int i = 0; i < m_counter; i++)
   {
     void *current, *temp;

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include "scenelist.h"
+
 //this return code means that the object has invalid parameters (eg. - negative color)
 #define ERROR_INVALID_PARAMS 1 
 
@@ -26,7 +28,7 @@ class CSolid;
 class CServerSceneBuilder
 {
 public:
-	CServerSceneBuilder(CEnvironment& scene);
+	CServerSceneBuilder();
   virtual ~CServerSceneBuilder();
 
   void Init(void);
@@ -62,6 +64,12 @@ public:
   
   void AddComment(LPCSTR comment); //for debug purpose
 
+  //zero if successfull, adds current m_scene and m_Camera to the
+  //list and starts new pair m_scene & m_camera
+  int SetupCamera(const CVector &eyePoint
+      , const CVector &viewDir, const CVector &topDir);
+
+
   virtual void ParserError( LPCSTR error );
 
   void SetErrorFlag(void)   { m_bErrorOccured = true;  }  
@@ -73,14 +81,33 @@ public:
   int  GetCurrentLineNumber(void) const { return m_line_number; }
   void ResetLineNumber() { m_line_number = 1; }
 
+  //empties the list of scenes
+  void Empty(void);
+
+//following two members are used for successive scene building:
+  //returns number of scenes
+  int GetSceneCount(void) const { return m_scene_list.GetSceneCount(); }
+  //returns camera and associated scene
+  void GetSceneAndCamera(int index, CEnvironment** p_scene, CCamera** p_camera);
+
+
 protected:
   //Checks p_solid->IsValid and adds valid object to the scene and returns zero
   //or destroys invalid object and returns nonzero
   int _AddSolid(CSolid* p_solid);
 
-  CEnvironment& m_scene;
+  //setups m_scene if it is zero
+  void _CreateScene(void);
+
+  //generates new scene uid
+  int GetNewSceneUID(void) { return ++m_last_scene_uid; }
+
+  CSceneList m_scene_list;
+  CEnvironment* m_scene;
+  CCamera* m_camera;
   bool m_bErrorOccured;
   int m_line_number;
+  int m_last_scene_uid;  
 };
 
 #endif //_SERVERSCENEBUILDER_H

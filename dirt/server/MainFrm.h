@@ -96,12 +96,16 @@ protected:  // control bar embedded members
   COptions    m_serverOptions;
 
   CWindowSettings m_settings;
-  CEnvironment m_scene;
-  CCamera m_camera; //temp
   CServerSceneBuilder m_scene_builder;
-  int m_last_scene_uid;  
+    
+  CEnvironment* m_scene; //current scene
+  CCamera* m_camera;  //current camera
+  int m_current_scene_number; //current scene number
 
-  int GetNewSceneUID(void) { return ++m_last_scene_uid; }
+  bool m_bSceneLoaded;  
+
+  //fills up current scene (m_current_scene_number) params
+  void _FillUpCurrentScene(void);
 
 // Generated message map functions
 protected:

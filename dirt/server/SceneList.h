@@ -16,16 +16,18 @@
 class CSceneList
 {
 protected:
-  CPtrArray m_scenes, m_cameras;
+  CPtrArray m_scenes;
+  CPtrArray m_cameras;
   int m_counter;
 
 public:
-  CSceneList() : m_scenes(), m_cameras()
-  {m_counter = 0;};
+  CSceneList() 
+   : m_counter(0) 
+  {}
 
   void Add(CEnvironment *scene, CCamera *camera);
   void GetScene(int index, CEnvironment** p_scene, CCamera** p_camera) const;
-  int GetSceneCount( void ) const;
+  int  GetSceneCount( void ) const;
   void Empty(void);
 
 private:

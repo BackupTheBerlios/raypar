@@ -57,13 +57,11 @@ ws        [ \t]*
 ","    {  return dlm;  }
 ";"    {  return ';';  }
 
-    /* "<"    {  return '<';  } */
-    /* ">"    {  return '>';  } */
-    /* "="    {  return '=';  } */
-    /* "/"    {  return '/';  } */
-
 "["    {  return '[';  }
 "]"    {  return ']';  }
+
+"{"    {  return '{';  }
+"}"    {  return '}';  }
 
 
 
@@ -74,6 +72,7 @@ Plane		     return ( IDPLANE );
 Triangle		 return ( IDTRIANGLE );
 Cylinder		 return ( IDCYLINDER );
 Box			     return ( IDBOX );
+Render			 return ( IDRENDER );
 
 
 {real}  {
