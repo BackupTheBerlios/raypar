@@ -8,6 +8,13 @@
 #define YYSTYPE CVar
 #define YYDEBUG 1
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+
 void* alloca(int size){ return malloc(size); }
 
 
@@ -45,6 +52,7 @@ expr :
  |expr box 
  |expr triangle
  |expr cylinder 
+ |error { yyerrok; }
  ;
 
 
