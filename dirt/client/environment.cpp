@@ -323,6 +323,7 @@ int Environment::IsValid(void) const
   if ( !m_AmbientColor.IsNormalized() ) return 0;
   if ( !m_lights.IsValid() ) return 0;
   if ( !m_lights.IsValid() ) return 0;
+  return 1;
 }
 
 int Environment::write(CArchive& ar) const

@@ -53,7 +53,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 /nologo /subsystem:windows /machine:I386
+# ADD LINK32 /nologo /version:1.0 /subsystem:windows /machine:I386
 
 !ELSEIF  "$(CFG)" == "CLIENT - Win32 Debug"
 
@@ -79,7 +79,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 /nologo /version:1.0 /subsystem:windows /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -122,6 +122,10 @@ SOURCE=..\COMMON\msg.cpp
 # Begin Source File
 
 SOURCE=..\common\protocol.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\SceneArray.cpp
 # End Source File
 # Begin Source File
 
@@ -183,6 +187,10 @@ SOURCE=..\common\protocol.h
 # Begin Source File
 
 SOURCE=.\Resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\SceneArray.h
 # End Source File
 # Begin Source File
 
