@@ -10,6 +10,10 @@
 // or ESC corrected. OnSysCommand and OnCommand modified.
 //
 //*********************************************************
+// REVISION by KIRILL, on 1/15/2004 22:42:23
+// Comments: Test dialog added, but it seems that it doesn't work...
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -23,6 +27,8 @@
 #include "environment.h"
 #include "simpletracer.h"
 #include "geometry.h"
+#include "TestDialog.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -213,6 +219,68 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 void CClientDlg::OnButtonTest() 
 {
   //KIRILL: Temporal button and function for testing of some features
+  
+  int  imgWidth = 200, imgHeight = 200;
+	
+  ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
+
+  COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
+
+  Environment		scene;
+	SimpleTracer	testedTracer;
+
+	CVector			sphereCenter(0,0,5);
+	Solid			* solidObject = new Sphere(&sphereCenter, 1);
+	Light			* lightSource = new Light( 1.0, 1.0, 1.0, 500, 500 ,500);
+	CVector			planePoint;
+	CVector			origin(0,0,0);
+	Medium			medium;
+	Tracer			* tracer = new SimpleTracer();
+
+	medium.Betta = 1;
+	medium.nRefr = 1;
+
+	planePoint.z = 1;
+
+	scene.Add( solidObject );
+	scene.Add( lightSource );
+
+  for( int i = 0; i < imgWidth; i ++)
+		for (int j = 0; j < imgHeight; j++)
+		{
+			CVector color;
+			
+			planePoint.x = ((double) i)/imgWidth/2 - 1.0;  
+			planePoint.y = ((double) j)/imgHeight/2 - 1.0;
+
+			Ray ray( &origin, &planePoint );
+			tracer->trace( &medium, &ray, &scene, 1, &color);
+			
+      //It's time to create global EPS :)))
+			#define EPS (1E-7)      
+      ASSERT( ( -EPS < color.x ) && (color.x < 1+EPS ) );//must hold 
+      ASSERT( ( -EPS < color.y ) && ( color.y < 1+EPS ) );
+      ASSERT( ( -EPS < color.z ) && ( color.z < 1+EPS ) );
+
+      ASSERT ( color.x < 0.001 );
+
+			BYTE c_red = BYTE (color.x*255.0);
+			BYTE c_green = (char) (color.y*255.0);
+			BYTE c_blue = (char) (color.z*255.0);
+			
+      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
+		};
+
+  for (int j=0; j<imgHeight-1; j++ )
+    img[imgWidth*j]=RGB(255,0,0);
+  
+  CTestDialog test_dlg( imgWidth, imgHeight, img);
+  test_dlg.DoModal();
+
+	delete[] img;
+	delete solidObject;
+	delete lightSource;
+	delete tracer;
 }
 
 void CClientDlg::OnButtonStart() 
