@@ -72,6 +72,10 @@ BOOL CClientApp::InitInstance()
 #else
   Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
+  // Change the registry key under which our settings are stored.
+	// TODO: You should modify this string to be something appropriate
+	// such as the name of your company or organization.
+	SetRegistryKey(_T("DIRT software"));
   
   m_ClientDlgHWND = 0;
   

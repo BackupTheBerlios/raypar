@@ -21,10 +21,19 @@
 #include "environment.h"
 #include "geometry.h"
 #include "ClientThread.h"
+#include "Options.h"
 
 //Client thread use this message to inform main thread that 
 //line was rendered and the client thread finished its work
 #define WM_CLIENT_LINE_RENDERED ( WM_USER+23 )
+
+//dialog is not resizable
+#define DIALOG_DEFAULT_LEFT 100
+#define DIALOG_DEFAULT_TOP 100
+
+
+//register section for MainFrame
+const char mainFrameSection[] = "Options\\DialogWindow";
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -63,7 +72,10 @@ public:
 
 // Implementation
 protected:
-	HICON m_hIcon;  
+	HICON m_hIcon;
+  
+  COptions m_options;   //client options
+  CWindowSettings m_settings;
 
   CEnvironment m_scene; //current scene
   CCamera   m_camera;   //carrent camera informarion
@@ -108,6 +120,7 @@ protected:
 	virtual BOOL OnInitDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnDestroy();
+  afx_msg void OnClose();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	afx_msg void OnButtonStart();

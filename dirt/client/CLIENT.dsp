@@ -129,6 +129,10 @@ SOURCE=..\COMMON\msg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\Options.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\protocol.cpp
 # End Source File
 # Begin Source File
@@ -183,6 +187,10 @@ SOURCE=..\COMMON\LogBox.h
 # Begin Source File
 
 SOURCE=..\COMMON\msg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\Options.h
 # End Source File
 # Begin Source File
 
