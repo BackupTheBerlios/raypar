@@ -341,8 +341,7 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 
 
         // Create the .BMP file.
-    filename = "c:\\"+m_serverOptions.GetFileName()+"rendered_"+itoa(number,tempbuf,10)+".bmp";
-    filename = "debug1\\1.bmp";
+    filename = m_serverOptions.GetFileName()+"rendered_"+itoa(number,tempbuf,10)+".bmp";
     hf = CreateFile(filename, 
                      GENERIC_READ | GENERIC_WRITE, 
                      (DWORD) 0, 
