@@ -366,8 +366,8 @@ CSolid * Environment::Intersect (  Ray &ray, double &t )
 
 Environment::Environment( )
 {
-	m_solids.SetSize(10,5);
-    m_lights.SetSize(10,5);
+//	m_solids.SetSize(10,5);
+//  m_lights.SetSize(10,5);
 	m_AmbientColor.x = m_AmbientColor.y = m_AmbientColor.z = 0.2;
 };
 

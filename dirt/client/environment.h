@@ -49,6 +49,11 @@
 // in Environment class  m_solidsCount and m_lightsCount are not
 // necessary now, use CPtrArray.GetSize() instead.
 //*********************************************************
+// REVISION by Vader, on 01/18/2004
+// Comments: GetSize now returns number of objects in the Array
+// as the increment of size is 1 and there is no access to any
+// Delete functions
+//*********************************************************
 
 
 #if !defined(CLIENT_ENVIRONMENT_H_INCLUDED)
@@ -139,19 +144,21 @@ public:
 
 
 //storage class for all geometrical objects (based on CArray collection)
-class CSolidArray : public CPtrArray{
+class CSolidArray : protected CPtrArray{
 public:
   CSolid* GetAt( int nIndex ) const {return (CSolid*) CPtrArray::GetAt(nIndex); }
   CSolid* operator[](int nIndex) const { return GetAt(nIndex); }
   int Add( CSolid* solid )  { return CPtrArray::Add( solid ); }
+  int GetSize() {return CPtrArray::GetSize();}
 };
 
 //storage class for all lights (based on CArray collection)
-class CLightArray : public CPtrArray{
+class CLightArray : protected CPtrArray{
 public:
   CLight* GetAt( int nIndex ) const {return (CLight*) CPtrArray::GetAt(nIndex); }
   CLight* operator[](int nIndex) const { return GetAt(nIndex); }
   int Add( CLight* light )  { return CPtrArray::Add( light ); }
+  int GetSize() {return CPtrArray::GetSize();}
 };
 
 
