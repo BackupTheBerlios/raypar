@@ -30,7 +30,7 @@ void yyerror(const char* str_err)
 %}
 
 %start start
-%token REAL, IDSPHERE, IDLIGHT, IDSETAMBIENTCOLOR
+%token REAL, IDSPHERE, IDLIGHT, IDSETAMBIENTCOLOR, IDPLANE, IDTRIANGLE, dlm
 
 %%
 
@@ -40,31 +40,37 @@ expr :
  |expr sphere 
  |expr light 
  |expr setambientcolor
+ |expr plane
  ;
 
 
-sphere : IDSPHERE '(' vector ','  REAL ',' vector ')' ';' 
+sphere : IDSPHERE '(' VECTOR  dlm REAL dlm VECTOR ')' ';' 
  {    
     glb_scene_builder->AddSphere( $3.GetVector(), $5.GetDouble(), $7.GetVector() );  
  }
 ;
 
-light : IDLIGHT '(' vector ','  vector ')' ';' 
+light : IDLIGHT '(' VECTOR dlm  VECTOR ')' ';' 
  {    
     glb_scene_builder->AddLight( $3.GetVector(), $5.GetVector() );  
  }
 ;
 
-setambientcolor: IDSETAMBIENTCOLOR '(' vector  ')' ';' 
+setambientcolor: IDSETAMBIENTCOLOR '(' VECTOR  ')' ';' 
  {    
     glb_scene_builder->SetAmbientColor( $3.GetVector() );  
  }
 ;
 
+plane : IDPLANE '(' VECTOR  dlm REAL dlm VECTOR ')' ';' 
+ {    
+    glb_scene_builder->AddPlane( $3.GetVector(), $5.GetDouble(), $7.GetVector() );  
+ }
+;
 
 
 
-vector : '[' REAL ',' REAL ',' REAL ']'
+VECTOR : '[' REAL dlm REAL dlm REAL ']'
  {
   $$.SetVector( CVector( $2.GetDouble(), $4.GetDouble(), $6.GetDouble() ) );  
  }

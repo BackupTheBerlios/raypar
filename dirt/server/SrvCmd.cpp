@@ -218,7 +218,7 @@ int CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
 int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
                int current_session_id, CServerControl* p_srv_ctrl)
 {
-/*  ASSERT( p_srv_ctrl );
+  ASSERT( p_srv_ctrl );
   
   int session_id;
   int line_num;
@@ -246,24 +246,12 @@ int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
     return ERROR_MUST_TERMINATE;
   }
   
-  if ( scene_uid != current_scene_uid ){ 
-    //Client sent unknown session id. We should terminate connection
-
-    ASSERT( 0 );
-    ErrorMessage("CL[%s]Wrong data received from client. Terminating the connection"
-        , client_name);
-    return ERROR_MUST_TERMINATE;
-  }
-
-  CImageLinesInfo image_lines_info;
-  CCameraInfo  camera_info;
-  int scene_uid;
-
-  p_srv_ctrl->FillSceneParameters( &scene_uid, &image_lines_info, &camera_info );
-
-  CGetFrameData::A get_frame_A( current_session_id, scene_uid
-                              , camera_info, image_lines_info);
-  ret = get_frame_A.write( arOut );
+  //store image line data 
+  p_srv_ctrl->LineReceived( scene_uid, line_num, pixels_count, data )
+  delete[] data; //free the memory
+  
+  CSendLineData::A send_line_A( current_session_id );
+  ret = send_line_A.write( arOut );
 
   if ( ret ){
     ASSERT( 0 );
@@ -271,7 +259,7 @@ int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
     return ERROR_MUST_TERMINATE;
   }
 
-  arOut.Flush();  */
+  arOut.Flush();
   return 0;
 }
 

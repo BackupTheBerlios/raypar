@@ -44,6 +44,11 @@ int CServerSceneBuilder::AddSphere(const CVector& pos, double radius, const CVec
 //  Message("[PARSER]  Sphere pos = ( %.3f, %.3f, %.3f), radius = %.3f",  pos.x, pos.y, pos.z, radius );
 }
 
+int CServerSceneBuilder::AddPlane(const CVector& normal, double distance, const CVector& color)
+{
+  return _AddSolid( new CPlane( normal, distance, color ) );
+}
+
 //zero if successfull
 int CServerSceneBuilder::AddLight(const CVector& pos, const CVector& color)
 {

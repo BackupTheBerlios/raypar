@@ -39,15 +39,14 @@ public:
 	//{{AFX_VIRTUAL(CSERVERApp)
 	public:
 	virtual BOOL InitInstance();
+	virtual void WinHelp(DWORD dwData, UINT nCmd = HELP_CONTEXT);
 	//}}AFX_VIRTUAL
 
 // Implementation
 
 public:
 	//{{AFX_MSG(CSERVERApp)
-	afx_msg void OnAppAbout();
-		// NOTE - the ClassWizard will add and remove member functions here.
-		//    DO NOT EDIT what you see in these blocks of generated code !
+	afx_msg void OnAppAbout();	
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

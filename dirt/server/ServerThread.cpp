@@ -282,7 +282,7 @@ int CServerControl::StartServer(CWnd* p_frame, int portNum)
 
   //KIRILL: temp:
   int scene_uid = m_scene.GetSceneUID();
-  m_lines.Init( scene_uid, 300,300 );
+  m_lines.Init( scene_uid, 1000,1000 );
   m_bSceneCompleted = false;
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
 
@@ -480,6 +480,17 @@ UINT ClientThreadFunction( void* param )
             bEnd = true; //KIRILL: temporarily 
             break;
           }
+        case CMD_SEND_LINE_DATA:
+          {    
+            int ret = CmdSendLineData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
+            if ( ERROR_MUST_TERMINATE == ret )
+                bEnd = true;
+            break;
+          }
+
+        int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
+               int current_session_id, CServerControl* p_srv_ctrl)
+
         default:{
             ASSERT(0);
             ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );

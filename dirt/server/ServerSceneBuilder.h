@@ -31,12 +31,11 @@ public:
 
   void Init(void);
 
-  //zero if successfull
+  //these functions add objects to scene. zero if successfull
   int AddSphere(const CVector& pos, double radius, const CVector& color);
-
-  //zero if successfull
   int  AddLight(const CVector& pos, const CVector& color);
-  
+  int  AddPlane(const CVector& normal, double distance, const CVector& color);
+
   //zero if successfull
   int SetAmbientColor( const CVector& color );
   

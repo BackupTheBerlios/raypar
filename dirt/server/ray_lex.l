@@ -49,7 +49,7 @@ ws        [ \t]*
 
 "("    {  return '(';  }  
 ")"    {  return ')';  }
-","    {  return ',';  }
+","    {  return dlm;  }
 ";"    {  return ';';  }
 
     /* "<"    {  return '<';  } */
@@ -62,9 +62,11 @@ ws        [ \t]*
 
 
 
-Sphere			 return (IDSPHERE);
-Light			 return (IDLIGHT);
-SetAmbientColor  return (IDSETAMBIENTCOLOR);
+Sphere			 return ( IDSPHERE );
+Light			 return ( IDLIGHT );
+SetAmbientColor  return ( IDSETAMBIENTCOLOR );
+Plane		     return ( IDPLANE ); 
+Triangle		 return ( IDTRIANGLE );
 
 
 {real}  {

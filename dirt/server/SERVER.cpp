@@ -39,8 +39,6 @@ CMainFrame* p_mainFrame = 0; //this is used for logs
 BEGIN_MESSAGE_MAP(CSERVERApp, CWinApp)
 	//{{AFX_MSG_MAP(CSERVERApp)
 	ON_COMMAND(ID_APP_ABOUT, OnAppAbout)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-		//    DO NOT EDIT what you see in these blocks of generated code!
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -86,7 +84,7 @@ BOOL CSERVERApp::InitInstance()
 	// Change the registry key under which our settings are stored.
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization.
-	SetRegistryKey(_T("DIRT server"));
+	SetRegistryKey(_T("DIRT software"));
 
 
 	// To create the main window, this code creates a new frame window
@@ -191,4 +189,11 @@ void ServerLogMessage( LPCSTR text, MessageType msg_type )
   int ret = ::SendMessage( theApp->m_pMainWnd->m_hWnd, WM_USER_ADD_LOG_MSG
                  , MAKEWPARAM( USER_ADD_LOG_MSG_CODE, msg_type )
                    , (LPARAM) text );
+}
+
+void CSERVERApp::WinHelp(DWORD dwData, UINT nCmd) 
+{
+	// TODO: Add your specialized code here and/or call the base class
+	
+	CWinApp::WinHelp(dwData, nCmd);
 }
