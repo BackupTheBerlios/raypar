@@ -46,10 +46,10 @@ public:
 	
 	//operators
 	
-	CVector operator+ (const CVector& v) 
+	CVector operator+ (const CVector& v) const
 	{	return CVector(x + v.x, y + v.y, z+v.z); }
 	
-	CVector operator- (const CVector& v) 
+	CVector operator- (const CVector& v) const
 	{	return CVector(x - v.x, y - v.y, z-v.z); }
 	
 	void operator+= (const CVector& v)
@@ -61,7 +61,7 @@ public:
 	void operator*= (double m)
 	{	x*=m; y*=m; z*=m; }
 	
-	CVector operator* ( double m )
+	CVector operator* ( double m ) const
 	{	return CVector(x*m, y*m, z*m); }
 	
 	//don't forget about devizion by ZERO !
@@ -69,7 +69,7 @@ public:
 	{	x/=d; y/=d; z/=d; }
 	
 	//scalar multiplication
-	double operator* ( const  CVector& v )
+	double operator* ( const  CVector& v ) const
 	{	return v.x*x + v.y*y + v.z*z; }
 	
 	//*************
@@ -114,11 +114,11 @@ public:
 };
 
 //unary minus operator
-inline CVector operator- (const CVector& v) 
+inline CVector operator- (const CVector& v)
 {	return CVector(-v.x, -v.y, -v.z); }
 
 
-inline CVector operator* ( double m, const CVector& v )
+inline CVector operator* ( double m, const CVector& v ) 
 {	return CVector(v.x*m, v.y*m, v.z*m); }
 
 //don't forget about devision by ZERO !
