@@ -94,8 +94,8 @@ class	Solid
 {
 public:
 
-	virtual int Intersect(  Ray &ray, double &distance)=0;
-	virtual void Reflect( Ray &falling, Ray &reflected)=0;
+	virtual int Intersect(  Ray &ray, double &distance) = 0;
+	virtual void Reflect( Ray &falling, Ray &reflected) = 0;
 	
 	//returns the color of the point, in which given ray
 	//intersects the solid
