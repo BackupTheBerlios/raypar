@@ -86,7 +86,7 @@ BOOL CSERVERApp::InitInstance()
 	// Change the registry key under which our settings are stored.
 	// TODO: You should modify this string to be something appropriate
 	// such as the name of your company or organization.
-	SetRegistryKey(_T("DIRT software"));
+	SetRegistryKey(_T("DIRT server"));
 
 
 	// To create the main window, this code creates a new frame window
