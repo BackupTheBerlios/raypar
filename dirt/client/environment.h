@@ -138,18 +138,22 @@ protected:
 
 class	CSolid
 {
-protected:
+private:
   double m_smoothness, m_reflectionCoefficient;
-  bool m_isTransparent;
   CVector m_color;
+
+protected:
+  bool m_isTransparent;
+
 public:
-  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 )
+  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 ) :
+      m_color(0,0,0)
   {
-    ASSERT( reflectionCoefficient > VECTOR_EQUAL_EPS );
-    ASSERT( smoothness > VECTOR_EQUAL_EPS );
     m_reflectionCoefficient =  reflectionCoefficient;
     m_smoothness = smoothness;
     m_isTransparent = false;
+
+    ASSERT( IsValid() );
   };
 
   // ?K?  No comment!!! What does this do with its perameters?
@@ -184,6 +188,15 @@ public:
     return m_reflectionCoefficient;
   };
 
+  virtual void SetReflectionCoefficient(double reflectionCoefficient)
+  {
+    //do not touch ">=" here!!
+    //reflectionCoefficient CANNOT be negative, even if
+    //its absolute value is very small
+    ASSERT( (reflectionCoefficient >= 0) && !(reflectionCoefficient > 1.0) );
+    m_reflectionCoefficient = reflectionCoefficient;
+  };
+
   //smoothness is the exponent of the cosine of
   //angle between normale direction and light direction
   //in computing the lighting. The more id the smoothness
@@ -200,6 +213,12 @@ public:
     m_smoothness = smoothness;
   };
  
+   virtual void SetColor( const CVector &color )
+   {
+     ASSERT( color.IsNormalized() );
+     m_color = color;
+   };
+
   virtual int IsValid(void) const;
 }; 
 

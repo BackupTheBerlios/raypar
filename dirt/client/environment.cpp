@@ -132,7 +132,7 @@ void CSolid::GetColor( const Ray &falling, CVector &color) const
   //do not check whether there is even a ray
   //just return white
   //more strict implementations in descendants
-  color.x = color.y = color.z = 1;
+  color = m_color;
 };
 
 int CSolid::IsValid(void) const
@@ -143,6 +143,9 @@ int CSolid::IsValid(void) const
   if ( leq(m_reflectionCoefficient,0) || (m_reflectionCoefficient > 1.0))
     return 0;
   
+  if( !m_color.IsNormalized() )
+    return 0;
+
   return 1;
 };
 ///////////////////////////////////////////////////////////

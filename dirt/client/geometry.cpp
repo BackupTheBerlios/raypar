@@ -268,7 +268,7 @@ int CCylinder::Intersect( const  Ray &ray, double &distance ) const
   return 0;
 };
 
-CCylinder::CCylinder( Ray &axis, double length, double radius, 
+CCylinder::CCylinder( Ray &axis, double length, double radius, const CVector &color,
                      double reflectionCoefficient, 
                      double smoothness, 
                      bool isTransparent, double Betta, double nRefr,
@@ -287,6 +287,8 @@ CCylinder::CCylinder( Ray &axis, double length, double radius,
   m_outerMedium.Betta = outerBetta;
   m_outerMedium.nRefr = outerRefr;
   m_isTransparent = isTransparent;
+
+  SetColor( color );
 
   ASSERT( IsValid() );
 };
@@ -348,7 +350,8 @@ CSphere::CSphere()
 CSphere::CSphere( const CVector &position, double radius, const CVector &color, double Betta, double nRefr, 
                  bool isTransparent, double outerBetta, double outerRefr, double reflectionCoefficient)
 {
-  m_reflectionCoefficient = reflectionCoefficient;
+  SetColor( color );
+  SetReflectionCoefficient(reflectionCoefficient);
   m_position = position;
   m_radius = radius;
   m_innerMedium.Betta = Betta;
@@ -356,19 +359,10 @@ CSphere::CSphere( const CVector &position, double radius, const CVector &color, 
   m_outerMedium.Betta = outerBetta;
   m_outerMedium.nRefr = outerRefr;
   m_isTransparent = isTransparent;
-  m_color = color;
-
+  
   ASSERT( IsValid() );
 };
 
-void CSphere::GetColor( const Ray &falling, CVector &color) const
-{
-  //do not check the intersection has place (otherwise in most cases we
-  //will repeat the computaion already done
-  //as every point of the sphere has the same color), just return it
-
-  color = m_color;
-};
 void CSphere::SetPosition( const CVector &position )
 {
   m_position = position;
@@ -381,11 +375,6 @@ void CSphere::SetRadius(double radius)
   m_radius = radius;
 };
 
-void CSphere::SetColor( const CVector &color )
-{
-  ASSERT( color.IsNormalized());
-  m_color = color;
-};
 
 int CSphere::Intersect( const Ray &ray, double &distance) const
 {
@@ -581,7 +570,7 @@ int  CSphere::IsValid(void) const
   if( !CSolid::IsValid() )
     return 0;
 
-  if( !m_color.IsNormalized() || !(m_radius > VECTOR_EQUAL_EPS) || !(m_radius < INFINITY) )
+  if( !(m_radius > VECTOR_EQUAL_EPS) || !(m_radius < INFINITY) )
     return 0;
 
     if ( !geq(m_innerMedium.Betta,0) )
@@ -607,15 +596,12 @@ CPlane::CPlane()
 : m_n(0,0,0)
 , m_D(0)
 {
-  m_isTransparent = false;
-  m_reflectionCoefficient = 0;
-  m_smoothness = 0;
-  m_color = CVector(0,0,0);
-}
+};
 
 
 CPlane::CPlane( const CVector &n, double D, const CVector color,
                 double reflectionCoefficient, double smoothness)
+                : CSolid( reflectionCoefficient, smoothness )
 {
   ASSERT( n.Length() > EPSILON );
   ASSERT( geq(reflectionCoefficient,0) && leq(reflectionCoefficient, 1) );
@@ -623,14 +609,12 @@ CPlane::CPlane( const CVector &n, double D, const CVector color,
   m_n.Normalize();
 
   m_D = D;
-  m_color = color;
-  m_reflectionCoefficient = reflectionCoefficient;
-  m_smoothness = smoothness;
-  m_isTransparent = false;
+  SetColor(color);
 };
 
 CPlane::CPlane(double a, double b, double c, double d, const CVector color,
                double reflectionCoefficient, double smoothness)
+               : CSolid( reflectionCoefficient, smoothness )
 {
   //ASSERT (a!=0 || b!=0 || c!=0);
   ASSERT( geq(reflectionCoefficient,0) && leq(reflectionCoefficient, 1) );
@@ -640,10 +624,7 @@ CPlane::CPlane(double a, double b, double c, double d, const CVector color,
   
   m_n /= length;
   m_D = d/length;
-  m_color = color;
-  m_reflectionCoefficient = reflectionCoefficient;
-  m_smoothness = smoothness;
-  m_isTransparent = false;
+  SetColor(color);
 };
 
 void CPlane::SetPosition(const CVector &n, double D)
@@ -662,20 +643,6 @@ void CPlane::SetPosition(double a, double b, double c, double d)
   
   m_n /= length;
   m_D = d/length;
-};
-
-void CPlane::SetColor(const CVector &color)
-{
-  m_color = color;
-}
-
-void CPlane::GetColor( const Ray &falling, CVector &color) const
-{
-  //do not check the intersection has place (otherwise in most cases we
-  //will repeat the computaion already done
-  //as every point of the sphere has the same color), just return it
-  
-  color = m_color;
 };
 
 int CPlane::Intersect( const Ray &ray, double &distance) const
@@ -742,7 +709,6 @@ int CPlane::IsValid(void) const
 {
   if(fabs(m_n.Length() - 1) > EPSILON) return 0;
     //!!! i don't know which colors are supposed to be valid 
-  if(!(geq(m_reflectionCoefficient,0) && leq(m_reflectionCoefficient, 1))) return 0;
   if(!m_isTransparent) return 0;
 
   return 1;
@@ -758,10 +724,6 @@ CBox::CBox()
   m_e[0] = CVector(0,0,0);
   m_e[1] = CVector(0,0,0);
   m_e[2] = CVector(0,0,0);
-  m_color = CVector(0,0,0);
-  m_isTransparent = false;
-  m_reflectionCoefficient = 0;
-  m_smoothness = 0;
   //InitNormals();
 };
 
@@ -770,6 +732,7 @@ CBox::CBox(const CVector &position, const CVector &e0
            , double Betta, double nRefr
            , bool isTransparent, double outerBetta
            , double outerRefr, double reflectionCoefficient, double smoothness)
+           : CSolid( reflectionCoefficient, smoothness)
 {
     // edges should be orthogonal to each other, but nonzero
     ASSERT( (e0.Length() > VECTOR_EQUAL_EPS)
@@ -796,10 +759,7 @@ CBox::CBox(const CVector &position, const CVector &e0
     m_e[2] = e2;
     InitNormals();
     
-    m_color = color;
-    m_reflectionCoefficient = reflectionCoefficient;
-    m_isTransparent = isTransparent;
-    m_smoothness = smoothness;
+    SetColor(color);
     
     m_innerMedium.Betta = Betta;
     m_innerMedium.nRefr = nRefr;
@@ -865,20 +825,6 @@ void CBox::SetOrientation(const CVector &e0, const CVector &e1, const CVector &e
     m_e[1] = e1;
     m_e[2] = e2;
     InitNormals();
-};
-
-void CBox::SetColor(const CVector &color)
-{
-  m_color = color;
-}
-
-void CBox::GetColor( const Ray &falling, CVector &color) const
-{
-  //do not check the intersection has place (otherwise in most cases we
-  //will repeat the computaion already done
-  //as every point of the sphere has the same color), just return it
-  
-  color = m_color;
 };
 
 int CBox::Intersect(const Ray &ray, double &distance) const
@@ -1088,9 +1034,6 @@ int CBox::IsValid(void) const
         || (fabs(m_e[1]*m_e[2]) > EPSILON)
         || (fabs(m_e[2]*m_e[0]) > EPSILON) ) return 0;
 
-    //!!! i don't know which colors are supposed to be valid 
-    if(!(geq(m_reflectionCoefficient,0) && leq(m_reflectionCoefficient, 1))) return 0;
-
     if(m_isTransparent)
     {
         //we should check inner & outer medium parameters only if the box is transparent.
@@ -1120,17 +1063,9 @@ CTriangle::CTriangle(const CVector &a, const CVector &b,
   m_a = a;
   m_b = b;
   m_c = c;
-  m_color = color;
+  SetColor(color);
 
   ASSERT( IsValid() );
-};
-
-void CTriangle::GetColor( const Ray &falling, CVector &color) const
-{
-  //do not check the intersection has place (otherwise in most cases we
-  //will repeat the computaion already done
-  //as every point of the triangle has the same color), just return it
-  color = m_color;
 };
 
 int CTriangle::Intersect( const Ray &ray, double &distance) const
@@ -1222,9 +1157,6 @@ void CTriangle::Reflect( const Ray &falling, Ray &reflected ) const
 int CTriangle::IsValid(void) const
 {
   if( !CSolid::IsValid() )
-    return 0;
-
-  if ( !m_color.IsNormalized() )
     return 0;
 
   CVector testNormale = (m_b - m_a)^(m_c - m_a);

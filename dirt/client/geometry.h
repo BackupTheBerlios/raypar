@@ -69,7 +69,6 @@ private:
   double  m_radius;
   Medium  m_innerMedium;
   Medium  m_outerMedium;
-  CVector m_color;
   
 public:
   //constructors
@@ -83,18 +82,8 @@ public:
             , double outerBetta = 0.0, double outerRefr = 1.0
             , double reflectionCoefficient = 1.0);
   
-  virtual bool IsTransparent(void) const 
-  { return m_isTransparent; }
-  
-  virtual double GetReflectionCoefficient(void) const
-  { return m_reflectionCoefficient; }
-
-  virtual void GetColor( const Ray &falling, CVector &color) const;
-
   void SetPosition( const CVector &position);
   void SetRadius(double radius);
-  void SetColor( const CVector &color );
-
   //checks whether the color is valid, radius is nonthero
   //there are no other setters, so do not check anything else
   virtual int  IsValid(void) const;
@@ -129,8 +118,6 @@ public:
   void getDistance( double &distance ) const
   { distance = m_D; };
 
-  void SetColor( const CVector &color );
-  virtual void GetColor( const Ray &falling, CVector &color) const;
     
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
@@ -167,15 +154,6 @@ public:
   void SetPosition(const CVector &position);
   void SetOrientation(const CVector &e1, const CVector &e2, const CVector &e3);
 
-  virtual double GetReflectionCoefficient(void) const
-  { return m_reflectionCoefficient; }
-
-  virtual bool IsTransparent(void) const
-  { return m_isTransparent; };
-
-  virtual void GetColor( const Ray &falling, CVector &color) const;
-  void SetColor( const CVector &color );
-  
   int IsInside(const CVector &vector) const;   //checks whether a point lies inside box
   virtual int Intersect(  const Ray &ray, double &distance) const; 
      //returns 1 if ray intersects side with normal m_d[0];
@@ -207,14 +185,13 @@ protected:
 class CTriangle : public CSolid
 {
 private:
-  CVector m_a, m_b, m_c, m_color, m_normal;
+  CVector m_a, m_b, m_c, m_normal;
   double m_distance;
     
 public:
   CTriangle(const CVector &a, const CVector &b
             , const CVector &c, const CVector &color);
   
-  virtual void GetColor ( const Ray &falling, CVector &color) const;
   virtual int  Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect  ( const Ray &falling, Ray &reflected) const;
   
@@ -228,6 +205,9 @@ protected:
   int planeIntersect( const Ray &ray, double &distance) const;    
 };
 
+///////////////////////////////////////////////////////////////////
+// CCylinder
+
 class CCylinder : public CSolid
 {
 private:
@@ -240,7 +220,7 @@ private:
   Medium m_innerMedium, m_outerMedium;
   CPlane m_bottom, m_top;
 public:
-  CCylinder( Ray &axis, double length, double radius, double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0, double outerRefr = 1.0 );
+  CCylinder( Ray &axis, double length, double radius, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0, double outerRefr = 1.0 );
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
