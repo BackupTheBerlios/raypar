@@ -27,13 +27,19 @@
 // to a separate private function SimpleTracer::processLights
 // reflection coefficient support
 //*********************************************************
+// REVISION by Tonic, on 01/21/2004
+// Comments: Added variable material smoothness support to ProcessLights
+//*********************************************************
+
 
 #include "stdafx.h"
 #include "simpleTracer.h"
 #include "../COMMON/msg.h"
 
-void SimpleTracer::processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color )
+void SimpleTracer::processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color, double smoothness )
 {
+  ASSERT( smoothness > VECTOR_EQUAL_EPS );
+
   //reset color
   color.x = color.y = color.z = 0;
   CVector normalPos, normalDir;
@@ -66,7 +72,7 @@ void SimpleTracer::processLights( Medium &curMed, Environment &scene, Ray &norma
         lightDirection.Normalize();
         light.getColor( lightColor );
         lightColor /= (shadeA + shadeB*dist + shadeC*dist*dist);
-        lightColor *= shadeRoD*(normalDir*lightDirection);
+        lightColor *= shadeRoD*pow((normalDir*lightDirection),smoothness);
         color += lightColor;
       };
     };
@@ -119,6 +125,9 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVect
     Ray reflected, normal;
     CVector fallingDir, reflectedDir, normalDir, normalPos;
     
+    double smoothness = nearestObject->GetSmoothness();
+    ASSERT( smoothness > VECTOR_EQUAL_EPS );
+    
     double reflectionCoefficient = nearestObject->GetReflectionCoefficient();
     ASSERT( (0 <= reflectionCoefficient) && (reflectionCoefficient <= 1.0) );
     //first compute the reflected ray direction
@@ -146,7 +155,7 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVect
     if( outside )
     {
       CVector lightColor;
-      processLights( curMed, scene, normal, lightColor );
+      processLights( curMed, scene, normal, lightColor, smoothness );
       resultColor += lightColor*reflectionCoefficient;
     };
     
@@ -167,6 +176,7 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVect
         CVector refractedDir, color(0,0,0);
         nearestObject->Refract( ray, refracted, newMedium);
         refracted.getDirection( refractedDir );
+
         if( refractedDir*normalDir < 0)
         {
           //no full inner reflection
@@ -178,7 +188,7 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVect
             normal.setDirection( normalDir );
             normal.setOrigin(normalPos + VECTOR_EQUAL_EPS*normalDir );
             CVector lightColor;
-            processLights( curMed, scene, normal, lightColor );
+            processLights( curMed, scene, normal, lightColor, smoothness );
             resultColor += lightColor*(1 - reflectionCoefficient);
           };
           

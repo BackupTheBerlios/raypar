@@ -116,9 +116,6 @@ void Ray::setOrigin( const CVector &origin)
   m_origin = origin;
 };
 
-
-
-
 ///////////////////////////////////////////////////////////
 //  CSolid    - interface for a geometric object
 ///////////////////////////////////////////////////////////
@@ -134,9 +131,6 @@ void CSolid::GetColor( const Ray &falling, CVector &color) const
   //more strict implementations in descendants
   color.x = color.y = color.z = 1;
 };
-
-
-
 
 ///////////////////////////////////////////////////////////
 // CLight     - model of an abstract light source
@@ -530,7 +524,6 @@ void CCamera::PixelRay(int x, int y, Ray &ray) const
 void CCamera::UpdateHorizontalDir(void)
 {
   //compute the vector product [viewDir x topDir]
-
   //?K?:  Why don't we use vector product form CVector here?
   
   m_horDir.x = m_viewDir.y*m_topDir.z - m_viewDir.z*m_topDir.y;
@@ -538,4 +531,3 @@ void CCamera::UpdateHorizontalDir(void)
   m_horDir.z = m_viewDir.x*m_topDir.y - m_viewDir.y*m_topDir.x;
   m_horDir.Normalize();
 };
-

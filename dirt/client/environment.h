@@ -62,6 +62,9 @@
 // REVISION by Tonic, on 01/19/2004
 // Comments: Solid - reflection coefficient support
 //*********************************************************
+// REVISION by Tonic, on 01/21/2004
+// Comments: Added variable material smoothness support to CSolid
+//*********************************************************
 // REVISION by KIRILL, on 1/24/2004 03:42:00
 // Comments: Some refactoring was done
 //*********************************************************
@@ -76,7 +79,6 @@
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
-
 
 #if !defined(CLIENT_ENVIRONMENT_H_INCLUDED)
 #define CLIENT_ENVIRONMENT_H_INCLUDED
@@ -136,8 +138,19 @@ protected:
 
 class	CSolid
 {
+protected:
+  double m_smoothness, m_reflectionCoefficient;
+  bool m_isTransparent;
 public:
-  
+  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 )
+  {
+    ASSERT( reflectionCoefficient > VECTOR_EQUAL_EPS );
+    ASSERT( smoothness > VECTOR_EQUAL_EPS );
+    m_reflectionCoefficient =  reflectionCoefficient;
+    m_smoothness = smoothness;
+    m_isTransparent = false;
+  };
+
   // ?K?  No comment!!! What does this do with its perameters?
   virtual int Intersect( const Ray &ray, double &distance) const = 0;
 
@@ -156,17 +169,36 @@ public:
   //an intersection, to support colored and textured objects
   virtual void GetColor( const Ray &falling, CVector &color) const;
   
-  //the refractabke object may be opaque
+  //the refractable object may be opaque
   //which is a default value
   //if we change this, we should redefine
   //Refract and GetInnerMedium functions
-  virtual bool IsTransparent(void) const
-  { return false; };
+  virtual bool IsTransparent(void)
+  {
+    return m_isTransparent;
+  };
   
-  // ?K?  No comment!!! What does this do with its perameters?
-  virtual double GetReflectionCoefficient(void) const
-  { return 1.0; };
+  virtual double GetReflectionCoefficient(void)
+  {
+    return m_reflectionCoefficient;
+  };
 
+  //smoothness is the exponent of the cosine of
+  //angle between normale direction and light direction
+  //in computing the lighting. The more id the smoothness
+  //the more focused spot is left by a light source
+  //see SimpleTracer::ProcessLights for usage
+  virtual double GetSmoothness(void)
+  {
+    return m_smoothness;
+  };
+
+  virtual void SetSmoothness(double smoothness )
+  {
+    ASSERT( smoothness > VECTOR_EQUAL_EPS );
+    m_smoothness = smoothness;
+  };
+ 
   virtual int IsValid(void) const // Will be =0
   { return 1; }  //temporally
 }; 

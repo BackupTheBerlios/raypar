@@ -28,6 +28,9 @@
 // REVISION by Tonic, on 01/19/2004
 // Comments: Added transparency support for CSphere
 //*********************************************************
+// REVISION by Tonic, on 01/22/2004
+// Comments: Added CCylinder
+//*********************************************************
 // REVISION by Vader, on 01/23/2004
 // Comments: Added CBox class (supports refraction)
 //*********************************************************
@@ -37,7 +40,6 @@
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
-
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
@@ -189,4 +191,21 @@ protected:
   int planeIntersect( const Ray &ray, double &distance) const;    
 };
 
+class CCylinder : public CSolid
+{
+private:
+  double m_length, m_radius;
+
+  //base is the center of the "bottom" circle
+  //direction is the direction to the center of the
+  //"upper" circle
+  CVector m_base, m_direction;
+  Medium m_innerMedium, m_outerMedium;
+  CPlane m_bottom, m_top;
+public:
+  CCylinder( Ray &axis, double length, double radius, double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0, double outerRefr = 1.0 );
+  virtual int Intersect( const Ray &ray, double &distance) const;
+  virtual void Reflect( const Ray &falling, Ray &reflected) const;
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
+};
 #endif //CLIENT_GEOMETRY_H_INCLUDED

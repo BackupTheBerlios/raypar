@@ -25,6 +25,9 @@
 // Comments: Moved lights processing cycle of SimpleTracer 
 // to a separate private function SimpleTracer::processLights
 //*********************************************************
+// REVISION by Tonic, on 01/21/2004
+// Comments: Added variable material smoothness support to ProcessLights
+//*********************************************************
 
 #if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
 #define CLIENT_SIMPLETRACER_H_INCLUDED
@@ -45,7 +48,8 @@ public:
   SimpleTracer(void)
   {
     defaultDepth = 5;
-    shadeA = shadeB = shadeC = shadeRoD = shadeRoR = 1;
+    shadeA = shadeB = shadeC = 0.1;
+    shadeRoD = shadeRoR = 1.0;
   };
 private:
   //added maximum recursion depth to the parameter list
@@ -54,7 +58,7 @@ private:
   //computes the color in the given point due to light sources ONLY
   //RESETS color in the beginning, so do not put any valuable data
   //there as it will be erased
-  void processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color );
+  void processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color, double smoothness );
   
   //maximum recursion depth
   int defaultDepth;
