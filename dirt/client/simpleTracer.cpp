@@ -36,6 +36,10 @@
 // REVISION by Tonic, on 01/29/2004
 // Comments: Added transparency support for flat objects
 //*********************************************************
+// REVISION by Tonic, on 01/29/2004
+// Comments: Fixed a bug in detecting object transparency 
+// via reflectionCoefficient
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
@@ -46,7 +50,7 @@ void SimpleTracer::processLights( const Medium &curMed, const CEnvironment &scen
                                  const Ray &normale, CVector &color, double smoothness ) const
 {
   ASSERT( smoothness > VECTOR_EQUAL_EPS );
-
+  
   //reset color
   color.x = color.y = color.z = 0;
   CVector normalPos, normalDir;
@@ -79,6 +83,8 @@ void SimpleTracer::processLights( const Medium &curMed, const CEnvironment &scen
         lightDirection.Normalize();
         light.getColor( lightColor );
         lightColor /= (m_shadeA + m_shadeB*dist + m_shadeC*dist*dist);
+        //testing exponential attenuation
+        lightColor *= exp ( -dist * curMed.Betta ); 
         lightColor *= m_shadeRoD*pow((normalDir*lightDirection),smoothness);
         color += lightColor;
       };
@@ -104,13 +110,13 @@ void SimpleTracer::VisibleColor( const CVector &LightColor, const CVector &Mater
 };
 
 void SimpleTracer::trace( const Medium &curMed, const Ray &ray, 
-             const CEnvironment &scene, CVector &resultColor, bool outside) const
+                         const CEnvironment &scene, CVector &resultColor, bool outside) const
 {
   strace(curMed, ray, scene, resultColor, m_defaultDepth, outside);
 };
 
 void SimpleTracer::strace( const Medium &curMed, const Ray &ray, 
-             const CEnvironment &scene, CVector &resultColor, int depth, bool outside) const
+                          const CEnvironment &scene, CVector &resultColor, int depth, bool outside) const
 {
   CSolid	*nearestObject;
   double	  t = INFINITY;
@@ -152,12 +158,10 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
     normalDir.Normalize();
     normal.setDirection( normalDir);
     
-    if( outside )
-    {
-      CVector lightColor;
-      processLights( curMed, scene, normal, lightColor, smoothness );
-      resultColor += lightColor*reflectionCoefficient;
-    };
+    //compute lights even if we are inside
+    CVector lightColor;
+    processLights( curMed, scene, normal, lightColor, smoothness );
+    resultColor += lightColor*reflectionCoefficient;
     
     if(depth > 0)
     {
@@ -168,30 +172,27 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
       resultColor += color*reflectionCoefficient*m_shadeRoReflected;
       
       //now process the refracted ray
-      if( nearestObject->GetReflectionCoefficient() > 1 - VECTOR_EQUAL_EPS ) //solid is opaque
+      if( nearestObject->GetReflectionCoefficient() < 1 - VECTOR_EQUAL_EPS ) //solid is NOT opaque
       {
         Ray refracted;
         bool newOutside;
-
+        
         Medium newMedium;
         CVector refractedDir, color(0,0,0);
         nearestObject->Refract( ray, refracted, newMedium, newOutside);
         refracted.getDirection( refractedDir );
-
+        
         if( refractedDir*normalDir < 0)
         {
           //no full inner reflection
           
-          if( newOutside )
-          {
-            //compute the light in the refracted ray origin point
-            normalDir *= -1;
-            normal.setDirection( normalDir );
-            normal.setOrigin(normalPos + VECTOR_EQUAL_EPS*normalDir );
-            CVector lightColor;
-            processLights( curMed, scene, normal, lightColor, smoothness );
-            resultColor += lightColor*(1 - reflectionCoefficient);
-          };
+          //compute the light in the refracted ray origin point
+          normalDir *= -1;
+          normal.setDirection( normalDir );
+          normal.setOrigin(normalPos + VECTOR_EQUAL_EPS*normalDir );
+          CVector lightColor;
+          processLights( newMedium, scene, normal, lightColor, smoothness );
+          resultColor += lightColor*(1 - reflectionCoefficient);
           
           refracted.setOrigin( normalPos + VECTOR_EQUAL_EPS*refractedDir );
           strace(newMedium, refracted, scene, color, depth - 1, newOutside);

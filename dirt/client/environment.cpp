@@ -675,6 +675,10 @@ void CCamera::GetTopDir( CVector &topDir ) const
   topDir = m_topDir;
 };
 
+void CCamera::GetHorDir( CVector &horDir ) const
+{
+  horDir = m_horDir;
+};
 void CCamera::GetWidth(int &width) const
 {
   width = m_width;

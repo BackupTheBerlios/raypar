@@ -428,6 +428,7 @@ public:
   virtual void GetEyePoint( CVector &eyePoint ) const;
   virtual void GetViewDir( CVector &viewDir ) const;
   virtual void GetTopDir( CVector &topDir ) const;
+  virtual void GetHorDir( CVector &horDir ) const;
   virtual void GetWidth(int &width) const;
   virtual void GetHeight(int &height) const;
   virtual void GetHorizontalAngle(double &horizontalAngle) const;
