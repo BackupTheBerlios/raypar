@@ -10,6 +10,10 @@
 //  with ASSERT(.) corrected
 //
 //*********************************************************
+// REVISION by VADER, on 1/15/2004
+// Comments: Names changed according to standart naming conventions
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -21,50 +25,50 @@
 
 ////////////////////////////// Sphere methods //////////////////////////////
 
-Sphere::Sphere()
+CSphere::CSphere()
 {  
-  position.x = 0;
-	position.y = 0;
-	position.z = 0;
-	radius = 1;
-	radius2 = 1;
+    m_position.x = 0;
+	m_position.y = 0;
+	m_position.z = 0;
+	m_radius = 1;
+	//radius2 = 1;
 }
 
-Sphere::Sphere(CVector *position, double radius)
+CSphere::CSphere(CVector *position, double radius)
 {
 	ASSERT( position != NULL);
 	ASSERT( radius > 0);
 		
 	// = is overridden operator for CVector, makes components the same
-	this->position = *position;
-	this->radius = radius;
-	radius2=radius*radius;
+	m_position = *position;
+	m_radius = radius;
+	//radius2=radius*radius;
 };
 
-void Sphere::setPosition(CVector *position)
+void CSphere::SetPosition(CVector *position)
 {
 	ASSERT( position != NULL);
 	
 	// = is overridden operator for CVector, makes components the same
-	this->position = *position;
+	m_position = *position;
 };
 
-void Sphere::setRadius(double radius)
+void CSphere::SetRadius(double radius)
 {
 	ASSERT ( radius > 0);
 	
-	this->radius = radius;
-	radius2 = radius*radius;
+	m_radius = radius;
+	//radius2 = radius*radius;
 };
 
-int Sphere::Intersect(Ray *ray, double *distance)
+int CSphere::Intersect(Ray *ray, double *distance)
 {
 	CVector origin, direction;
 	
 	ray->getOrigin(&origin); 
 	ray->getDirection(&direction);
 
-	CVector l = position - origin; //vector from ray origin to center of Sphere
+	CVector l = m_position - origin; //vector from ray origin to center of Sphere
 	double l2 = l * l;
 	double proection = l * direction; //proection of l on ray direction
 	
@@ -73,7 +77,7 @@ int Sphere::Intersect(Ray *ray, double *distance)
 		return 0; 
 	}
 
-	double condition = proection * proection + radius2 - l2; //condition of intersection
+	double condition = proection * proection + m_radius * m_radius - l2; //condition of intersection
 															 // (simple Pifagor Th.)
 
 	if(condition<=0)  //no intersection
@@ -87,17 +91,14 @@ int Sphere::Intersect(Ray *ray, double *distance)
 	}
 };
 
-void Sphere::reflect(Ray *falling, Ray *reflected)
+void CSphere::Reflect(Ray *falling, Ray *reflected)
 {
 	double distance;
 	CVector fallingOrigin,fallingDirection;
 	CVector reflectedOrigin,reflectedDirection;
 
   
-  // 	ASSERT (Intersect(falling, &distance)); This does NOTHING in RELEASE version.
-  //                                          Intersect() is NOT called.
-
-  int ret = Intersect(falling, &distance); //gets the distance
+    int ret = Intersect(falling, &distance); //gets the distance
 	ASSERT (ret); 
 	
 	falling->getOrigin(&fallingOrigin);
@@ -106,7 +107,7 @@ void Sphere::reflect(Ray *falling, Ray *reflected)
 	reflectedOrigin = fallingOrigin + distance * fallingDirection;
 	reflected->setOrigin(&reflectedOrigin);
 
-	CVector normal = (reflectedOrigin - position)/radius;
+	CVector normal = (reflectedOrigin - m_position)/m_radius;
 
 	//newDirection = oldDirection + delta( in the derection of normal to the surface)
 	reflectedDirection = fallingDirection - 2*(normal * fallingDirection)*normal;
@@ -117,61 +118,61 @@ void Sphere::reflect(Ray *falling, Ray *reflected)
 ////////////////////////////// Plane methods //////////////////////////////
 
 
-Plane::Plane()
+CPlane::CPlane()
 {
-	n.x = 1;
-	n.y = 0;
-	n.z = 0;
-	D = 0;
+	m_n.x = 1;
+	m_n.y = 0;
+	m_n.z = 0;
+	m_D = 0;
 };
 
 
-Plane::Plane(CVector *n, double D)
+CPlane::CPlane(CVector *n, double D)
 {
 	ASSERT (n != NULL);
 
-	this->n = *n;
-	this->n.Normalize();
-	this->D = D;	
+	m_n = *n;
+	m_n.Normalize();
+	m_D = D;	
 };
 
-Plane::Plane(double a, double b, double c, double d)
+CPlane::CPlane(double a, double b, double c, double d)
 {
 	ASSERT (a!=0 || b!=0 || c!=0);
 
-	n = CVector (a, b, c);
-	double length = n.Length();
+	m_n = CVector (a, b, c);
+	double length = m_n.Length();
 
-	n /= length;
-	D = d/length;
+	m_n /= length;
+	m_D = d/length;
 };
 	
-void Plane::setPosition(CVector *n, double D)
+void CPlane::SetPosition(CVector *n, double D)
 {
 	ASSERT (n != NULL);
-	this->n = *n;
-	this->D = D;
+	m_n = *n;
+	m_D = D;
 };
 
-void Plane::setPosition(double a, double b, double c, double d)
+void CPlane::SetPosition(double a, double b, double c, double d)
 {
 	ASSERT (a!=0 || b!=0 || c!=0);
 
-	n = CVector (a, b, c);
-	double length = n.Length();
+	m_n = CVector (a, b, c);
+	double length = m_n.Length();
 
-	n /= length;
-	D = d/length;
+	m_n /= length;
+	m_D = d/length;
 };
 
-int Plane::Intersects(Ray *ray, double *distance)
+int CPlane::Intersects(Ray *ray, double *distance)
 {
 	CVector origin, direction;
 	
 	ray->getOrigin(&origin);
 	ray->getDirection(&direction);
 
-	double scalar = n * direction;
+	double scalar = m_n * direction;
 	double t;
 
 	if (scalar == 0)  //ray is parallel to plane
@@ -182,7 +183,7 @@ int Plane::Intersects(Ray *ray, double *distance)
 	{
 		//if equation  {origin + t * direction = r}, where r satisfies plane equation
 		//has positive solutions, then intersection takes place
-		t = - (D + n * origin) / scalar;
+		t = - (m_D + m_n * origin) / scalar;
 		
 		if( t <= 0)  //no intersection
 		{
@@ -196,7 +197,7 @@ int Plane::Intersects(Ray *ray, double *distance)
 	}
 };
 
-void Plane::reflect(Ray *falling, Ray *reflected)
+void CPlane::Reflect(Ray *falling, Ray *reflected)
 {
 	double distance;
 	CVector fallingOrigin,fallingDirection;
@@ -205,14 +206,14 @@ void Plane::reflect(Ray *falling, Ray *reflected)
 	int ret = Intersect(falling, &distance); //gets the distance
 	ASSERT (ret); 
   
-  falling->getOrigin(&fallingOrigin);
+    falling->getOrigin(&fallingOrigin);
 	falling->getDirection(&fallingDirection);
 
 	reflectedOrigin = fallingOrigin + distance * fallingDirection;
 	reflected->setOrigin(&reflectedOrigin);
 
 	//newDirection = oldDirection + delta( in the derection of normal to the surface)
-	reflectedDirection = fallingDirection - 2 * (n * fallingDirection) * n;
+	reflectedDirection = fallingDirection - 2 * (m_n * fallingDirection) * m_n;
 	reflected->setDirection(&reflectedDirection);
 };
 

@@ -88,7 +88,7 @@ class	Solid
 {
 public:
 	virtual int Intersect( Ray *ray, double *distance)=0;
-	virtual void reflect(Ray *falling, Ray *reflected)=0;
+	virtual void Reflect(Ray *falling, Ray *reflected)=0;
 }; 
 
 class	Light			// model of an abstract light source

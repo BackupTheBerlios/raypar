@@ -47,7 +47,7 @@ void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double w
 		Ray reflectedRay, normal;
 		CVector fallingDir, reflectedDir, normalDir, normalPos;
 		//first compute the reflected ray direction
-		nearestObject->reflect( ray, &reflectedRay );
+		nearestObject->Reflect( ray, &reflectedRay );
 		
 		
 		//origin of normal is that of reflected ray
