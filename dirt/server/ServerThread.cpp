@@ -71,12 +71,12 @@ CLinesController::~CLinesController()
 
 //[Re]Initializes th object
 // search step is used in GetNeaxtLine2Render algorithm
-void CLinesController::Init( int scene_uid, int lines_count
-                            , int line_width, int search_step /*= 90247*/ )
+void CLinesController::Init( int scene_uid, int line_width, int lines_count //image height
+                            , int search_step /*= 90247*/ )
 {
   ASSERT( lines_count > 0 );
   ASSERT( line_width > 0 );
-  ASSERT( search_step > 0 );
+  ASSERT( search_step > lines_count );
   ASSERT( scene_uid > 0); //zero or negative means that the scene 
                           //wasn't loaded
                           
@@ -88,10 +88,7 @@ void CLinesController::Init( int scene_uid, int lines_count
   m_bCompleted  = false;
   m_scene_uid   = scene_uid;
   m_rendered_count = 0;
-
-  if (m_search_step > m_lines_count)
-    m_search_step = 1;
-
+  
   m_lines_info = new CLineItem[m_lines_count] ;
   for(int i=0; i<m_lines_count; i++ )
     m_lines_info[i].AllocateData( m_line_width );
@@ -120,9 +117,7 @@ int  CLinesController::GetLine2Render(void)
     return -1; //image finished
 
   ASSERT( m_lines_info );
-  ASSERT( m_search_step <= m_lines_count );
-
-  int search_step = m_search_step;
+  ASSERT( m_lines_count < m_search_step);
 
   int start = rand() % m_lines_count;
   int line_num;
@@ -511,21 +506,18 @@ UINT ServerThreadFunction( void* param )
           }
       }
     }
-
-    cl_sock.Close();
   }
   CATCH(CArchiveException, e)
   {
-    //this exception probably means that the connection was closed
+    //this exception probably means that the connection was closed    
   }AND_CATCH(CFileException, pEx){
     //this exception probably means that the connection was closed
-    //so we ignore it
+    //so we ignore it    
   }AND_CATCH_ALL(pEx){
     ErrorMessageFromException(pEx, TRUE);
   }
   END_CATCH_ALL
-  
-
+    
   return 0;
 }
 
