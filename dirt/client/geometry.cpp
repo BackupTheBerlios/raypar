@@ -63,6 +63,9 @@
 // Comments: Modified CPlane, CTriangle constructors to 
 // support transparency, modified CBox::IsValid
 //*********************************************************
+// REVISION by Vader, on 1/29/2004
+// Comments: Read and write methods for all geometrical objects 
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -77,7 +80,8 @@ static char THIS_FILE[] = __FILE__;
 #include "geometry.h"
 
 
-#define ERROR_WRONG_DATA 1
+// allready defined in environment.h
+//#define ERROR_WRONG_DATA 1
 
 ///////////////////////////////////////////////////////////
 //  CSphere
@@ -109,9 +113,9 @@ int CSphere::write(CArchive& ar) const
   ASSERT( IsValid() );
   
   WriteThisClassId( ar );
+  CSolid::write(ar); //writing common data
   ar << m_position;
   ar << m_radius;
-  ar << m_color;
   ar << m_innerMedium;
   ar << m_outerMedium;
   return 0;
@@ -121,7 +125,6 @@ int CSphere::read (CArchive& ar)
 {
   ar >> m_position;
   ar >> m_radius;
-  ar >> m_color;
   ar >> m_innerMedium;
   ar >> m_outerMedium;
 
@@ -490,6 +493,29 @@ int CPlane::IsValid(void) const
   return 1;
 };
 
+int CPlane::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  
+  WriteThisClassId( ar );
+  CSolid::write(ar); //writing common data
+  ar << m_D;
+  ar << m_n;
+  return 0;
+}
+
+int CPlane::read (CArchive& ar)
+{
+  ar >> m_D;
+  ar >> m_n;
+
+  if ( !IsValid() ){
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  }  
+  return 0;
+}
+
 ///////////////////////////////////////////////////////////////////
 // CBox
 ///////////////////////////////////////////////////////////
@@ -816,6 +842,55 @@ int CBox::IsValid(void) const
   return 1;
 };
 
+int CBox::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  
+  WriteThisClassId( ar );
+  CSolid::write(ar); //writing common data
+  ar << m_position;
+  ar << m_d1[0];
+  ar << m_d1[1];
+  ar << m_d1[2];
+  ar << m_d2[0];
+  ar << m_d2[1];
+  ar << m_d2[2];
+  ar << m_e[0];
+  ar << m_e[1];
+  ar << m_e[2];
+  ar << m_n[0];
+  ar << m_n[1];
+  ar << m_n[2];
+  ar << m_innerMedium;
+  ar << m_outerMedium;
+  return 0;
+}
+
+int CBox::read (CArchive& ar)
+{
+  ar >> m_position;
+  ar >> m_d1[0];
+  ar >> m_d1[1];
+  ar >> m_d1[2];
+  ar >> m_d2[0];
+  ar >> m_d2[1];
+  ar >> m_d2[2];
+  ar >> m_e[0];
+  ar >> m_e[1];
+  ar >> m_e[2];
+  ar >> m_n[0];
+  ar >> m_n[1];
+  ar >> m_n[2];
+  ar >> m_innerMedium;
+  ar >> m_outerMedium;
+
+  if ( !IsValid() ){
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  }  
+  return 0;
+}
+
 
 ///////////////////////////////////////////////////////////
 // CTriangle
@@ -957,6 +1032,38 @@ int CTriangle::IsValid(void) const
   
   return 1;
 };
+
+
+int CTriangle::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  
+  WriteThisClassId( ar );
+  CSolid::write(ar); //writing common data
+  ar << m_normal;
+  ar << m_a;
+  ar << m_b;
+  ar << m_c;
+  ar << m_distance;
+
+  return 0;
+}
+
+int CTriangle::read (CArchive& ar)
+{
+  ar >> m_normal;
+  ar >> m_a;
+  ar >> m_b;
+  ar >> m_c;
+  ar >> m_distance;
+
+  if ( !IsValid() ){
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  }  
+  return 0;
+}
+
 
 
 
@@ -1236,5 +1343,58 @@ int CCylinder::Intersect( const  Ray &ray, double &distance ) const
   //no intersection
   return 0;
 };
+
+int CCylinder::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  
+  WriteThisClassId( ar );
+  CSolid::write(ar); //writing common data
+  ar << m_base;
+  // doesn't support sending CPlane objects
+  CVector n;
+  double D;
+  m_bottom.getNormale(n);
+  m_bottom.getDistance(D);
+  ar << n;
+  ar << D;
+  m_top.getNormale(n);
+  m_top.getDistance(D);
+  ar << n;
+  ar << D;
+  ar << m_direction;
+  ar << m_innerMedium;
+  ar << m_length;
+  ar << m_outerMedium;
+  ar << m_radius;
+
+  return 0;
+}
+
+int CCylinder::read (CArchive& ar)
+{
+  ar >> m_base;
+  // doesn't support sending CPlane objects
+  CVector n;
+  double D;
+  ar >> n;
+  ar >> D;
+  m_bottom.SetPosition(n,D);
+  ar >> n;
+  ar >> D;
+  m_top.SetPosition(n,D);
+  ar >> m_direction;
+  ar >> m_innerMedium;
+  ar >> m_length;
+  ar >> m_outerMedium;
+  ar >> m_radius;
+
+
+  if ( !IsValid() ){
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  }  
+  return 0;
+}
 
 

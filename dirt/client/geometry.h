@@ -53,10 +53,12 @@
 // REVISION by Tonic, on 01/29/2004
 // Comments: Comments on class members added
 //*********************************************************
+// REVISION by Vader, on 1/29/2004
+// Comments: Read and write methods for all geometrical objects 
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
-
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
@@ -151,6 +153,13 @@ public:
   //3) material parameters are not necessary, as the object is flat
   //   meanwhile m_isTransparent should be false
   virtual int IsValid(void) const;
+
+  //stores object to  'ar'
+  int write(CArchive& ar) const;
+
+protected:
+  //reads object from 'ar'
+  int read (CArchive& ar); //this can be called only by CSolid::readObject
 };
 
 
@@ -197,8 +206,14 @@ public:
   //4) material parameters should be physically correct if the box is transparent
   virtual int IsValid(void) const;
 
+  //stores object to  'ar'
+  int write(CArchive& ar) const;
+
 protected:
   void InitNormals();
+  
+  //reads object from 'ar'
+  int read (CArchive& ar); //this can be called only by CSolid::readObject
 };
 
 
@@ -230,7 +245,13 @@ public:
   //so the triangle is always valid
   virtual int  IsValid(void) const;
 
+  //stores object to  'ar'
+  int write(CArchive& ar) const;
+
 protected:
+  //reads object from 'ar'
+  int read (CArchive& ar); //this can be called only by CSolid::readObject
+
   //plane equation is (m_normal,x) = m_distance
   int planeIntersect( const Ray &ray, double &distance) const;    
 };
@@ -270,5 +291,13 @@ public:
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
 
   virtual int  IsValid(void) const;
+  
+  //stores object to  'ar'
+  int write(CArchive& ar) const;
+
+protected:
+  //reads object from 'ar'
+  int read (CArchive& ar); //this can be called only by CSolid::readObject
+
 };
 #endif //CLIENT_GEOMETRY_H_INCLUDED

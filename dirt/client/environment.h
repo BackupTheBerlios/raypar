@@ -88,6 +88,9 @@
 // REVISION by Tonic, on 1/29/2004
 // Comments: Added default refraction function to CSolid
 //*********************************************************
+// REVISION by Vader, on 1/29/2004
+// Comments: Default read and write methods for CSolid added
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -100,6 +103,7 @@
 
 //geometry-related parameters
 #define	INFINITY	30000 //maximal distance
+#define ERROR_WRONG_DATA 1
 
 ///////////////////////////////////////////////////////////
 //  Medium      - main properties of the medium
@@ -257,7 +261,7 @@ public:
   virtual int IsValid(void) const;
 
   //stores/loads object from/to  'ar'
-  virtual int write(CArchive& ar) const { return 0; }  //= 0; ?K? KIRILL: temporarily
+  virtual int write(CArchive& ar) const;  //= 0; ?K? KIRILL: temporarily
 
   //reads object from archive. First it reads object type and than 
   //it creates the objects and reads it data. Returns pointer to the object
@@ -280,7 +284,7 @@ protected:
   int WriteThisClassId(CArchive& ar) const;
 
   //this method can be called only by CSolid::readObject
-  virtual int read(CArchive& ar)        { return 0; }  //will be = 0; ?K? KIRILL: temporarily
+  virtual int read(CArchive& ar);  //will be = 0; ?K? KIRILL: temporarily
 
   //helper function - returns ObjectID by object pointer
   static int GetObjectID(const CSolid* obj);

@@ -57,6 +57,9 @@
 // REVISION by KIRILL, on 1/29/2004 21:35:10
 // Comments: Environment::Empty() in addition zeroes all scene parameters
 //*********************************************************
+// REVISION by Vader, on 1/29/2004
+// Comments: Default read and write methods for CSolid added
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -259,14 +262,50 @@ CSolid* CSolid::readObject( CArchive& ar )
   CSolid* solid = NewObjectByID( obj_id ); //second we create object of appropriate type
   ASSERT( solid );
 
-  if (solid){ 
-    int ret = solid->read(ar); //third we read the object data
-    if ( ret || !solid->IsValid() ){
+  if (solid){
+    
+    int ret1 = solid->CSolid::read(ar); //third (a) we read common object data
+    int ret2 = solid->read(ar); //third (b) we read personal object data
+    if ( ret1 || ret2 || !solid->IsValid() ){
       delete solid; //if something is wrong we delete object and return zero
       solid = 0;
     }
   }
   return solid;
+}
+
+int CSolid::write(CArchive& ar) const
+{
+  ASSERT( CSolid::IsValid() );
+
+  ar << m_color;
+  //do not support bool
+  int temp = (1)?m_isTransparent: 0;
+  ar << temp;
+  ar << m_reflectionCoefficient;
+  ar << m_smoothness;
+  ar << medium;
+
+  return 0;
+}
+
+int CSolid::read(CArchive& ar)
+{
+  ar >> m_color;
+  //do not support bool
+  int temp;
+  ar >> temp;
+  //m_isTransparent = (true)?temp:(false);
+  m_isTransparent = temp;
+  ar >> m_reflectionCoefficient;
+  ar >> m_smoothness;
+  ar >> medium;
+
+  if ( !CSolid::IsValid() ){
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  }  
+  return 0;
 }
 
 
