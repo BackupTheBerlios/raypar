@@ -17,6 +17,10 @@
 // Comments: Length() error corrected - sqrt(.) added
 //
 //*********************************************************
+// REVISION by KIRILL, on 1/16/2004 00:24:05
+// Comments: Some method weren't described as const. Corrected.
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
