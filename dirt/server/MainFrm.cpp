@@ -31,9 +31,6 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
 
-//register section for MainFrame
-const char mainFrameSection[] = "Options\\MainFrame";
-
 
 IMPLEMENT_DYNAMIC(CMainFrame, CFrameWnd)
 
@@ -70,7 +67,9 @@ static UINT indicators[] =
 CMainFrame::CMainFrame()
 {
 	// TODO: add member initialization code here
-  m_settings.SetSection(mainFrameSection);
+  m_settings = new CWindowSettings(mainFrameSection
+                             , MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
+                             , MAINFRAME_DEFAULT_WIDTH, MAINFRAME_DEFAULT_HEIGHT);
 }
 
 CMainFrame::~CMainFrame()
@@ -115,12 +114,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_log_wnd.ShowWindow( SW_NORMAL );
 
   //Loading info from reg on create
-  m_settings.GetDataFromReg();
+  m_settings->GetDataFromReg();
   int x,y,cx,cy;
-  x = m_settings.GetX();
-  y = m_settings.GetY();
-  cx = m_settings.GetCx();
-  cy = m_settings.GetCy();
+  x = m_settings->GetX();
+  y = m_settings->GetY();
+  cx = m_settings->GetCx();
+  cy = m_settings->GetCy();
 
   SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
 
@@ -231,12 +230,12 @@ void CMainFrame::OnDestroy()
   CRect rect;
   GetWindowRect(rect);
   
-  m_settings.SetX(rect.left);
-  m_settings.SetY(rect.top);
-  m_settings.SetCx(rect.right - rect.left);
-  m_settings.SetCy(rect.bottom - rect.top);
+  m_settings->SetX(rect.left);
+  m_settings->SetY(rect.top);
+  m_settings->SetCx(rect.right - rect.left);
+  m_settings->SetCy(rect.bottom - rect.top);
   
-  m_settings.SaveDataToReg();
+  m_settings->SaveDataToReg();
 	CFrameWnd::OnDestroy();
   m_log_box.Detach();	
 }

@@ -75,11 +75,19 @@ protected:
   int m_y;  //top
   int m_cx; //width
   int m_cy; //heigth
+
+  int m_default_x;  //default left
+  int m_default_y;  //default top
+  int m_default_cx; //default width
+  int m_default_cy; //default heigth
+
   LPCTSTR m_lpszSection; //register section to synchronize to
+
+
 
 public:
   CWindowSettings();
-  CWindowSettings(LPCTSTR lpszSection);
+  CWindowSettings(LPCTSTR lpszSection, int x, int y, int cx, int cy);  //default values
 
   void SetSection(LPCTSTR lpszSection) {m_lpszSection = lpszSection;}
 

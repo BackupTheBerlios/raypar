@@ -35,6 +35,13 @@
 #define WM_USER_ADD_LOG_MSG  ( WM_USER+1 )
 #define USER_ADD_LOG_MSG_CODE  0x23fb
 
+#define MAINFRAME_DEFAULT_LEFT 100
+#define MAINFRAME_DEFAULT_TOP 100
+#define MAINFRAME_DEFAULT_WIDTH 640
+#define MAINFRAME_DEFAULT_HEIGHT 480
+
+//register section for MainFrame
+const char mainFrameSection[] = "Options\\MainFrame";
 
 class CMainFrame : public CFrameWnd
 {
@@ -73,7 +80,7 @@ protected:  // control bar embedded members
 	CToolBar    m_wndToolBar;
 	CChildView  m_wndView;
   CLogWnd     m_log_wnd;
-  CWindowSettings m_settings;
+  CWindowSettings* m_settings;
 
 // Generated message map functions
 protected:

@@ -8,6 +8,14 @@
 //
 #include "Options.h" 
 
+#define LOGWND_DEFAULT_LEFT 420
+#define LOGWND_DEFAULT_TOP 200
+#define LOGWND_DEFAULT_WIDTH 320
+#define LOGWND_DEFAULT_HEIGHT 380
+
+//register section for MainFrame
+const char logWindowSection[] = "Options\\LogWindow";
+
 /////////////////////////////////////////////////////////////////////////////
 // CLogWnd dialog
 
@@ -35,7 +43,7 @@ public:
 
 // Implementation
 protected:
-  CWindowSettings m_settings;
+  CWindowSettings *m_settings;
   
 	// Generated message map functions
 	//{{AFX_MSG(CLogWnd)

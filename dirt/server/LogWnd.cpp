@@ -14,14 +14,15 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CLogWnd dialog
 
-const char logWindowSection[] = "Options\\LogWindow";
 
 CLogWnd::CLogWnd(CWnd* pParent /*=NULL*/)
 	: CDialog(CLogWnd::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CLogWnd)
 	//}}AFX_DATA_INIT
-  m_settings.SetSection(logWindowSection);
+  m_settings = new CWindowSettings(logWindowSection
+                             , LOGWND_DEFAULT_LEFT, LOGWND_DEFAULT_TOP
+                             , LOGWND_DEFAULT_WIDTH, LOGWND_DEFAULT_HEIGHT);
 }
 
 
@@ -60,12 +61,12 @@ int CLogWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
    
-  m_settings.GetDataFromReg();
+  m_settings->GetDataFromReg();
   int x,y,cx,cy;
-  x = m_settings.GetX();
-  y = m_settings.GetY();
-  cx = m_settings.GetCx();
-  cy = m_settings.GetCy();
+  x = m_settings->GetX();
+  y = m_settings->GetY();
+  cx = m_settings->GetCx();
+  cy = m_settings->GetCy();
 
   SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
   return 0;
@@ -85,11 +86,11 @@ void CLogWnd::OnDestroy()
   CRect rect;
   GetWindowRect(rect);
   
-  m_settings.SetX(rect.left);
-  m_settings.SetY(rect.top);
-  m_settings.SetCx(rect.right - rect.left);
-  m_settings.SetCy(rect.bottom - rect.top);
+  m_settings->SetX(rect.left);
+  m_settings->SetY(rect.top);
+  m_settings->SetCx(rect.right - rect.left);
+  m_settings->SetCy(rect.bottom - rect.top);
   
-  m_settings.SaveDataToReg();
+  m_settings->SaveDataToReg();
 	CDialog::OnDestroy();	
 }
