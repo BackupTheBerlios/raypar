@@ -40,6 +40,7 @@ RSC=rc.exe
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir "..\BUILT"
 # PROP Intermediate_Dir "Release"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
 # ADD CPP /nologo /MD /W3 /GR /GX /O2 /I ".." /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /D "YY_NEVER_INTERACTIVE" /Yu"stdafx.h" /FD /c
@@ -152,7 +153,7 @@ SOURCE=.\ray_lex.l.cpp
 
 !IF  "$(CFG)" == "SERVER - Win32 Release"
 
-# ADD CPP /YX
+# SUBTRACT CPP /YX /Yc /Yu
 
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
@@ -369,6 +370,16 @@ SOURCE=.\ray_lex.l
 
 !IF  "$(CFG)" == "SERVER - Win32 Release"
 
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Building Lexer
+InputPath=.\ray_lex.l
+InputName=ray_lex
+
+"$(InputName).l.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	flex.exe -Pyy -i -t $(InputName).l > $(InputName).l.cpp
+
+# End Custom Build
+
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
 # PROP Ignore_Default_Tool 1
@@ -390,6 +401,16 @@ InputName=ray_lex
 SOURCE=.\ray_lex.y
 
 !IF  "$(CFG)" == "SERVER - Win32 Release"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Building Parser
+InputPath=.\ray_lex.y
+InputName=ray_lex
+
+"LexParser.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	bison.exe -pyy -o LexParser.cpp -d $(InputName).y
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 

@@ -191,6 +191,9 @@ protected:
   CEvent m_stop_server_event; //signal means that all server threads must stop
 
   CCriticalSection m_lines_change_cs; //lock this if work with lines
+
+  CCriticalSection m_session_id_change_cs; //lock this when you read or modify 
+                                //m_last_session_id.  Used in GetNewSessionId();
                                
 
   int m_last_session_id;    //is used to generate unique session ids

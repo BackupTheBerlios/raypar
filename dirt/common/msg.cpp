@@ -13,7 +13,6 @@
 
 #include "stdafx.h"
 #include "msg.h"
-#include "utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -24,7 +23,7 @@ static char THIS_FILE[] = __FILE__;
 #include <stdio.h>
 #include <stdarg.h>
 
-#define MAX_MESSAGE_LEN 1024 
+#define MAX_MESSAGE_LEN 512 
 
 #if IS_SERVER()
 //this function adds the message to the server log
@@ -44,8 +43,6 @@ extern void ClientLogMessage( LPCSTR msg, MessageType type );
 //If you build the client this will send 'msg' to client log
 static void _LogMessage( MessageType type, LPCSTR format, va_list args )
 {
-  CCriticalSectionLock cs_lock; // buffer is static!
-
   ASSERT( type >= msgNORMAL && type < msgLAST );
 
   static char msg_buf[MAX_MESSAGE_LEN];
@@ -75,8 +72,6 @@ static void _LogMessage( MessageType type, LPCSTR format, va_list args )
 //eg: ErrorMessage( "TCP/IP error - %d", 134);
 void ErrorMessage( LPCSTR text, ... )
 {
-  CCriticalSectionLock cs_lock;
-
   va_list args;
   va_start( args, text );  // initialize variable arguments
   
@@ -109,10 +104,8 @@ void Message( LPCSTR text, ... )
 //
 void ErrorMessageFromException( CException* ex, BOOL bShowMsgBox /* = FALSE */ )
 {
-  CCriticalSectionLock cs_lock; // buffer is static!
-  
   ASSERT( ex );
-  static char buf[MAX_MESSAGE_LEN];
+  char buf[MAX_MESSAGE_LEN];
   ex->GetErrorMessage(buf, MAX_MESSAGE_LEN);
   ErrorMessage( "%s", buf );  //not simply ErrorMessage( buf ) to prevent formating problems 
   if (bShowMsgBox)

@@ -53,6 +53,9 @@ public:
   void operator = (LPCSTR str)          { SetString( str ); }
   void operator = (const CVector& vect) { SetVector( vect ); }
 
+  operator double() const { return GetDouble(); }
+  operator const CVector& () const { return GetVector(); }
+
 protected:
   Type m_type;
 

@@ -29,6 +29,7 @@ CChildView::CChildView()
 
 CChildView::~CChildView()
 {
+  delete[] m_bitmap_bits;
 }
 
 
@@ -85,10 +86,19 @@ void CChildView::OnPaint()
 	// Do not call CWnd::OnPaint() for painting messages
 }
 
-//bitmap_bits may be 0
+//bitmap_bits may be 0 that means the absence of picture
 void CChildView::SetBitmapParams(int width, int height, void* bitmap_bits)
 {
+  ASSERT( AfxIsValidAddress(bitmap_bits, width*height*sizeof(COLORREF) ) );
+
   m_bitmap_height = height;
   m_bitmap_width  = width;
-  m_bitmap_bits   = bitmap_bits;
+  if( m_bitmap_bits ){
+    delete m_bitmap_bits;
+    m_bitmap_bits = 0;
+  }
+  if(  bitmap_bits){
+    m_bitmap_bits = new COLORREF[width*height];
+    memcpy(m_bitmap_bits, bitmap_bits, width*height*sizeof(COLORREF) );
+  }  
 }

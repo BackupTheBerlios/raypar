@@ -19,7 +19,6 @@
 #include "ServerThread.h"
 #include "common/protocol.h"
 #include "srvcmd.h"
-#include "common/utils.h"
 #include "common/protocol.h"
 #include "client/geometry.h"   //?K? temp
 #include "server.h"
@@ -339,7 +338,7 @@ void CServerControl::AcceptClient()
 //Generates unique session id
 int CServerControl::GetNewSessionId(void)
 {
-  CCriticalSectionLock csl;
+  CSingleLock cs_lock(&m_session_id_change_cs, TRUE);
   return ++m_last_session_id;
 }
 
@@ -402,14 +401,18 @@ void CServerControl::LineReceived(int scene_id, int line_num
      //and number of pixels client rendered equals to the number we are interested in
      //and the line number received is appropriate.
   {
-    int bCompleted = m_lines.LineWasRendered(line_num, line_data);
-    if ( bCompleted ){       
-      ASSERT( m_p_frame );
-      m_p_frame->SendMessage(WM_SERVER_FINISHED_SCENE);
-    }else{
-      int percent = m_lines.GetRenderedPercent();
-      m_p_frame->SendMessage(WM_SERVER_LINE_RENDERED, percent);
+    if (! m_lines.IsCompleted() ){//we don't want to add lines 
+                                  //to finished image
+      int bCompleted = m_lines.LineWasRendered(line_num, line_data);
+      if ( bCompleted ){       
+        ASSERT( m_p_frame );
+        ::PostMessage(*m_p_frame, WM_SERVER_FINISHED_SCENE, 0, 0);
+      }else{
+        int percent = m_lines.GetRenderedPercent();
+        ::PostMessage(*m_p_frame, WM_SERVER_LINE_RENDERED, percent, 0);
+      }
     }
+    
   }
 
   m_lines_change_cs.Unlock();

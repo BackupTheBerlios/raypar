@@ -23,7 +23,6 @@
 #include "SERVER.h"
 
 #include "MainFrm.h"
-#include "common/utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -90,7 +89,7 @@ BOOL CSERVERApp::InitInstance()
 	// To create the main window, this code creates a new frame window
 	// object and then sets it as the application's main window object.
 
-	CMainFrame* pFrame = new CMainFrame;
+  CMainFrame* pFrame = new CMainFrame;
 	m_pMainWnd = pFrame;
   p_mainFrame = pFrame;
 
@@ -186,7 +185,7 @@ void ServerLogMessage( LPCSTR text, MessageType msg_type )
 
   CWinApp* theApp = AfxGetApp(); //theApp is the main thread of the application
   
-  int ret = ::SendMessage( theApp->m_pMainWnd->m_hWnd, WM_USER_ADD_LOG_MSG
+  int ret = ::PostMessage( theApp->m_pMainWnd->m_hWnd, WM_USER_ADD_LOG_MSG
                  , MAKEWPARAM( USER_ADD_LOG_MSG_CODE, msg_type )
                    , (LPARAM) text );
 }

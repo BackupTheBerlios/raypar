@@ -1,3 +1,5 @@
+#error NOT USED //KIRILL 1/31/2004
+
 // utils.cpp: implementation of the CCriticalSectionLock class.
 //
 //////////////////////////////////////////////////////////////////////
@@ -11,16 +13,3 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-//////////////////////////////////////////////////////////////////////
-// CCriticalSectionLock
-//////////////////////////////////////////////////////////////////////
-
-CCriticalSectionLock::CCriticalSectionLock()
-{
-  m_crit_sect.Lock(); //lock on creation
-}
-
-CCriticalSectionLock::~CCriticalSectionLock()
-{
-  m_crit_sect.Unlock(); //unlock on destruction
-}
