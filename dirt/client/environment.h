@@ -80,7 +80,7 @@ public:
 class	Solid
 {
 public:
-	virtual Solid * Intersect( Ray *ray, double *distance);
+	virtual int Intersect( Ray *ray, double *distance);
 	virtual void reflect(Ray *falling, Ray *reflected);
 }; 
 
