@@ -5,6 +5,9 @@
 // Comments: simple implementation of tracer class
 //
 //***********************************
+// REVISION by Tonic, on 1/15/2004
+// Comments: bugfix in SipleTracer::strace
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
@@ -74,15 +77,17 @@ void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double w
 			scene->getLightByNumber( i, &light );
 			light.getPosition( &lightPosition );
 			lightDirection = lightPosition - normalPos;
-			
+						
 			//the light is on the proper side of the tangent plane
-			if ( (lightPosition - normalPos)*(normalDir) > 0)
+			if ( (lightDirection)*(normalDir) > 0)
 			{	
 				double dist = lightDirection.Length();
 				
+				//Tonic: bugfix : lightpos -> normalpos
+				Ray		lightRay( &normalPos, &lightDirection );
 				//there is no object between us and the light source
 				//we can compute this source's contribution
-				if(scene->Intersect(ray, &t) == NULL)
+				if(scene->Intersect(&lightRay, &dist) == NULL)
 				{
 					CVector lightColor;
 					lightDirection.Normalize();
