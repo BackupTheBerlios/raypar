@@ -248,6 +248,7 @@ void CClientDlg::OnButtonTest()
 
   Ray				rayToTrace(CVector(0,0,0), CVector(0,0,1));
   SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
+  tracer.SetBackgroundColor( CVector(0,0,0.5) );
   CVector			color;
   Medium			medium;
 

@@ -30,7 +30,9 @@
 // REVISION by Tonic, on 01/21/2004
 // Comments: Added variable material smoothness support to ProcessLights
 //*********************************************************
-
+// REVISION by Tonic, on 01/28/2004
+// Comments: Added background color support to SimpleTracer
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
@@ -228,4 +230,6 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray, const Environme
     
     resultColor *= exp ( -t * curMed.Betta ); 
   }
+  else
+    GetBackgroundColor( resultColor );
 };

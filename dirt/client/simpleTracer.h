@@ -31,6 +31,9 @@
 // REVISION by Tonic, on 01/26/2004
 // Comments: Made SimpleTracer parameters explicit in the constructor
 //*********************************************************
+// REVISION by Tonic, on 01/28/2004
+// Comments: Added background color support to SimpleTracer
+//*********************************************************
 
 #if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
 #define CLIENT_SIMPLETRACER_H_INCLUDED
@@ -49,6 +52,7 @@ public:
   static void VisibleColor( const CVector &LightColor, const CVector &MaterialColor, CVector &resultColor);
   
   SimpleTracer(int defaultDepth = 5, double shadeA = 0.1, double shadeB = 0.1, double shadeC = 0.1, double shadeRoD = 1, double shadeRoReflected = 1, double shadeRoRefracted = 1)
+    : m_backgroundColor(0,0,0)
   {
     ASSERT( defaultDepth > 0);
     ASSERT( shadeA > VECTOR_EQUAL_EPS );
@@ -66,6 +70,18 @@ public:
     m_shadeRoReflected = shadeRoReflected;
     m_shadeRoRefracted = shadeRoRefracted;
   };
+  
+  void SetBackgroundColor( const CVector &backgroundColor )
+  {
+    ASSERT( backgroundColor.IsNormalized() );
+    m_backgroundColor = backgroundColor;
+  };
+  
+  void GetBackgroundColor( CVector &backgroundColor )const
+  {
+    backgroundColor = m_backgroundColor;
+  };
+
 private:
   //added maximum recursion depth to the parameter list
   void strace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, int depth, bool outside) const;
@@ -82,6 +98,7 @@ private:
   // color = shadeRoD*(normalDir*lightDirection)/(shadeA + shadeB*dist + shadeC*dist^2) 
   // + m_shadeRoReflected*reflectedColor + m_shadeRoRefracted*refractedColor 
   double m_shadeA, m_shadeB, m_shadeC, m_shadeRoD, m_shadeRoReflected, m_shadeRoRefracted;
+  CVector m_backgroundColor;
 };
 
 //class to contain pixel color computing routine
