@@ -33,6 +33,7 @@ static char THIS_FILE[] = __FILE__;
 //Maximum number of clients waiting in queue for Accept
 #define MAX_CLIENTS_IN_QUEUE 50  
 
+
 ///////////////////////////////////////////////////////////
 //  SServerThreadParam
 //
@@ -80,14 +81,14 @@ void CLinesController::Init( int lines_count, int line_width, int search_step /*
 
   m_lines_info = new CLineItem[m_lines_count] ;
   for(int i=0; i<m_lines_count; i++ )
-    m_lines_info->AllocateData( m_line_width );
+    m_lines_info[i].AllocateData( m_line_width );
 }
 
 //Frees the allocated memory
 void CLinesController::Free()
 {   
   for(int i=0; i<m_lines_count; i++ )
-    m_lines_info->FreeData( m_line_width );
+    m_lines_info[i].FreeData( m_line_width );
   delete[] m_lines_info;
   m_lines_info = 0;
   m_lines_count = 0;
@@ -203,7 +204,6 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
 
 
 
-
 ///////////////////////////////////////////////////////////
 //  CServerSocket    - server socket class
 //
@@ -255,13 +255,17 @@ int CServerControl::StartServer(int portNum)
     return ERROR_RETURN; 
   }
 
-  //KIRIL: temp:
-  m_lines.Init(400,300);
+  //KIRILL: temp:
+  m_lines.Init(300,300);
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
 
   return 0;
 }
 
+int CServerControl::StopServer()
+{
+  return 0; //?K?
+}
 
 //Accepts client and builds server thread for this client
 //

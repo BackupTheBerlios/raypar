@@ -92,7 +92,7 @@ int CServerSceneBuilder::SetAmbientColor( const CVector& color )
 void CServerSceneBuilder::AddComment(LPCSTR comment)
 {
   //temp
-  Message("[PARSER]  Comment =  '%s'", comment );
+  //Message("[PARSER]  Comment =  '%s'", comment );
 }
 
 void CServerSceneBuilder::ParserError( LPCSTR error )

@@ -162,6 +162,7 @@ BEGIN
     BUTTON      ID_VIEW_LOGWINDOW
     SEPARATOR
     BUTTON      ID_RUN
+    BUTTON      ID_STOP
     SEPARATOR
     BUTTON      ID_CONTEXT_HELP
 END
@@ -180,7 +181,11 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "E&xit",                       ID_APP_EXIT
     END
-    MENUITEM "&Run",                        ID_RUN
+    POPUP "&Server"
+    BEGIN
+        MENUITEM "&Run",                        ID_RUN
+        MENUITEM "Sto&p",                       ID_STOP
+    END
     POPUP "&View"
     BEGIN
         MENUITEM "O&ptions",                    ID_VIEW_OPTIONS
