@@ -171,6 +171,36 @@ SOURCE=.\SERVER.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\hlp\SERVER.hpj
+
+!IF  "$(CFG)" == "SERVER - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - making help...
+OutDir=.\Debug
+InputPath=.\hlp\SERVER.hpj
+InputName=SERVER
+
+"$(OutDir)\$(InputName).hlp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	start /wait hcw /C /E /M "hlp\$(InputName).hpj" 
+	if errorlevel 1 goto :Error 
+	if not exist "hlp\$(InputName).hlp" goto :Error 
+	copy "hlp\$(InputName).hlp" $(OutDir) 
+	goto :done 
+	:Error 
+	echo hlp\$(InputName).hpj(1) : error: 
+	type "hlp\$(InputName).log" 
+	:done 
+	
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
 SOURCE=.\SERVER.rc
 # End Source File
 # Begin Source File
@@ -301,6 +331,36 @@ SOURCE=.\res\Toolbar.bmp
 # Begin Source File
 
 SOURCE=.\res\toolbar2.bmp
+# End Source File
+# End Group
+# Begin Group "Help Files"
+
+# PROP Default_Filter "cnt;rtf"
+# Begin Source File
+
+SOURCE=.\hlp\AfxCore.rtf
+# End Source File
+# Begin Source File
+
+SOURCE=.\hlp\SERVER.cnt
+
+!IF  "$(CFG)" == "SERVER - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Copying contents file...
+OutDir=.\Debug
+InputPath=.\hlp\SERVER.cnt
+InputName=SERVER
+
+"$(OutDir)\$(InputName).cnt" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy "hlp\$(InputName).cnt" $(OutDir)
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # End Group
 # Begin Source File

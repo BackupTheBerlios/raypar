@@ -1,0 +1,5 @@
+:Base server.hlp
+1 DIRT client help
+2 Help topics=main_index
+1 DIRT server help
+2 Help topics=server_index
