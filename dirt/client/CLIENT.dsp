@@ -117,12 +117,11 @@ SOURCE=..\COMMON\msg.cpp
 # End Source File
 # Begin Source File
 
-
-SOURCE=.\simpleTracer.cpp
+SOURCE=..\common\protocol.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\protocol.cpp
+SOURCE=.\simpleTracer.cpp
 # End Source File
 # Begin Source File
 
@@ -136,10 +135,6 @@ SOURCE=..\common\utils.cpp
 # Begin Source File
 
 SOURCE=..\common\Vector.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\Vector.h
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -188,6 +183,10 @@ SOURCE=.\trace.h
 # Begin Source File
 
 SOURCE=..\common\utils.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\Vector.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

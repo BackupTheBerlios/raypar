@@ -21,9 +21,9 @@
 //				Added CVector position to Light, modified constructors
 //				Added Ray constructor without parameters
 //***********************************
-// REVISION by ..., on ...
-// Comments: ...
-//
+// REVISION by Tonic, on 1/13/2004
+// Comments: Added normalization to Ray::setDirection so that
+// direction is always of length 1 inside the Ray
 //*********************************************************
 
 #include "stdafx.h"
@@ -95,9 +95,13 @@ void Ray::getDirection(CVector *direction)
 void Ray::setDirection(CVector *direction)
 {
 	ASSERT( direction != NULL);
+	ASSERT( direction->Length() != 0);
 
 	// = is overridden operator, just makes the components the same
 	this->direction = *direction;
+	
+	//make the direction length 1
+	(this->direction).Normalize();
 }
 
 
