@@ -46,6 +46,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)	
 	ON_WM_DESTROY()
   ON_MESSAGE( WM_USER_ADD_LOG_MSG, OnUserAddLogMessage )
+  ON_MESSAGE( WM_SERVER_FINISHED_SCENE, OnServerFinishedScene )
+  ON_MESSAGE( WM_SERVER_LINE_RENDERED, OnServerLineRendered )
 	ON_COMMAND(ID_STOP, OnStop)
 	ON_UPDATE_COMMAND_UI(ID_STOP, OnUpdateStop)
 	ON_UPDATE_COMMAND_UI(ID_RUN, OnUpdateRun)
@@ -57,13 +59,15 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_DEFAULT_HELP, CFrameWnd::OnHelpFinder)  
 END_MESSAGE_MAP()
 
+
 static UINT indicators[] =
 {
 	ID_SEPARATOR,           // status line indicator
-	ID_INDICATOR_CAPS,
-	ID_INDICATOR_NUM,
-	ID_INDICATOR_SCRL,
+  ID_PROGRESS_INDICATOR   //progress indicator pane
 };
+
+//our indicator is the second in the status bar
+#define PROGRESS_INDICATOR_INDEX 1
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame construction/destruction
@@ -73,7 +77,6 @@ CMainFrame::CMainFrame()
 , m_srv_ctrl( m_scene )
 , m_settings(mainFrameSection, MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
                              , MAINFRAME_DEFAULT_WIDTH, MAINFRAME_DEFAULT_HEIGHT)
-
 {	
   m_last_scene_uid = 1; //zero scene uid means that scene wasn't loaded
   m_scene.SetSceneUID( 0 ); 
@@ -188,7 +191,6 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 	return CFrameWnd::OnCmdMsg(nID, nCode, pExtra, pHandlerInfo);
 }
 
-
 void CMainFrame::OnViewLogwindow() 
 {
 	if ( !m_log_wnd.IsWindowVisible())
@@ -209,7 +211,7 @@ void CMainFrame::OnViewOptions()
 
 void CMainFrame::OnRun() 
 {
-  m_srv_ctrl.StartServer( 8700 );
+  m_srv_ctrl.StartServer( this, 8700 );
   m_bServerStarted = true;
   Message("Servers started on port '8700'");  
 }
@@ -219,6 +221,7 @@ extern int yyparse(void);
 
 void CMainFrame::OnOpenScene() 
 {
+  m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
   CFileDialog ofd( TRUE, 0, 0, 0, "Scene Files (*.sc)|*.sc|All Files (*.*)", this);
   int ret = ofd.DoModal();
 
@@ -289,10 +292,35 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
     };
          
     // delete (char*)lParam; //we have to clean the memory
-    ret = 1; //this means that we've processed message
+    ret = 1; //this means that we've processed the message
   }
   return ret; 
 }
+
+//Client threads use WM_SERVER_FINISHED_SCENE message to inform main thread 
+//that the scene rendering was finished (it is sent once per scene)
+LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
+{
+  int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
+  return 1; //this means that we've processed the message
+}
+
+
+//Client threads use WM_SERVER_LINE_RENDERED message to inform main thread that 
+//new line was received from client and send percent of rendered lines
+//in WPARAM.
+LRESULT CMainFrame::OnServerLineRendered(WPARAM wParam, LPARAM lParam)
+{
+  ASSERT( wParam >=0 && wParam <= 100 ); //wParam is the percentage 
+                                        //of completed lines
+
+  char buf[20];
+  sprintf(buf, "%d %%", wParam);
+  int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, buf);
+  ASSERT( ret );
+  return 1; //this means that we've processed the message
+}
+
 
 void CMainFrame::OnStop() 
 {  

@@ -26,11 +26,12 @@ struct CCameraInfo;
 
 ///////////////////////////////////////////////////////////
 //  CLinesController  - supports lines distribution among clients
-//
+//                    and gathers rendered lines
 
 class CLinesController
 {
-  class CLineItem{
+protected:
+  class CLineItem{ //this class stores all information about single lines
   public:
     CLineItem()
       : m_bGiven( 0 )
@@ -70,7 +71,14 @@ public:
    CLinesController();
   ~CLinesController();
   //[Re]Initializes the object
-  void Init( int lines_count, int line_width, int search_step = 7 );
+  // scene_uid - uid of current scene
+  // lines_count - image height
+  // line_width  - image width
+  // search_step - this number is used in GetNextLine2Render algorithm. 
+                  //must be positive and for better perfomance must be small enough.
+                  //Read GetNextLine2Render for details
+  void Init( int scene_uid, int lines_count, int line_width, int search_step = 7 );
+
   //Frees the allocated memory and sets parameters to zero
   void Free();
 
@@ -82,15 +90,22 @@ public:
   //Nonzero if the image is completed
   int LineWasRendered(int line_num, COLORREF* line_data);
 
+
+  //getters
   int GetWidth(void) const { return m_line_width; }
   int GetHeight(void) const { return m_lines_count; }
+  int GetSceneUID(void) const { return m_scene_uid; }
 
+  //returns the percentage of rendered lines
+  int GetRenderedPercent(void) const;
 
 protected:
-  int m_search_step;
-  int m_line_width;
-  int m_lines_count;
-  bool m_bCompleted;
+  int  m_search_step;   //search step - is used in GetNextLine2Render algorithm
+  int  m_line_width;    //image width
+  int  m_lines_count;   //number of lines (image height)
+  bool m_bCompleted;    //was the image completed?
+  int  m_scene_uid;    //unique id of current scene
+  int  m_rendered_count;    //number of rendered lines
 
   CLineItem* m_lines_info;
 };
@@ -122,7 +137,7 @@ public:
   CServerControl(CEnvironment& scene);
   ~CServerControl();
 
-  int StartServer(int portNum);
+  int StartServer(CWnd* p_frame, int portNum);
   int StopServer();
   
   
@@ -143,23 +158,36 @@ public:
   //When you finished your work you must free scene access
   void UnlockScene(void);
 
+  // return line number which the client should render.
+  // negative means that there is nothing to render
+  int GetLineToRender(void);
+
+  //processes image line, received from the client
+  // scene_id  - scene_id, which client rendered
+  // line_num  - number of the line which client rendered
+  // pixel_count - number of pixels? rendered by client
+  // line_data - image line data
+  void LineReceived(int scene_id, int line_num, int pixel_count, COLORREF* line_data);
+
 
 protected:
   void AcceptClient(void);
 
   
 protected:  
-  CServerSocket m_srv_sock;
+  CServerSocket m_srv_sock;  //server socket - is used for Listen()
   CEvent m_stop_server_event; //signal means that all server threads must stop
 
   CMutex m_scene_change_mutex; //lock this if work with the scene
-  CMutex m_change_lines_mutex; //lock this if work with lines
+  CCriticalSection m_lines_change_cs; //lock this if work with lines
                                
 
-  int m_last_session_id;
+  int m_last_session_id;    //is used to generate unique session ids
   CLinesController m_lines;    //all the information about the lines is stored here
-
   CEnvironment& m_scene;        //current scene
+  bool m_bSceneCompleted;
+
+  CWnd* m_p_frame;    //we send some notification messages to this window
 
   friend CServerSocket;
 };
@@ -169,15 +197,8 @@ protected:
 
 //void StartServerThread( void * param );
 
-CWinThread* StartServerThread( void * param );
+CWinThread* StartClientThread( void * param );
 //void StopServerThread();
-
-
-
-
-
-
-
 
 
 

@@ -34,8 +34,17 @@
 
 //We use this windows message and user code  in order to send 
 //information to the main thread. 
-#define WM_USER_ADD_LOG_MSG  ( WM_USER+1 )
+#define WM_USER_ADD_LOG_MSG  ( WM_USER+11 )
 #define USER_ADD_LOG_MSG_CODE  0x23fb
+
+//Client threads use this message to inform main thread that 
+//the scene rendering was finished (it is sent once per scene)
+#define WM_SERVER_FINISHED_SCENE  ( WM_USER+12 )
+
+//Client threads use this message to inform main thread that 
+//new line was received from client and send percent of rendered lines
+//in WPARAM.
+#define WM_SERVER_LINE_RENDERED ( WM_USER+13 )
 
 #define MAINFRAME_DEFAULT_LEFT 100
 #define MAINFRAME_DEFAULT_TOP 100
@@ -98,6 +107,8 @@ protected:
   //this is used to handle WM_USER_ADD_LOG_MESSAGE which can be sent 
   //by ServerLogMessage(.)
 	LRESULT OnUserAddLogMessage(WPARAM wParam, LPARAM lParam);
+  LRESULT OnServerFinishedScene(WPARAM wParam, LPARAM lParam);
+  LRESULT OnServerLineRendered(WPARAM wParam, LPARAM lParam);
 	//{{AFX_MSG(CMainFrame)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSetFocus(CWnd *pOldWnd);

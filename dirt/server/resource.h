@@ -3,6 +3,7 @@
 // Used by SERVER.rc
 //
 #define IDD_ABOUTBOX                    100
+#define ID_PROGRESS_INDICATOR           101
 #define IDP_SOCKETS_INIT_FAILED         104
 #define IDR_MAINFRAME                   128
 #define IDR_SERVERTYPE                  129
@@ -28,6 +29,6 @@
 #define _APS_NEXT_RESOURCE_VALUE        139
 #define _APS_NEXT_COMMAND_VALUE         32783
 #define _APS_NEXT_CONTROL_VALUE         1004
-#define _APS_NEXT_SYMED_VALUE           101
+#define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

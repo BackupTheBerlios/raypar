@@ -1,3 +1,16 @@
+//*********************************************************
+//** LogWnd.h **
+// Created By: KIRILL
+// On: 1/10/2004 15:42:01
+// Comments: CLogWnd interaface - this is the window in
+//   which logs are displayed
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
+
 #if !defined(AFX_LOGWND_H__5E8F16B6_AF1D_4D8F_9171_FD6C2BDC98AE__INCLUDED_)
 #define AFX_LOGWND_H__5E8F16B6_AF1D_4D8F_9171_FD6C2BDC98AE__INCLUDED_
 

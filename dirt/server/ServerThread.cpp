@@ -5,6 +5,10 @@
 // Comments: Server thread implementation file
 //
 //*********************************************************
+// REVISION by KIRILL, on 1/30/2004 03:15:22
+// Comments: ServerThreadFunction renamed to ClientThreadFunction
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -18,6 +22,8 @@
 #include "common/utils.h"
 #include "common/protocol.h"
 #include "client/geometry.h"   //?K? temp
+#include "server.h"
+#include "mainfrm.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -54,6 +60,8 @@ CLinesController::CLinesController()
 , m_search_step(0)
 , m_bCompleted(0)
 , m_lines_info(0)
+, m_scene_uid(0)
+, m_rendered_count(0)
 {}
 
 CLinesController::~CLinesController()
@@ -63,18 +71,23 @@ CLinesController::~CLinesController()
 
 //[Re]Initializes th object
 // search step is used in GetNeaxtLine2Render algorithm
-void CLinesController::Init( int lines_count, int line_width, int search_step /*= 7*/ )
+void CLinesController::Init( int scene_uid, int lines_count
+                            , int line_width, int search_step /*= 7*/ )
 {
   ASSERT( lines_count > 0 );
   ASSERT( line_width > 0 );
   ASSERT( search_step > 0 );
-
+  ASSERT( scene_uid > 0); //zero or negative means that the scene 
+                          //wasn't loaded
+                          
   delete [] m_lines_info;
 
   m_lines_count = lines_count;
-  m_line_width = line_width;
+  m_line_width  = line_width;
   m_search_step = search_step;
-  m_bCompleted = false;
+  m_bCompleted  = false;
+  m_scene_uid   = scene_uid;
+  m_rendered_count = 0;
 
   if (m_search_step > m_lines_count)
     m_search_step = 1;
@@ -95,6 +108,8 @@ void CLinesController::Free()
   m_line_width = 0;
   m_search_step = 0;
   m_bCompleted = 0;
+  m_scene_uid = 0;
+  m_rendered_count = 0;
 }
 
 //Gives next line to render to client
@@ -185,6 +200,7 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
   ASSERT( AfxIsValidAddress(li.m_data, sizeof(COLORREF)*m_line_width ) );
   memcpy( li.m_data, line_data, sizeof(COLORREF)*m_line_width );
   li.m_bReceived = true;
+  m_rendered_count++;
   
   //Now we check whether we have finished the picture or no;
   bool bFoundNotReceived = false;
@@ -193,16 +209,21 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
     if (! m_lines_info[i].m_bReceived )
       bFoundNotReceived = true;
 
-
   if (bFoundNotReceived)
     return 0; //we haven't finished the image yet
   
   //image was finished
   m_bCompleted = true; 
+  ASSERT( m_rendered_count = m_lines_count );
+
   return 1;  
 }
 
-
+//returns the percentage of rendered lines
+int CLinesController::GetRenderedPercent(void) const
+{
+  return m_rendered_count*100/m_lines_count;
+}
 
 ///////////////////////////////////////////////////////////
 //  CServerSocket    - server socket class
@@ -235,6 +256,7 @@ CServerControl::CServerControl(CEnvironment& scene)
 : m_srv_sock( *this )
 , m_last_session_id( 0 )
 , m_scene( scene )
+, m_p_frame( 0 )
 { 
 }
 
@@ -246,8 +268,11 @@ CServerControl::~CServerControl()
 //  Creates socket and starts listening
 //  returns 0 if successful
 //
-int CServerControl::StartServer(int portNum)
+int CServerControl::StartServer(CWnd* p_frame, int portNum)
 {
+  ASSERT( p_frame );
+  m_p_frame = p_frame;
+  
   int ret = m_srv_sock.Create( portNum );
   if ( !ret ){
     CString err_str = GetErrorMessageByErrorCode(ret);
@@ -256,7 +281,9 @@ int CServerControl::StartServer(int portNum)
   }
 
   //KIRILL: temp:
-  m_lines.Init(300,300);
+  int scene_uid = m_scene.GetSceneUID();
+  m_lines.Init( scene_uid, 300,300 );
+  m_bSceneCompleted = false;
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
 
   return 0;
@@ -280,7 +307,7 @@ void CServerControl::AcceptClient()
   cl_sock.Detach(); 
   sp->p_srv_ctrl = this;
 
-  CWinThread* srv_thr = StartServerThread( sp );
+  CWinThread* srv_thr = StartClientThread( sp );
   if ( !srv_thr ){
     ErrorMessageWithBox( "Unable to create server thread!" );
     delete sp; //we have to do this
@@ -297,6 +324,9 @@ int CServerControl::GetNewSessionId(void)
 //this functions can be called from different threads!
 //Fills required scene parameters
 //Zero if successful
+//p_image_lines_info->m_line_number may be negative
+//negative means that the image was completed
+//and there is no line to render.
 int CServerControl::FillSceneParameters( int* p_scene_id,
                          CImageLinesInfo* p_image_lines_info,
                          CCameraInfo*  p_camera_info )
@@ -305,16 +335,24 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
   ASSERT( p_image_lines_info );
   ASSERT( p_camera_info );
 
-  CSingleLock lines_lock( &m_change_lines_mutex, TRUE );
+  m_lines_change_cs.Lock(); //we lock the access to the lines info
 
-  *p_scene_id = m_scene.GetSceneUID();
   
   p_camera_info->m_camera_pos = CVector(0,0,0);
   p_camera_info->m_camera_y_axis = CVector(0,1,0);
   p_camera_info->m_camera_z_axis = CVector(0,0,1);
-
+  
+  *p_scene_id = m_lines.GetSceneUID(); 
+  ASSERT( *p_scene_id > 0);//zero or negative scene id means that 
+                           //the scene wasn't loaded
+  
   p_image_lines_info->m_image_height = m_lines.GetHeight();
   p_image_lines_info->m_image_width = m_lines.GetWidth();
+  p_image_lines_info->m_line_number = m_lines.GetLine2Render();//may be negative
+                        //negative means that the image was completed
+                        //and there is no line to render.
+  
+  m_lines_change_cs.Unlock();
 
   return 0;
 }
@@ -333,12 +371,43 @@ void CServerControl::UnlockScene(void)
   m_scene_change_mutex.Unlock(); //we unlock the access
 }
 
+// processes image line, received from the client
+// scene_id  - scene_id, which client rendered
+// line_num  - number of the line which client rendered
+// pixel_count - number of pixels? rendered by client
+// line_data - image line data
+void CServerControl::LineReceived(int scene_id, int line_num
+                                  , int pixel_count, COLORREF* line_data)
+{
+  m_lines_change_cs.Lock();
+
+  if ( scene_id != m_lines.GetHeight()  && scene_id != m_lines.GetSceneUID() 
+       && line_num >= 0 && line_num < m_lines.GetHeight())  
+     //client've rendered the scene which we are interested in. 
+     //and number of pixels client rendered equals to the number we are interested in
+     //and the line number received is appropriate.
+  {
+    int bCompleted = m_lines.LineWasRendered(line_num, line_data);
+    if ( bCompleted ){      
+      m_bSceneCompleted = true;
+      ASSERT( m_p_frame );
+      m_p_frame->SendMessage(WM_SERVER_FINISHED_SCENE);
+    }else{
+      int percent = m_lines.GetRenderedPercent();
+      m_p_frame->SendMessage(WM_SERVER_LINE_RENDERED, percent);
+    }
+  }
+
+  m_lines_change_cs.Unlock();
+}
+
+
 
 ///////////////////////////////////////////////////////////
-//  ServerThreadFunction
+//  ClientThreadFunction
 //
 
-UINT ServerThreadFunction( void* param )
+UINT ClientThreadFunction( void* param )
 {  
   SServerThreadParam * sp = (SServerThreadParam*) param;
   ASSERT( AfxIsValidAddress(param, sizeof (SServerThreadParam ) ) );
@@ -434,9 +503,9 @@ UINT ServerThreadFunction( void* param )
 }
 
 
-CWinThread* StartServerThread( void * param )
+CWinThread* StartClientThread( void * param )
 {  
-  return AfxBeginThread( ServerThreadFunction, param );
+  return AfxBeginThread( ClientThreadFunction, param );
 }
 
 void StopServerThread()

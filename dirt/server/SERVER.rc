@@ -276,6 +276,7 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_PROGRESS_INDICATOR   "0%       "
     IDP_SOCKETS_INIT_FAILED "Windows sockets initialization failed."
 END
 

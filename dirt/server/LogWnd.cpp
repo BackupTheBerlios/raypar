@@ -1,5 +1,15 @@
-// LogWnd.cpp : implementation file
+//*********************************************************
+//** LogWnd.h **
+// Created By: KIRILL
+// On: 1/10/2004 15:42:01
+// Comments: CLogWnd interaface - this is the window in
+//   which logs are displayed
 //
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//***************************
 
 #include "stdafx.h"
 #include "server.h"

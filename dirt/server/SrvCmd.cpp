@@ -99,7 +99,7 @@ int CmdGetFrameData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
         , client_name);
     return ERROR_MUST_TERMINATE;
   }
-  
+
   CImageLinesInfo image_lines_info;
   CCameraInfo  camera_info;
   int scene_uid;
@@ -218,14 +218,16 @@ int CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
 int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
                int current_session_id, CServerControl* p_srv_ctrl)
 {
-  ASSERT( p_srv_ctrl );
+/*  ASSERT( p_srv_ctrl );
   
   int session_id;
   int line_num;
+  int scene_uid;
   int pixels_count;
+  COLORREF* data = 0;
 
-/*
-  CSendLineData::Q send_line_Q( &session_id );
+  CSendLineData::Q send_line_Q( &session_id, &scene_uid, &line_num, 
+                                  &pixels_count, &data);
   int ret = send_line_Q.read( arIn );
 
   if ( ret ){
@@ -244,6 +246,15 @@ int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
     return ERROR_MUST_TERMINATE;
   }
   
+  if ( scene_uid != current_scene_uid ){ 
+    //Client sent unknown session id. We should terminate connection
+
+    ASSERT( 0 );
+    ErrorMessage("CL[%s]Wrong data received from client. Terminating the connection"
+        , client_name);
+    return ERROR_MUST_TERMINATE;
+  }
+
   CImageLinesInfo image_lines_info;
   CCameraInfo  camera_info;
   int scene_uid;
