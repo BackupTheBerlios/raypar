@@ -23,13 +23,14 @@
 
 
 
-
 ///////////////////////////////////////////////////////////
 // Protocol version
 
 //#define PROTOCOL_VERSION 1
 //#define PROTOCOL_VERSION 2
-#define PROTOCOL_VERSION 3
+//#define PROTOCOL_VERSION 3
+#define PROTOCOL_VERSION 4
+
 
 
 ///////////////////////////////////////////////////////////
@@ -39,6 +40,7 @@
 #define CMD_GET_FRAME_DATA   2
 #define CMD_GET_SCENE_DATA   3
 #define CMD_SEND_LINE_DATA   4
+#define CMD_CLOSE_CONNECTION 5
 
 
 //Such return means that an error occured in function
