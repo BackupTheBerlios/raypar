@@ -232,6 +232,8 @@ void CClientDlg::OnButtonTest()
 {
   //KIRILL: Temporal button and function for testing of some features
 
+  //KIRILL: This call will break with memory error every time you run this:)
+
   int  imgWidth = 300, imgHeight = 300;
   ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
   COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
