@@ -161,3 +161,38 @@ void CWindowSettings::SaveDataToReg()
   p_app->WriteProfileInt(m_lpszSection, s_window_width, m_cx );
   p_app->WriteProfileInt(m_lpszSection, s_window_height, m_cy );
 }
+
+void CWindowSettings::SavePosition(CWnd *hwnd)
+{
+  WINDOWPLACEMENT wplc;
+  hwnd->GetWindowPlacement(&wplc);
+  m_x = wplc.rcNormalPosition.left;
+  m_y = wplc.rcNormalPosition.top;
+  m_cx = wplc.rcNormalPosition.right - wplc.rcNormalPosition.left;
+  m_cy = wplc.rcNormalPosition.bottom - wplc.rcNormalPosition.top;
+  SaveDataToReg();
+}
+
+void CWindowSettings::LoadNonResizablePosition(CWnd *hwnd)
+{
+  CRect rect;
+  hwnd->GetWindowRect(rect);
+  
+  GetDataFromReg();
+  int x,y,cx,cy;
+  x = m_x;
+  y = m_y;
+  cx = rect.right - rect.left;
+  cy = rect.bottom - rect.top;
+
+  hwnd->SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
+}
+
+void CWindowSettings::LoadResizablePosition(CWnd *hwnd)
+{
+  CRect rect;
+  hwnd->GetWindowRect(rect);
+  
+  GetDataFromReg();
+  hwnd->SetWindowPos(&CWnd::wndTop, m_x, m_y, m_cx, m_cy, 0);
+}

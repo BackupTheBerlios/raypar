@@ -70,15 +70,10 @@ int CLogWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
-   
-  m_settings.GetDataFromReg();
-  int x,y,cx,cy;
-  x = m_settings.GetX();
-  y = m_settings.GetY();
-  cx = m_settings.GetCx();
-  cy = m_settings.GetCy();
+  
+  //load position from reg
+  m_settings.LoadResizablePosition(this);
 
-  SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
   return 0;
 }
 
@@ -93,14 +88,6 @@ void CLogWnd::OnSysCommand( UINT nID, LPARAM lParam )
 
 void CLogWnd::OnDestroy() 
 {
-  CRect rect;
-  GetWindowRect(rect);
-  
-  m_settings.SetX(rect.left);
-  m_settings.SetY(rect.top);
-  m_settings.SetCx(rect.right - rect.left);
-  m_settings.SetCy(rect.bottom - rect.top);
-  
-  m_settings.SaveDataToReg();
+  m_settings.SavePosition(this);
 	CDialog::OnDestroy();	
 }

@@ -102,6 +102,9 @@ public:
 
   void SaveDataToReg(void);
   void GetDataFromReg(void);
+  void SavePosition(CWnd *hwnd);
+  void LoadResizablePosition(CWnd *hwnd); //for resizable windows
+  void LoadNonResizablePosition(CWnd *hwnd);//for non resizable windows
 };
 
 #endif // !defined(AFX_OPTIONS_H__EB3E6444_C4E1_4FA7_B347_CCD8F0D0696A__INCLUDED_)

@@ -134,14 +134,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_log_wnd.ShowWindow( SW_NORMAL );
 
   //Loading info from reg on create
-  m_settings.GetDataFromReg();
-  int x,y,cx,cy;
-  x = m_settings.GetX();
-  y = m_settings.GetY();
-  cx = m_settings.GetCx();
-  cy = m_settings.GetCy();
-
-  SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
+  m_settings.LoadResizablePosition(this);
   SetWindowText( "DiRT server" );
 
   m_serverOptions.GetDataFromReg();
@@ -272,15 +265,7 @@ void CMainFrame::OnOpenScene()
 
 void CMainFrame::OnDestroy() 
 {
-  CRect rect;
-  GetWindowRect(rect);
-  
-  m_settings.SetX(rect.left);
-  m_settings.SetY(rect.top);
-  m_settings.SetCx(rect.right - rect.left);
-  m_settings.SetCy(rect.bottom - rect.top);
-  
-  m_settings.SaveDataToReg();
+  m_settings.SavePosition(this);
 	CFrameWnd::OnDestroy();
   m_log_box.Detach();	
 }
