@@ -28,6 +28,9 @@
 // REVISION by Tonic, on 01/21/2004
 // Comments: Added variable material smoothness support to ProcessLights
 //*********************************************************
+// REVISION by Tonic, on 01/26/2004
+// Comments: Made SimpleTracer parameters explicit in the constructor
+//*********************************************************
 
 #if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
 #define CLIENT_SIMPLETRACER_H_INCLUDED
@@ -45,11 +48,23 @@ public:
   //will produce
   static void VisibleColor(  CVector &LightColor,  CVector &MaterialColor, CVector &ResultColor );
   
-  SimpleTracer(void)
+  SimpleTracer(int defaultDepth = 5, double shadeA = 0.1, double shadeB = 0.1, double shadeC = 0.1, double shadeRoD = 1, double shadeRoReflected = 1, double shadeRoRefracted = 1)
   {
-    defaultDepth = 5;
-    shadeA = shadeB = shadeC = 0.1;
-    shadeRoD = shadeRoR = 1.0;
+    ASSERT( defaultDepth > 0);
+    ASSERT( shadeA > VECTOR_EQUAL_EPS );
+    ASSERT( shadeB > 0 );
+    ASSERT( shadeC > 0 );
+    ASSERT( shadeRoD > VECTOR_EQUAL_EPS );
+    ASSERT( shadeRoReflected > VECTOR_EQUAL_EPS );
+    ASSERT( shadeRoRefracted > VECTOR_EQUAL_EPS );
+    
+    m_defaultDepth = defaultDepth;
+    m_shadeA = shadeA;
+    m_shadeB = shadeB;
+    m_shadeC = shadeC;
+    m_shadeRoD = shadeRoD;
+    m_shadeRoReflected = shadeRoReflected;
+    m_shadeRoRefracted = shadeRoRefracted;
   };
 private:
   //added maximum recursion depth to the parameter list
@@ -61,15 +76,12 @@ private:
   void processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color, double smoothness );
   
   //maximum recursion depth
-  int defaultDepth;
+  int m_defaultDepth;
   
   //shading model coefficients
-  // color = shadeRoD*(normalDir*lightDirection)/(shadeA + shadeB*dist + shadeC*dist^2)
-  double shadeA, shadeB, shadeC, shadeRoD;
-  
-  //reflected ray component coefficient
-  // color = color(light sources) + shadeRoR * color(trace(reflected ray))
-  double shadeRoR;
+  // color = shadeRoD*(normalDir*lightDirection)/(shadeA + shadeB*dist + shadeC*dist^2) 
+  // + m_shadeRoReflected*reflectedColor + m_shadeRoRefracted*refractedColor 
+  double m_shadeA, m_shadeB, m_shadeC, m_shadeRoD, m_shadeRoReflected, m_shadeRoRefracted;
 };
 
 //class to contain pixel color computing routine

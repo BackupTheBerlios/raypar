@@ -71,8 +71,8 @@ void SimpleTracer::processLights( Medium &curMed, Environment &scene, Ray &norma
         CVector lightColor;
         lightDirection.Normalize();
         light.getColor( lightColor );
-        lightColor /= (shadeA + shadeB*dist + shadeC*dist*dist);
-        lightColor *= shadeRoD*pow((normalDir*lightDirection),smoothness);
+        lightColor /= (m_shadeA + m_shadeB*dist + m_shadeC*dist*dist);
+        lightColor *= m_shadeRoD*pow((normalDir*lightDirection),smoothness);
         color += lightColor;
       };
     };
@@ -107,7 +107,7 @@ void SimpleTracer::VisibleColor( CVector &LightColor,  CVector &MaterialColor, C
 
 void SimpleTracer::trace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, bool outside)
 {
-  strace(curMed, ray, scene, resultColor, defaultDepth, outside);
+  strace(curMed, ray, scene, resultColor, m_defaultDepth, outside);
 };
 
 void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, int depth, bool outside)
@@ -165,7 +165,7 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVect
       
       reflected.setOrigin( normalPos + VECTOR_EQUAL_EPS*reflectedDir );
       strace(curMed, reflected, scene, color, depth - 1, true);
-      resultColor += color*reflectionCoefficient;
+      resultColor += color*reflectionCoefficient*m_shadeRoReflected;
       
       //now process the refracted ray
       if( nearestObject->IsTransparent() )
@@ -194,14 +194,14 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVect
           
           refracted.setOrigin( normalPos + VECTOR_EQUAL_EPS*refractedDir );
           strace(newMedium, refracted, scene, color, depth - 1, !outside);
-          resultColor += color*(1 - reflectionCoefficient);
+          resultColor += color*(1 - reflectionCoefficient)*m_shadeRoRefracted;
         };
       };
     };
     //allow for ambient light
     //Tonic:1/19/2004: bugfix: no more adding 
     //ambient light for steps other than 1
-    if ( depth == defaultDepth )
+    if ( depth == m_defaultDepth )
     {
       CVector AmbientColor;
       scene.GetAmbientColor( AmbientColor );

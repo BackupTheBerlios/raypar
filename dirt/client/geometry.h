@@ -37,6 +37,10 @@
 // REVISION by KIRILL, on 1/24/2004 03:42:00
 // Comments: Some refactoring was done
 //*********************************************************
+// REVISION by Tonic, on 1/26/2004
+// Comments: Color support went to CSphere, CColorSphere eliminated
+// IsValid added to CTriangle, CSphere, CCylinder
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -53,12 +57,12 @@
 
 class CSphere : public CSolid
 {
+private:
   CVector m_position;
   double  m_radius;
-  double  m_reflectionCoefficient;
-  bool    m_isTransparent;
   Medium  m_innerMedium;
   Medium  m_outerMedium;
+  CVector m_color;
   
 public:
   //constructors
@@ -67,7 +71,7 @@ public:
   //and the sphere is opaque by default
   CSphere();
   CSphere( const CVector &position
-            , double radius, double Betta = 0.0
+            , double radius, const CVector &color, double Betta = 0.0
             , double nRefr = 1.0 , bool isTransparent = false 
             , double outerBetta = 0.0, double outerRefr = 1.0
             , double reflectionCoefficient = 1.0);
@@ -77,29 +81,20 @@ public:
   
   virtual double GetReflectionCoefficient(void) const
   { return m_reflectionCoefficient; }
-  
+
+  virtual void GetColor( const Ray &falling, CVector &color) const;
+
   void SetPosition( const CVector &position);
   void SetRadius(double radius);
-  
+  void SetColor( const CVector &color );
+
+  //checks whether the color is valid, radius is nonthero
+  //there are no other setters, so do not check anything else
+  virtual int  IsValid(void) const;
+
   virtual int Intersect(  const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
-};
-
-///////////////////////////////////////////////////////////////////
-// CPlane 
-// ?K? Will you remove this class ?
-
-class CColorSphere : public CSphere
-{
-  CVector m_color;
-    
-public:
-  CColorSphere();
-  CColorSphere(const CVector &position, double radius, const CVector &color);
-  CColorSphere(const CVector &position, double radius);
-  virtual void GetColor( const Ray &falling, CVector &color) const;
-  void SetColor( const CVector &color );
 };
 
 ///////////////////////////////////////////////////////////////////
@@ -185,6 +180,12 @@ public:
   virtual void GetColor ( const Ray &falling, CVector &color) const;
   virtual int  Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect  ( const Ray &falling, Ray &reflected) const;
+  
+  //all the validation is done in the constructor
+  //no setters
+  //so the triangle is always valid
+  virtual int  IsValid(void) const
+  {return 1;};
 
 protected:
   //plane equation is (m_normal,x) = m_distance
@@ -207,5 +208,11 @@ public:
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
+
+  //all the validation is done in the constructor
+  //no setters
+  //so the cylinder is always valid
+  virtual int  IsValid(void) const
+  {return 1;};
 };
 #endif //CLIENT_GEOMETRY_H_INCLUDED
