@@ -27,11 +27,13 @@
 // Comments: Changes in the definition of Solid interface
 //
 //*********************************************************
-// REVISION by ..., on ...
-// Comments: ...
-//
+// REVISION by Tonic, on 01/14/2004
+// Comments: Added checking of previous includes of this file. 
+// Multiple includes do not cause "type redefined" errors anymore
 //*********************************************************
 
+#if !defined(CLIENT_ENVIRONMENT_H_INCLUDED)
+#define CLIENT_ENVIRONMENT_H_INCLUDED
 
 #include "common/vector.h"
 
@@ -131,3 +133,5 @@ public:
 	//returns first intersected object and distance from ray origin point
 	Solid *	Intersect ( Ray *ray, double *t );
 };
+
+#endif // CLIENT_ENVIRONMENT_H_INCLUDED

@@ -5,6 +5,14 @@
 // Comments: Defines main geometrical objects, with implemented interface methods
 //
 //*********************************************************
+// REVISION by Tonic, on 01/14/2004
+// Comments: Added checking of previous includes of this file. 
+// Multiple includes do not cause "type redefined" errors anymore
+//*********************************************************
+
+#if !defined(CLIENT_GEOMETRY_H_INCLUDED)
+#define CLIENT_GEOMETRY_H_INCLUDED
+
 
 #include "environment.h"
 
@@ -47,4 +55,4 @@ public:
 	void reflect(Ray *falling, Ray *reflected);
 };
 
-
+#endif //CLIENT_GEOMETRY_H_INCLUDED

@@ -20,6 +20,10 @@
 #include "CLIENT.h"
 #include "ClientDlg.h"
 #include "common/msg.h"
+#include "targa.h"
+#include "environment.h"
+#include "simpletracer.h"
+#include "geometry.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -209,6 +213,48 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 void CClientDlg::OnButtonTest() 
 {
   //KIRILL: Temporal button and function for testing of some features
+
+	Environment		scene;
+	SimpleTracer	testedTracer;
+	CVector			picture[320][200];
+	TargaFile		* picFile = new TargaFile("out.tga", 320, 200);
+	CVector			sphereCenter(0,0,5);
+	Solid			* solidObject = new Sphere(&sphereCenter, 1);
+	Light			* lightSource = new Light( 1.0, 1.0, 1.0, 5, 5 ,5);
+	CVector			planePoint;
+	CVector			origin(0,0,0);
+	Medium			medium;
+	Tracer			* tracer = new SimpleTracer();
+
+	medium.Betta = 1;
+	medium.nRefr = 1;
+
+	planePoint.z = 1;
+
+	scene.Add( solidObject );
+	scene.Add( lightSource );
+	for( int i = 0; i < 320; i ++)
+		for (int j = 0; j < 200; j++)
+		{
+			CVector color;
+			
+			planePoint.x = ((double) i)/160.0 - 1.0;
+			planePoint.y = ((double) j)/100.0 - 1.0;
+
+			Ray ray( &origin, &planePoint );
+			tracer->trace( &medium, &ray, &scene, 1, &color);
+			
+			RGB img;
+
+			img.red = (char) (color.x*255.0);
+			img.green = (char) (color.y*255.0);
+			img.blue = (char) (color.z*255.0);
+			picFile->PutPixel( img );
+		};
+	delete picFile;
+	delete solidObject;
+	delete lightSource;
+	delete tracer;
 }
 
 void CClientDlg::OnButtonStart() 

@@ -134,6 +134,10 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\targa.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\utils.cpp
 # End Source File
 # Begin Source File

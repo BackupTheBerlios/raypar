@@ -5,6 +5,14 @@
 // Comments: simple implementation of tracer class
 //
 //***********************************
+// REVISION by Tonic, on 01/14/2004
+// Comments: Added checking of previous includes of this file. 
+// Multiple includes do not cause "type redefined" errors anymore
+//*********************************************************
+
+#if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
+#define CLIENT_SIMPLETRACER_H_INCLUDED
+
 
 #include "trace.h"
 
@@ -33,3 +41,5 @@ private:
 	// color = color(light sources) + shadeRoR * color(trace(reflected ray))
 	double shadeRoR;
 };
+
+#endif //CLIENT_SIMPLETRACER_H_INCLUDED
