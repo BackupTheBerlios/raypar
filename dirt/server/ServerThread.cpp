@@ -337,76 +337,88 @@ UINT ServerThreadFunction( void* param )
   ASSERT( p_srv_ctrl );
   delete sp; //we must free thread parameters in this thread!
 
-  CSocket cl_sock;
-  int ret = cl_sock.Attach( _socket );
-
-  if (!ret){
-    ASSERT( 0 );
-    CString err_text = GetErrorMessageByErrorCode(  );
-    ErrorMessage( "Can't attach socket: '%s'", (LPCSTR)err_text );
-    return ERROR_RETURN;
-  }
-
-  CString sock_name;
-  UINT sock_port;
-  ret = cl_sock.GetPeerName(sock_name, sock_port);
-
-  if (!ret){
-    CString err_text = GetErrorMessageByErrorCode( );
-    ErrorMessage( "Can't get peer name: '%s'", (LPCSTR)err_text );
-    return ERROR_RETURN;
-  }
-
-  CString client_name; //this name is used to identify the client in logs
-  client_name.Format("%s:%d", (LPCSTR)sock_name, sock_port);
-
-  Message("CL[%s] Client connected", client_name);
-
-  CSocketFile sock_file( &cl_sock );
-  CArchive arIn( &sock_file, CArchive::load );
-  CArchive arOut( &sock_file, CArchive::store );
-
-  int current_session_id = p_srv_ctrl->GetNewSessionId(); 
-
-  bool bEnd = false;
-    
-  while (!bEnd) {
-    int cmd_id;
-    arIn >> cmd_id;
-
-    switch(cmd_id){
-      case CMD_CONNECTION_INIT: 
-        {
-          int ret = CmdConnectionInit(arIn, arOut, client_name, current_session_id); 
-          if ( ERROR_MUST_TERMINATE == ret )
-            bEnd = true;
-          break; 
-        }
-      case CMD_GET_FRAME_DATA:
-        {
-          int ret = CmdGetFrameData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
-          if ( ERROR_MUST_TERMINATE == ret )
-            bEnd = true;
-          break;
-        }
-      case CMD_GET_SCENE_DATA:
-        {    
-          int ret = CmdGetSceneData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
-          if ( ERROR_MUST_TERMINATE == ret )
-              bEnd = true;          
-          bEnd = true; //KIRILL: temporarily 
-          break;
-        }
-      default:{
-          ASSERT(0);
-          ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );
-          bEnd = true;
-        }
-    }
-  }
-
-  cl_sock.Close();
+  TRY{
   
+
+    CSocket cl_sock;
+    int ret = cl_sock.Attach( _socket );
+
+    if (!ret){
+      ASSERT( 0 );
+      CString err_text = GetErrorMessageByErrorCode(  );
+      ErrorMessage( "Can't attach socket: '%s'", (LPCSTR)err_text );
+      return ERROR_RETURN;
+    }
+
+    CString sock_name;
+    UINT sock_port;
+    ret = cl_sock.GetPeerName(sock_name, sock_port);
+
+    if (!ret){
+      CString err_text = GetErrorMessageByErrorCode( );
+      ErrorMessage( "Can't get peer name: '%s'", (LPCSTR)err_text );
+      return ERROR_RETURN;
+    }
+
+    CString client_name; //this name is used to identify the client in logs
+    client_name.Format("%s:%d", (LPCSTR)sock_name, sock_port);
+
+    Message("CL[%s] Client connected", client_name);
+
+    CSocketFile sock_file( &cl_sock );
+    CArchive arIn( &sock_file, CArchive::load );
+    CArchive arOut( &sock_file, CArchive::store );
+
+    int current_session_id = p_srv_ctrl->GetNewSessionId(); 
+
+    bool bEnd = false;
+    
+    while (!bEnd) {
+      int cmd_id;
+      arIn >> cmd_id;
+
+      switch(cmd_id){
+        case CMD_CONNECTION_INIT: 
+          {
+            int ret = CmdConnectionInit(arIn, arOut, client_name, current_session_id); 
+            if ( ERROR_MUST_TERMINATE == ret )
+              bEnd = true;
+            break; 
+          }
+        case CMD_GET_FRAME_DATA:
+          {
+            int ret = CmdGetFrameData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
+            if ( ERROR_MUST_TERMINATE == ret )
+              bEnd = true;
+            break;
+          }
+        case CMD_GET_SCENE_DATA:
+          {    
+            int ret = CmdGetSceneData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
+            if ( ERROR_MUST_TERMINATE == ret )
+                bEnd = true;          
+            bEnd = true; //KIRILL: temporarily 
+            break;
+          }
+        default:{
+            ASSERT(0);
+            ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );
+            bEnd = true;
+          }
+      }
+    }
+
+    cl_sock.Close();
+  }
+  CATCH(CArchiveException, e)
+  {
+    //this exception probably means that the connection was closed
+    #ifdef _DEBUG
+      ErrorMessageFromException(e);
+    #endif//DEBUG
+  }
+  END_CATCH
+
   return 0;
 }
 
