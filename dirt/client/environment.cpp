@@ -60,6 +60,8 @@
 
 #include "stdafx.h"
 #include "environment.h"
+#include "geometry.h"
+#include "common/msg.h"
 
 //Such return means that an error occured in function
 #define STORING_ERROR_RETURN 1
@@ -70,6 +72,24 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+
+///////////////////////////////////////////////////////////
+// Medium operators
+
+CArchive& operator << (CArchive& ar, const Medium& m)
+{
+  ar << m.nRefr;
+  ar << m.Betta;
+  return ar;
+}
+
+CArchive& operator >> (CArchive& ar, Medium& m)
+{
+  ar >> m.nRefr;
+  ar >> m.Betta;
+  return ar;
+}
 
 ///////////////////////////////////////////////////////////
 //  Ray       ?K? decription?
@@ -182,6 +202,71 @@ void CSolid::Refract( const Ray &falling, Ray &refracted, Medium &refractedMediu
   refracted.setOrigin( vector );
 };
 
+//writes class id to the archive
+int CSolid::WriteThisClassId(CArchive& ar) const
+{
+  int id = GetObjectID( this );
+  ASSERT( id > _None && id <_Last);
+  ar << (int)id;
+  return 0; //no error
+}
+ 
+//helper function - returns ObjectID by object pointer
+int CSolid::GetObjectID(const CSolid* obj)
+{
+  ASSERT( obj );
+
+  if ( dynamic_cast<const CSphere*>(obj) ) return Sphere;
+  if ( dynamic_cast<const CPlane*>(obj) ) return Plane;
+  if ( dynamic_cast<const CBox*>(obj) ) return Box;
+  if ( dynamic_cast<const CTriangle*>(obj) ) return Triangle;
+  if ( dynamic_cast<const CCylinder*>(obj) ) return Cylinder;
+  
+  ASSERT( 0 ); //unknown object type?
+  return _None;
+}
+
+//helper function - creates and returns object be its ObjectID
+CSolid* CSolid::NewObjectByID(int id)
+{
+  ASSERT( id > _None && id <_Last );
+
+  switch (id) {
+    case Sphere:   return new CSphere;
+    case Plane:    return new CPlane;
+    case Box:      return new CBox;
+    case Triangle: return new CTriangle;
+    case Cylinder: return new CCylinder;
+    default: ASSERT(0); //unknown id
+  }
+
+  return 0;
+}
+
+//reads object from archive. First it reads object type and than 
+//it creates the objects and reads it data. Returns pointer to the object
+//or zero if an error occured.
+CSolid* CSolid::readObject( CArchive& ar )
+{
+  int obj_id; 
+  ar >> obj_id; //first we read object id
+
+  ASSERT( obj_id > _None && obj_id < _Last );
+
+  CSolid* solid = NewObjectByID( obj_id ); //second we create object of appropriate type
+  ASSERT( solid );
+
+  if (solid){ 
+    int ret = solid->read(ar); //third we read the object data
+    if ( ret || !solid->IsValid() ){
+      delete solid; //if something is wrong we delete object and return zero
+      solid = 0;
+    }
+  }
+  return solid;
+}
+
+
 ///////////////////////////////////////////////////////////
 // CLight     - model of an abstract light source
 ///////////////////////////////////////////////////////////
@@ -252,10 +337,9 @@ int CLight::read (CArchive& ar)
     ASSERT( 0 );
     return 1;
   }
-  
+
   return 0;
 }
-
 
 
 
@@ -269,20 +353,26 @@ CEnvironment::CEnvironment( )
 
 CEnvironment::~CEnvironment () 
 {
-  //do nothing as contained objects may be reused
+  //empty Solids and Lights
+  Empty();
+}
+
+void CEnvironment::Empty()
+{
+  m_solids.Empty();
+  m_lights.Empty();
 }
 
 void CEnvironment::Add ( CLight *light )
 {
   ASSERT( light != NULL );
   
-  int i;
   int lightsCount = m_lights.GetSize();
   
 #ifdef _DEBUG
   //check if this element is already present
   //if it holds, do not add repeatedly, just return
-  for( i = 0; i < lightsCount; i++ )
+  for( int i = 0; i < lightsCount; i++ )
     if( m_lights[i] == light )
       ASSERT(0);
 #endif//_DEBUG
@@ -295,14 +385,12 @@ void CEnvironment::Add ( CSolid *solid )
 {
   ASSERT( solid != NULL );
   
-  int i;
   int solidsCount = m_solids.GetSize();
-  
   
 #ifdef _DEBUG
   //check if this element is already present
   //if it holds, do not add repeatedly, just return
-  for( i = 0; i < solidsCount; i++ )
+  for(int i = 0; i < solidsCount; i++ )
     if( m_solids[i] == solid )
       ASSERT(0);
 #endif//_DEBUG
@@ -375,24 +463,37 @@ int CEnvironment::write(CArchive& ar) const
   ASSERT( IsValid() );
   
   ar << m_AmbientColor;
-  if ( !m_lights.write( ar ) ){
+  if ( m_lights.write( ar ) )
     return STORING_ERROR_RETURN;
-  }
+  
+  if ( m_solids.write( ar ) )
+    return STORING_ERROR_RETURN;
   
   return 0;
 }
 
 int CEnvironment::read (CArchive& ar)
 {
-  m_lights.Empty();
-  m_solids.Empty();
+  Empty(); //empty scene first
   
   ar >> m_AmbientColor;
   
-  if ( !m_lights.read( ar ) || m_lights.IsValid() ){
+  int ret = m_lights.read( ar );
+  if ( ret || !m_lights.IsValid() ){
     m_lights.Empty();
     return LOADING_ERROR_RETURN;
   }
+
+  ret = m_solids.read( ar );
+  if ( ret || !m_solids.IsValid() ){
+    m_solids.Empty();
+    return LOADING_ERROR_RETURN;
+  }
+
+  ASSERT( IsValid() );
+
+  Message("[Environment::read] We have %d solids and %d lights."
+        , m_solids.GetSize(), m_lights.GetSize() );
   
   return 0;
 }
@@ -403,9 +504,27 @@ int CEnvironment::read (CArchive& ar)
 //
 ///////////////////////////////////////////////////////////
 
+CCamera::CCamera()
+: m_eyePoint(0,0,0)
+, m_viewDir(0,0,0)
+, m_topDir(0,0,0)
+, m_horDir(0,0,0)
+, m_width(0)
+, m_height(0)
+, m_horizontalAngle(0)
+, m_verticalAngle(0)
+, m_minViewAngle(0)
+, m_maxViewAngle(0)
+{}
 
 CCamera::CCamera( const CVector &eyePoint, const CVector &viewDir, 
                  const CVector &topDir, int width, int height )
+{
+  Init(eyePoint, viewDir, topDir, width, height );
+};
+
+void CCamera::Init(const CVector &eyePoint, const CVector &viewDir 
+                   , const CVector &topDir, int width, int height )
 {
   //Check that width and height are both positive
   ASSERT( width > 0 && height >0);
@@ -433,7 +552,7 @@ CCamera::CCamera( const CVector &eyePoint, const CVector &viewDir,
   m_topDir.Normalize();
   
   UpdateHorizontalDir();
-};
+}
 
 void CCamera::Move(double length)
 {

@@ -96,6 +96,13 @@ public:
   virtual int Intersect(  const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
+  
+  //stores object to  'ar'
+  int write(CArchive& ar) const;
+
+protected:
+  //reads object from 'ar'
+  int read (CArchive& ar); //this can be called only by CSolid::readObject
 };
 
 ///////////////////////////////////////////////////////////////////
@@ -196,6 +203,7 @@ private:
   double m_distance;
     
 public:
+  CTriangle();
   CTriangle(const CVector &a, const CVector &b
             , const CVector &c, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, 
                bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0);
@@ -219,15 +227,20 @@ protected:
 class CCylinder : public CSolid
 {
 private:
-  double m_length, m_radius;
+  double m_length;
+  double m_radius;
 
   //base is the center of the "bottom" circle
   //direction is the direction to the center of the
   //"upper" circle
-  CVector m_base, m_direction;
-  Medium m_innerMedium, m_outerMedium;
-  CPlane m_bottom, m_top;
+  CVector m_base;
+  CVector m_direction;
+  Medium m_innerMedium;
+  Medium m_outerMedium;
+  CPlane m_bottom;
+  CPlane m_top;
 public:
+  CCylinder();
   CCylinder( Ray &axis, double length, double radius, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0, double outerRefr = 1.0 );
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;

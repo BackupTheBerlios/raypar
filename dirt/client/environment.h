@@ -78,6 +78,13 @@
 // REVISION by KIRILL, on 1/28/2004 17:18:43
 // Comments: Environment renamed to CEnvironment
 //*********************************************************
+// REVISION by KIRILL, on 1/28/2004 19:33:12
+// Comments: m_scene_uid added to the CEnvironment for the 
+// communication purpose. This is UID of the scene in the system.
+//*********************************************************
+// REVISION by KIRILL, on 1/28/2004 23:52:31
+// Comments: read/write methods added to solid
+//*********************************************************
 // REVISION by Tonic, on 1/29/2004
 // Comments: Added default refraction function to CSolid
 //*********************************************************
@@ -97,17 +104,21 @@
 ///////////////////////////////////////////////////////////
 //  Medium      - main properties of the medium
 
-struct	Medium				
+struct Medium				
 {
   double	nRefr;			// refraction coefficient
   double	Betta;			// attenuation coefficient
 }; 
+
+CArchive& operator << (CArchive& ar, const Medium& m);
+CArchive& operator >> (CArchive& ar, Medium& m);
 
 ///////////////////////////////////////////////////////////
 //  Ray       ?K? decription?
 
 class	Ray
 {
+protected:
   CVector	m_origin; //this id essentially a point  ?K?: What does this comment mean?
   CVector	m_direction; // direction must be normalized
   
@@ -143,13 +154,126 @@ protected:
 
 class	CSolid
 {
-private:
+protected:
   double m_smoothness, m_reflectionCoefficient;
   CVector m_color;
   Medium medium;  
   bool m_isTransparent;
   
 public:
+   
+  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 ) 
+    : m_color(0,0,0)    
+  {
+    m_reflectionCoefficient =  reflectionCoefficient;
+    m_smoothness = smoothness;
+    m_isTransparent = false;
+
+    ASSERT( IsValid() );
+  };
+
+  virtual ~CSolid()
+  {}
+
+  // ?K?  No comment!!! What does this do with its perameters?
+  virtual int Intersect( const Ray &ray, double &distance) const = 0;
+
+  // ?K?  No comment!!! What does this do with its perameters?
+  virtual void Reflect( const Ray &falling, Ray &reflected) const = 0;
+
+  //do nothing by default as Solid is by default opaque 
+  // ?K?  What does this do with its perameters?
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const 
+  {}  //?K?  must be = 0;
+  
+  //returns the color of the point, in which given ray
+  //intersects the solid
+  //by default (in this class) always returns white
+  //can be redefined returning to check whether there is actually
+  //an intersection, to support colored and textured objects
+  virtual void GetColor( const Ray &falling, CVector &color) const;
+  
+  //the refractable object may be opaque
+  //which is a default value
+  //if we change this, we should redefine
+  //Refract and GetInnerMedium functions
+  virtual bool IsTransparent(void) const
+  {
+    return m_isTransparent;
+  };
+  
+  virtual double GetReflectionCoefficient(void) const
+  {
+    return m_reflectionCoefficient;
+  };
+
+  virtual void SetReflectionCoefficient(double reflectionCoefficient)
+  {
+    //do not touch ">=" here!!
+    //reflectionCoefficient CANNOT be negative, even if
+    //its absolute value is very small
+    ASSERT( (reflectionCoefficient >= 0) && !(reflectionCoefficient > 1.0) );
+    m_reflectionCoefficient = reflectionCoefficient;
+  };
+
+  //smoothness is the exponent of the cosine of
+  //angle between normale direction and light direction
+  //in computing the lighting. The more id the smoothness
+  //the more focused spot is left by a light source
+  //see SimpleTracer::ProcessLights for usage
+  virtual double GetSmoothness(void) const
+  {
+    return m_smoothness;
+  };
+
+  virtual void SetSmoothness(double smoothness )
+  {
+    ASSERT( smoothness > VECTOR_EQUAL_EPS );
+    m_smoothness = smoothness;
+  };
+ 
+   virtual void SetColor( const CVector &color )
+   {
+     ASSERT( color.IsNormalized() );
+     m_color = color;
+   };
+
+  //checks wether the oject is valid
+  virtual int IsValid(void) const;
+
+  //stores/loads object from/to  'ar'
+  virtual int write(CArchive& ar) const { return 0; }  //= 0; ?K? KIRILL: temporarily
+
+  //reads object from archive. First it reads object type and than 
+  //it creates the objects and reads it data. Returns pointer to the object
+  //or zero if an error occured.
+  static CSolid* readObject( CArchive& ar );
+
+protected:
+
+  enum ObjectsIDs{ 
+      _None = 0
+    , Sphere
+    , Plane
+    , Box
+    , Triangle
+    , Cylinder
+    , _Last }; //_Last is used to identify bounds, insert new items BEFORE it.
+  
+
+  //writes class id to the archive
+  int WriteThisClassId(CArchive& ar) const;
+
+  //this method can be called only by CSolid::readObject
+  virtual int read(CArchive& ar)        { return 0; }  //will be = 0; ?K? KIRILL: temporarily
+
+  //helper function - returns ObjectID by object pointer
+  static int GetObjectID(const CSolid* obj);
+
+  //helper function - creates and returns object be its ObjectID
+  static CSolid* NewObjectByID(int id);
+
+=======
   CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 ) :
       m_color(0,0,0)
       {
@@ -223,6 +347,7 @@ public:
       };
       
       virtual int IsValid(void) const;
+>>>>>>> 1.22
 }; 
 
 ///////////////////////////////////////////////////////////
@@ -230,7 +355,7 @@ public:
 
 class	CLight			
 {
-private:
+protected:
   CVector m_position;	 // Light position  
   CVector m_color; //RGB brightness, each component is in [0;1]
   
@@ -260,15 +385,20 @@ public:
 
 class	CEnvironment
 {
+protected:
   CLightArray m_lights;
   CSolidArray	m_solids;
   CVector	m_AmbientColor;
-  
+  int m_scene_uid; //scene UID in the system. Scenes with equal IDs must be equal.
+            //it is used by protocol and isn't required to be processed by read/write
+
 public:
   
   CEnvironment (); //initialize CLightArray and CSolidArray params
-  virtual ~CEnvironment () ;	//do nothing as contained objects may be reused
-  
+  virtual ~CEnvironment () ;	//Empties solids and lights arrays on destuction
+
+  void Empty(void); ////Empties solids and lights arrays
+
   void	Add ( CLight *light );
   void	Add ( CSolid *solid );
   void	SetAmbientColor( const CVector &AmbientColor );
@@ -283,7 +413,11 @@ public:
   CSolid *	Intersect ( const Ray &ray, double &t ) const;
   
   int IsValid(void) const;
-  
+
+
+  int  GetSceneUID(void) const { return m_scene_uid; }
+  void SetSceneUID(int scene_uid) { m_scene_uid = scene_uid; }
+
   int write(CArchive& ar) const;
   int read (CArchive& ar);
 };
@@ -295,21 +429,34 @@ public:
 
 class CCamera
 {
+protected:
   //view direction and top direction do not have to
   //be orthogonal. They just have not to be parallel
   //orthogonalization occurs in constructor
-  CVector m_eyePoint, m_viewDir, m_topDir, m_horDir;
+  CVector m_eyePoint;
+  CVector m_viewDir;
+  CVector m_topDir;
+  CVector m_horDir;
   
   //rendered picture resolution
-  int m_width, m_height;
+  int m_width;
+  int m_height;
   
-  //view angles
-  double m_horizontalAngle, m_verticalAngle, m_minViewAngle, m_maxViewAngle;
+  //view angles  
+  double m_horizontalAngle;  // ?K? Comments???
+  double m_verticalAngle;
+  double m_minViewAngle;
+  double m_maxViewAngle;
   
 public:
+  CCamera();
   CCamera( const CVector &eyePoint, const CVector &viewDir, 
     const CVector &topDir, int width, int height );
   
+  //setups camera internal parameters
+  void Init(const CVector &eyePoint, const CVector &viewDir 
+         , const CVector &topDir, int width, int height );
+
   //move along the viewing direction
   //distance can be both positive and negative
   //positive distance corresponds to moving forward
