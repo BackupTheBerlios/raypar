@@ -50,6 +50,9 @@
 // Color support went to CSphere, CColorSphere eliminated
 // IsValid added to CTriangle, CSphere, CCylinder
 //*********************************************************
+// REVISION by Vader, on 1/26/2004 
+// Comments: IsValid() added for CBox and CPlane
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -558,27 +561,44 @@ int  CSphere::IsValid(void) const
 CPlane::CPlane()
 : m_n(0,0,0)
 , m_D(0)
-{}
+{
+  m_isTransparent = false;
+  m_reflectionCoefficient = 0;
+  m_smoothness = 0;
+  m_color = CVector(0,0,0);
+}
 
-CPlane::CPlane( const CVector &n, double D)
+
+CPlane::CPlane( const CVector &n, double D, const CVector color,
+                double reflectionCoefficient, double smoothness)
 {
   ASSERT( n.Length() > EPSILON );
+  ASSERT( geq(reflectionCoefficient,0) && leq(reflectionCoefficient, 1) );
   m_n = n;
   m_n.Normalize();
 
-  m_D = D;  
+  m_D = D;
+  m_color = color;
+  m_reflectionCoefficient = reflectionCoefficient;
+  m_smoothness = smoothness;
+  m_isTransparent = false;
 };
 
-CPlane::CPlane(double a, double b, double c, double d)
+CPlane::CPlane(double a, double b, double c, double d, const CVector color,
+               double reflectionCoefficient, double smoothness)
 {
   //ASSERT (a!=0 || b!=0 || c!=0);
-
+  ASSERT( geq(reflectionCoefficient,0) && leq(reflectionCoefficient, 1) );
   m_n = CVector (a, b, c);
   double length = m_n.Length();
   ASSERT( length > EPSILON );
-
+  
   m_n /= length;
   m_D = d/length;
+  m_color = color;
+  m_reflectionCoefficient = reflectionCoefficient;
+  m_smoothness = smoothness;
+  m_isTransparent = false;
 };
 
 void CPlane::SetPosition(const CVector &n, double D)
@@ -590,25 +610,39 @@ void CPlane::SetPosition(const CVector &n, double D)
 void CPlane::SetPosition(double a, double b, double c, double d)
 {
   //ASSERT (a!=0 || b!=0 || c!=0);
-
+  
   m_n = CVector (a, b, c);
   double length = m_n.Length();
   ASSERT( length > EPSILON );
-
+  
   m_n /= length;
   m_D = d/length;
+};
+
+void CPlane::SetColor(const CVector &color)
+{
+  m_color = color;
+}
+
+void CPlane::GetColor( const Ray &falling, CVector &color) const
+{
+  //do not check the intersection has place (otherwise in most cases we
+  //will repeat the computaion already done
+  //as every point of the sphere has the same color), just return it
+  
+  color = m_color;
 };
 
 int CPlane::Intersect( const Ray &ray, double &distance) const
 {
   CVector origin, direction;
-
+  
   ray.getOrigin(origin);
   ray.getDirection(direction);
-
+  
   double scalar = m_n * direction;
   double t;
-
+  
   if ( fabs( scalar ) < 0)  //ray is parallel to plane
   {
     return 0;
@@ -618,7 +652,7 @@ int CPlane::Intersect( const Ray &ray, double &distance) const
     //if equation  {origin + t * direction = r}, where r satisfies plane equation
     //has positive solutions, then intersection takes place
     t = - (m_D + m_n * origin) / scalar;
-
+    
     if( t < EPSILON )  //no intersection
     {
       return 0;
@@ -636,24 +670,38 @@ void CPlane::Reflect(const Ray &falling, Ray &reflected) const
   double distance;
   CVector fallingOrigin,fallingDirection;
   CVector reflectedOrigin,reflectedDirection;
-
-  int ret = Intersect(falling, distance); //gets the distance
-  ASSERT (ret); 
-
-
-  falling.getOrigin(fallingOrigin);
-  falling.getDirection(fallingDirection);
-
-  reflectedOrigin = fallingOrigin + distance * fallingDirection;
-  reflected.setOrigin(reflectedOrigin);
-
-  //newDirection = oldDirection + delta( in the derection of normal to the surface)
-  reflectedDirection = fallingDirection - 2 * (m_n * fallingDirection) * m_n;
-  reflected.setDirection(reflectedDirection);
+  
+  if (Intersect(falling, distance) == 0) //no intersection
+  {
+    //just return falling ray
+    falling.getOrigin(fallingOrigin);
+    falling.getDirection(fallingDirection);
+    reflected.setDirection(fallingDirection);
+    reflected.setOrigin(fallingOrigin);
+  }
+  else  //intersects
+  {  
+    falling.getOrigin(fallingOrigin);
+    falling.getDirection(fallingDirection);
+  
+    reflectedOrigin = fallingOrigin + distance * fallingDirection;
+    reflected.setOrigin(reflectedOrigin);
+  
+    //newDirection = oldDirection + delta( in the derection of normal to the surface)
+    reflectedDirection = fallingDirection - 2 * (m_n * fallingDirection) * m_n;
+    reflected.setDirection(reflectedDirection);
+  }
 };
 
+int CPlane::IsValid(void) const
+{
+  if(fabs(m_n.Length() - 1) > EPSILON) return 0;
+    //!!! i don't know which colors are supposed to be valid 
+  if(!(geq(m_reflectionCoefficient,0) && leq(m_reflectionCoefficient, 1))) return 0;
+  if(!m_isTransparent) return 0;
 
-
+  return 1;
+};
 
 ///////////////////////////////////////////////////////////////////
 // CBox
@@ -665,196 +713,236 @@ CBox::CBox()
   m_e[0] = CVector(0,0,0);
   m_e[1] = CVector(0,0,0);
   m_e[2] = CVector(0,0,0);
+  m_color = CVector(0,0,0);
+  m_isTransparent = false;
+  m_reflectionCoefficient = 0;
+  m_smoothness = 0;
   //InitNormals();
 };
 
 CBox::CBox(const CVector &position, const CVector &e0
-           , const CVector &e1, const CVector &e2
+           , const CVector &e1, const CVector &e2, const CVector &color
            , double Betta, double nRefr
            , bool isTransparent, double outerBetta
-           , double outerRefr, double reflectionCoefficient)
+           , double outerRefr, double reflectionCoefficient, double smoothness)
 {
-  // edges should be orthogonal to each other
-  ASSERT( (fabs(e0*e1) < EPSILON) && (fabs(e1*e2) < EPSILON) && (fabs(e2*e0) < EPSILON) );
-  int comparisonResult = geq( Betta, 0 );
-  ASSERT( comparisonResult );
-  ASSERT( nRefr > 0 );
-  ASSERT(   (0 <= reflectionCoefficient) && (reflectionCoefficient <= 1.0) );
+    // edges should be orthogonal to each other, but nonzero
+    ASSERT( (e0.Length() > VECTOR_EQUAL_EPS)
+            && (e1.Length() > VECTOR_EQUAL_EPS)
+            && (e2.Length() > VECTOR_EQUAL_EPS) );
+    ASSERT( (fabs(e0*e1) < EPSILON) && (fabs(e1*e2) < EPSILON) && (fabs(e2*e0) < EPSILON) );
+    ASSERT( geq(reflectionCoefficient,0) && leq(reflectionCoefficient, 1) );
 
-  m_position = position;
-  m_e[0] = e0;
-  m_e[1] = e1;
-  m_e[2] = e2;
-  InitNormals();
-
-  m_reflectionCoefficient = reflectionCoefficient;
-  m_isTransparent = isTransparent;
-
-  m_innerMedium.Betta = Betta;
-  m_innerMedium.nRefr = nRefr;
-
-  m_outerMedium.Betta = outerBetta;
-  m_outerMedium.nRefr = outerRefr;
-  m_isTransparent = isTransparent;
+    if(isTransparent)
+    {
+        //we should check inner & outer medium parameters only if the box is transparent.
+        //If it is opaque they are not used      
+        int comparisonResult = geq( Betta, 0 );
+        ASSERT( comparisonResult );
+        comparisonResult = geq( outerBetta, 0 );
+        ASSERT( comparisonResult );
+        ASSERT( nRefr > 0 );
+        ASSERT( outerRefr > 0 );
+    }    
+  
+    m_position = position;
+    m_e[0] = e0;
+    m_e[1] = e1;
+    m_e[2] = e2;
+    InitNormals();
+    
+    m_color = color;
+    m_reflectionCoefficient = reflectionCoefficient;
+    m_isTransparent = isTransparent;
+    m_smoothness = smoothness;
+    
+    m_innerMedium.Betta = Betta;
+    m_innerMedium.nRefr = nRefr;
+  
+    m_outerMedium.Betta = outerBetta;
+    m_outerMedium.nRefr = outerRefr;
+    m_isTransparent = isTransparent;
 };
 
 void CBox::InitNormals()
 {
-  // ?K?  No ASSERTS ??????? Are you sure it's absolutly safe?
+    // edges should be orthogonal to each other, but nonzero
+    ASSERT( (m_e[0].Length() > VECTOR_EQUAL_EPS)
+            && (m_e[1].Length() > VECTOR_EQUAL_EPS)
+            && (m_e[2].Length() > VECTOR_EQUAL_EPS) );
+    ASSERT( (fabs(m_e[0]*m_e[1]) < EPSILON)
+            && (fabs(m_e[1]*m_e[2]) < EPSILON) 
+            && (fabs(m_e[2]*m_e[0]) < EPSILON) );  
 
+    m_n[0] = m_e[0] ^ m_e[1];
+    m_n[0].Normalize();
+    m_d1[0] = - (m_position * m_n[0]);
+    m_d2[0] = - ((m_position + m_e[2]) * m_n[0]);
+    
+    m_n[1] = m_e[1] ^ m_e[2];
+    m_n[1].Normalize();
+    m_d1[1] = - (m_position * m_n[1]);
+    m_d2[1] = - ((m_position + m_e[0]) * m_n[1]);
+    
+    m_n[2] = m_e[2] ^ m_e[0];
+    m_n[2].Normalize();
+    m_d1[2] = - (m_position * m_n[2]);
+    m_d2[2] = - ((m_position + m_e[1]) * m_n[2]);
 
-  m_n[0] = m_e[0] ^ m_e[1];
-  m_n[0].Normalize();
-  m_d1[0] = - (m_position * m_n[0]);
-  m_d2[0] = - ((m_position + m_e[2]) * m_n[0]);
-
-  m_n[1] = m_e[1] ^ m_e[2];
-  m_n[1].Normalize();
-  m_d1[1] = - (m_position * m_n[1]);
-  m_d2[1] = - ((m_position + m_e[0]) * m_n[1]);
-
-  m_n[2] = m_e[2] ^ m_e[0];
-  m_n[2].Normalize();
-  m_d1[2] = - (m_position * m_n[2]);
-  m_d2[2] = - ((m_position + m_e[1]) * m_n[2]);
-
-  //flip normals so that m_d1 < m_d2
-  for(int i=0; i<3; i++)
-  {
-    if(m_d1[i] > m_d2 [i])
+    //flip normals so that m_d1 < m_d2
+    for(int i=0; i<3; i++)
     {
-      m_d1[i] = -m_d1[i];
-      m_d2[i] = -m_d2[i];
-      m_n[i] = -m_n[i];
-    }
-  }    
+        if(m_d1[i] > m_d2 [i])
+        {
+            m_d1[i] = -m_d1[i];
+            m_d2[i] = -m_d2[i];
+            m_n[i] = -m_n[i];
+        }
+    }    
 };
 
 void CBox::SetPosition(const CVector &position)
 {
-  m_position = position;
-  InitNormals();
+    m_position = position;
 };
 
 void CBox::SetOrientation(const CVector &e0, const CVector &e1, const CVector &e2)
 {
-  // edges should be orthogonal to each other
-  ASSERT( (fabs(e0*e1) < VECTOR_EQUAL_EPS) && 
-    (fabs(e1*e2) < VECTOR_EQUAL_EPS) && 
-    (fabs(e2*e0) < VECTOR_EQUAL_EPS) );
-  m_e[0] = e0;
-  m_e[1] = e1;
-  m_e[2] = e2;
-  InitNormals();
+    
+    // edges should be orthogonal to each other, but nonzero
+    ASSERT( (m_e[0].Length() > VECTOR_EQUAL_EPS)
+            && (m_e[1].Length() > VECTOR_EQUAL_EPS)
+            && (m_e[2].Length() > VECTOR_EQUAL_EPS) );
+    ASSERT( (fabs(m_e[0]*m_e[1]) < EPSILON)
+            && (fabs(m_e[1]*m_e[2]) < EPSILON)
+            && (fabs(m_e[2]*m_e[0]) < EPSILON) );
+    m_e[0] = e0;
+    m_e[1] = e1;
+    m_e[2] = e2;
+    InitNormals();
+};
+
+void CBox::SetColor(const CVector &color)
+{
+  m_color = color;
+}
+
+void CBox::GetColor( const Ray &falling, CVector &color) const
+{
+  //do not check the intersection has place (otherwise in most cases we
+  //will repeat the computaion already done
+  //as every point of the sphere has the same color), just return it
+  
+  color = m_color;
 };
 
 int CBox::Intersect(const Ray &ray, double &distance) const
 {
-  //if the ray goes through side, then no intersection
+    //if the ray goes through side, then no intersection
 
-  CVector origin, direction;
-  ray.getOrigin(origin);
-  ray.getDirection(direction);
+    CVector origin, direction;
+    ray.getOrigin(origin);
+    ray.getDirection(direction);
 
-  int isInside = IsInside(origin);
+    int isInside = IsInside(origin);
 
-  double dirP, orP; //direction and origin projections on m_n[i];
-  double t, t1, t2;  //2 intersections with plane
-  double intersection = INFINITY;
-
-  for(int i=0;i<3;i++) //process each side
-  {
-    dirP = m_n[i] * direction;
-    orP = m_n[i] * origin;
-
-    if(dirP > EPSILON) // t1 < t2   //?K? What does this comment mean???
+    double dirP, orP; //direction and origin projections on m_n[i];
+    double t, t1, t2;  //2 intersections with plane
+    double intersection = INFINITY;
+    
+    for(int i=0;i<3;i++) //process each side
     {
-      t1 = -(m_d2[i] + orP) / dirP;
-      t2 = -(m_d1[i] + orP) / dirP;
-    }
-    else
-    {
-      if(dirP < EPSILON) // t1 < t2 //?K? What does this comment mean???
-      {
-        t1 = -(m_d1[i] + orP) / dirP;
-        t2 = -(m_d2[i] + orP) / dirP;
-      }
-      else  // ray is parallel to sides
-      {
-        if(  (orP > m_d2[i]-EPSILON) || (orP < m_d1[i]+EPSILON) )
-          return 0; //no intersection
+        dirP = m_n[i] * direction;
+        orP = m_n[i] * origin;
+
+        if(dirP > EPSILON) // t1 < t2   //?K? What does this comment mean???
+        {
+            t1 = -(m_d2[i] + orP) / dirP;
+            t2 = -(m_d1[i] + orP) / dirP;
+        }
         else
-          continue;
-      }
+        {
+            if(dirP < EPSILON) // t1 < t2 //?K? What does this comment mean???
+            {
+                t1 = -(m_d1[i] + orP) / dirP;
+                t2 = -(m_d2[i] + orP) / dirP;
+            }
+            else  // ray is parallel to sides
+            {
+                if(  (orP > m_d2[i]-EPSILON) || (orP < m_d1[i]+EPSILON) )
+                    return 0; //no intersection
+                else
+                    continue;
+            }
+        }
+        //check if intersection points belong to sides
+        
+        CVector toPoint;
+        double x,y; //vector toPoint in basis e1,e2,e3 (one component is 0)
+        int k,l; //edges that form side to check
+        k = i;
+        l = (i+1)%3;
+
+        //if the ray origin is outside, we should check only t1
+        //if it is inside, then only t2
+        
+        if(isInside) t = t2;
+        else  t = t1;
+        
+        if(0+EPSILON<t)
+        {
+            toPoint = origin + t * direction - m_position - isInside * m_e[(i+2)%3];
+            x = (toPoint * m_e[k]) / (m_e[k]*m_e[k]);
+            y = (toPoint * m_e[l]) / (m_e[l]*m_e[l]);
+            if( x>0+EPSILON && x<1-EPSILON && y>0+EPSILON && y<1-EPSILON)
+            {
+                distance = t;
+                return i+1;
+            }
+        }
     }
-    //check if intersection points belong to sides
-
-    CVector toPoint;
-    double x,y; //vector toPoint in basis e1,e2,e3 (one component is 0)
-    int k,l; //edges that form side to check
-    k = i;
-    l = (i+1)%3;
-
-    //if the ray origin is outside, we should check only t1
-    //if it is inside, then only t2
-
-    if(isInside) t = t2;
-    else  t = t1;
-
-    if(0+EPSILON<t)
-    {
-      toPoint = origin + t * direction - m_position - isInside * m_e[(i+2)%3];
-      x = (toPoint * m_e[k]) / (m_e[k]*m_e[k]);
-      y = (toPoint * m_e[l]) / (m_e[l]*m_e[l]);
-      if( x>0+EPSILON && x<1-EPSILON && y>0+EPSILON && y<1-EPSILON)
-      {
-        distance = t;
-        return i+1;
-      }
-    }
-  }
-
-  return 0;
+    
+    return 0;
 };
 
 int CBox::IsInside(const CVector &vector) const
 {
-  CVector delta = vector - m_position;
-  double x,y,z; //coordinates of vector 'delta' in e1,e2,e3 basis
-  x = (delta * m_e[0]) / (m_e[0] * m_e[0]);
-  y = (delta * m_e[1]) / (m_e[1] * m_e[1]);
-  z = (delta * m_e[2]) / (m_e[2] * m_e[2]);
-  if ( EPSILON < x && x < 1-EPSILON &&
-    EPSILON < y && y < 1-EPSILON &&
-    EPSILON < z && z < 1-EPSILON) return 1;
-  return 0;
+    CVector delta = vector - m_position;
+    double x,y,z; //coordinates of vector 'delta' in e1,e2,e3 basis
+    x = (delta * m_e[0]) / (m_e[0] * m_e[0]);
+    y = (delta * m_e[1]) / (m_e[1] * m_e[1]);
+    z = (delta * m_e[2]) / (m_e[2] * m_e[2]);
+    if ( EPSILON < x && x < 1-EPSILON &&
+         EPSILON < y && y < 1-EPSILON &&
+         EPSILON < z && z < 1-EPSILON) return 1;
+    return 0;
 };
 
 void CBox::Reflect( const Ray &falling, Ray &reflected) const
 {
-  double distance = INFINITY; //distance from origin to intersection
-  int n_number;               //number of normal to side of intersection
-  //no matter inner or outer
-  CVector normal;             //normal to side in the intersection point
-  CVector fallingOrigin,fallingDirection;
-  CVector reflectedOrigin,reflectedDirection;
-
-
-  n_number = Intersect(falling, distance); //gets the distance
-  ASSERT (n_number);
-
-
-  falling.getOrigin(fallingOrigin);
-  falling.getDirection(fallingDirection);
-
-  reflectedOrigin = fallingOrigin + distance * fallingDirection;
-  reflected.setOrigin(reflectedOrigin);
-
-  normal = m_n[n_number-1];
-
-  //newDirection = oldDirection + delta( in the derection of normal to the surface)
-  reflectedDirection = fallingDirection - 2*(normal * fallingDirection)*normal;
-  reflected.setDirection(reflectedDirection);
+    double distance = INFINITY; //distance from origin to intersection
+    int n_number;               //number of normal to side of intersection
+                                //no matter inner or outer
+    CVector normal;             //normal to side in the intersection point
+    CVector fallingOrigin,fallingDirection;
+    CVector reflectedOrigin,reflectedDirection;
+  
+   
+    n_number = Intersect(falling, distance); //gets the distance
+    ASSERT (n_number);
+    
+  
+    falling.getOrigin(fallingOrigin);
+    falling.getDirection(fallingDirection);
+  
+    reflectedOrigin = fallingOrigin + distance * fallingDirection;
+    reflected.setOrigin(reflectedOrigin);
+  
+    normal = m_n[n_number-1];
+  
+    //newDirection = oldDirection + delta( in the derection of normal to the surface)
+    reflectedDirection = fallingDirection - 2*(normal * fallingDirection)*normal;
+    reflected.setDirection(reflectedDirection);
 };
 
 void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const
@@ -864,24 +952,24 @@ void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium)
 
   CVector normal;
   CVector fallingOrigin, fallingDirection;
-
+  
   falling.getOrigin(fallingOrigin);
   falling.getDirection(fallingDirection);
-
+  
   n_number = Intersect(falling,distance) - 1;
-
+  
   if(IsInside(fallingOrigin)) //origin is outside
   {
-
+    
     if(n_number != -1)  //there is intersection   //?K? MAGIC NUMBER!
-      //?K? Why -1. Why not -117? Name your constants!!
+                                             //?K? Why -1. Why not -117? Name your constants!!
     {
       refracted.setOrigin(fallingOrigin + distance * fallingDirection);
       normal = m_n[n_number];
       CVector parallelComponent = (fallingDirection-(fallingDirection*normal)*normal)*m_outerMedium.nRefr/m_innerMedium.nRefr;      
       double pcl = parallelComponent.Length();
       if( geq(pcl,1) )
-      {
+        {
         //full inner reflection
         //so the medium is outer
         refractedMedium.Betta = m_outerMedium.Betta;
@@ -891,9 +979,9 @@ void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium)
         //with the reflected one
         CVector reflectedDir = fallingDirection - 2*normal*(fallingDirection*normal);
         refracted.setDirection(reflectedDir);
-      }
+        }
       else
-      {
+        {
         //the medium is inner
         refractedMedium.Betta = m_innerMedium.Betta;
         refractedMedium.nRefr = m_innerMedium.nRefr;
@@ -922,7 +1010,7 @@ void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium)
     CVector parallelComponent = (fallingDirection-(fallingDirection*normal)*normal)*m_innerMedium.nRefr/m_outerMedium.nRefr;      
     double pcl = parallelComponent.Length();
     if( geq(pcl,1) )
-    {
+      {
       //full inner reflection
       //so the medium is inner
       refractedMedium.Betta = m_innerMedium.Betta;
@@ -931,9 +1019,9 @@ void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium)
       //with the reflected one
       CVector reflectedDir = fallingDirection - 2*normal*(fallingDirection*normal);
       refracted.setDirection(reflectedDir);
-    }
+      }
     else
-    {
+      {
       //the medium is outer
       refractedMedium.Betta = m_outerMedium.Betta;
       refractedMedium.nRefr = m_outerMedium.nRefr;
@@ -944,6 +1032,33 @@ void CBox::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium)
     }
   };
 };
+
+int CBox::IsValid(void) const
+{
+    // edges should be orthogonal to each other, but nonzero
+    if( (m_e[0].Length() < VECTOR_EQUAL_EPS) 
+        || (m_e[1].Length() < VECTOR_EQUAL_EPS) 
+        || (m_e[2].Length() < VECTOR_EQUAL_EPS) ) return 0;
+    if( (fabs(m_e[0]*m_e[1]) > EPSILON)
+        || (fabs(m_e[1]*m_e[2]) > EPSILON)
+        || (fabs(m_e[2]*m_e[0]) > EPSILON) ) return 0;
+
+    //!!! i don't know which colors are supposed to be valid 
+    if(!(geq(m_reflectionCoefficient,0) && leq(m_reflectionCoefficient, 1))) return 0;
+
+    if(m_isTransparent)
+    {
+        //we should check inner & outer medium parameters only if the box is transparent.
+        //If it is opaque they are not used      
+        if( geq( m_innerMedium.Betta, 0 ) == 0 ) return 0;
+        if( geq( m_outerMedium.Betta, 0 ) ==0 ) return 0;
+        if( leq(m_innerMedium.nRefr, 0) ) return 0;
+        if( leq(m_outerMedium.nRefr, 0) ) return 0;
+    }
+
+    return 1;
+};
+
 
 ///////////////////////////////////////////////////////////
 // CTriangle

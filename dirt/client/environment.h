@@ -141,6 +141,7 @@ class	CSolid
 protected:
   double m_smoothness, m_reflectionCoefficient;
   bool m_isTransparent;
+  CVector m_color;
 public:
   CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 )
   {

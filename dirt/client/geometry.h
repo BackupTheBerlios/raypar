@@ -41,9 +41,13 @@
 // Comments: Color support went to CSphere, CColorSphere eliminated
 // IsValid added to CTriangle, CSphere, CCylinder
 //*********************************************************
+// REVISION by Vader, on 1/26/2004 
+// Comments: IsValid() added for CBox and CPlane
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
+
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
@@ -105,19 +109,31 @@ class CPlane : public CSolid
   CVector m_n;    // Plane is defined by equation
   double m_D;    // (n,r) + D = 0;   |n| = 1 !!!
   // D - is distance from center (may be <0)
-  
+    
 public:
-  //construction
   CPlane();
-  CPlane( const CVector &n, double D);
-  CPlane(double a, double b, double c, double d); // for   ax + by + cz + d = 0
+  CPlane( const CVector &n, double D, const CVector color,
+          double reflectionCoefficient, double smoothness);
+  CPlane(double a, double b, double c, double d, const CVector color,
+         double reflectionCoefficient, double smoothness); // for   ax + by + cz + d = 0
   
   void SetPosition( const CVector &n, double D);
   void SetPosition(double a, double b, double c, double d);
-  
+
+  void SetColor( const CVector &color );
+  virtual void GetColor( const Ray &falling, CVector &color) const;
+    
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
+
+  //this method checks whether the plane is correctly defined
+  //1) non zero normale m_n and distance m_D should be defined
+  //2) color and m_reflectionCoefficient (0<=..<=1) should be defined
+  //3) material parameters are not necessary, as the object is flat
+  //   meanwhile m_isTransparent should be false
+  virtual int IsValid(void) const;
 };
+
 
 ///////////////////////////////////////////////////////////////////
 // CBox
@@ -128,18 +144,16 @@ class CBox : public CSolid
   CVector m_e[3]; //3 main edges, that form orthogonal basis
   CVector m_n[3]; //normals to sides, sides are (r, m_n)+ m_di = 0;
   double m_d1[3],m_d2[3]; //distances in plane equation m_d1[i] < m_d2[i];
-  double m_reflectionCoefficient;
-  bool m_isTransparent;
   Medium m_innerMedium, m_outerMedium;
 
 public:
   CBox();
   //e1,e2,e3 should be orthogonal to each other (but not necessarily equal)
-  CBox(const CVector &position, const CVector &e1
-    , const CVector &e2, const CVector &e3
+  CBox(const CVector &position, const CVector &e0
+    , const CVector &e1, const CVector &e2, const CVector &color = CVector(0,0,0)
     , double Betta = 0.0, double nRefr = 1.0 
     , bool isTransparent = false, double outerBetta = 0.0
-    , double outerRefr = 1.0, double reflectionCoefficient = 1.0);
+    , double outerRefr = 1.0, double reflectionCoefficient = 1.0, double smoothness = 0.0);
 
   void SetPosition(const CVector &position);
   void SetOrientation(const CVector &e1, const CVector &e2, const CVector &e3);
@@ -150,7 +164,10 @@ public:
   virtual bool IsTransparent(void) const
   { return m_isTransparent; };
 
-  int IsInside(const CVector &vector) const;   //checks whether point lies inside box
+  virtual void GetColor( const Ray &falling, CVector &color) const;
+  void SetColor( const CVector &color );
+  
+  int IsInside(const CVector &vector) const;   //checks whether a point lies inside box
   virtual int Intersect(  const Ray &ray, double &distance) const; 
      //returns 1 if ray intersects side with normal m_d[0];
      //returns 2 if ray intersects side with normal m_d[1];
@@ -158,11 +175,22 @@ public:
      //returns 0 if there is no intersection
 
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
-  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;        
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
+  
+  //this method checks whether the plane is correctly defined
+  //1) sides m_e[i] should be nonzero and orthogonal
+  //2) normales m_n and distances should be initialized correctly this step is
+  //   connected with first one, as normales are always initialized after
+  //   the initialization of sides. If sides are correct (step 1), Normales
+  //   are correct too
+  //3) m_color and m_reflectionCoefficient should be correct
+  //4) material parameters should be physically correct if the box is transparent
+  virtual int IsValid(void) const;
 
 protected:
   void InitNormals();
 };
+
 
 ///////////////////////////////////////////////////////////////////
 // CTriangle
