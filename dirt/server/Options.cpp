@@ -110,15 +110,23 @@ CWindowSettings::CWindowSettings()
 , m_cy (0)
 , m_lpszSection ("")
 {
+  m_default_x = def_window_left;  
+  m_default_y = def_window_top;  
+  m_default_cx = def_window_width; 
+  m_default_cy = def_window_height;
 }
 
-CWindowSettings::CWindowSettings(LPCTSTR lpszSection)
+CWindowSettings::CWindowSettings(LPCTSTR lpszSection, int x, int y, int cx, int cy)
 : m_x (0)
 , m_y (0)
 , m_cx (0)
 , m_cy (0)
 {
   m_lpszSection = lpszSection;
+  m_default_x = x;  
+  m_default_y = y;  
+  m_default_cx = cx; 
+  m_default_cy = cy; 
 }
 
 
@@ -128,10 +136,10 @@ void CWindowSettings::GetDataFromReg()
   ASSERT( p_app );
   
   //get data from the registry
-  m_x  = p_app->GetProfileInt(m_lpszSection, s_window_left,  def_window_left  );
-  m_y  = p_app->GetProfileInt(m_lpszSection, s_window_top,  def_window_top  );
-  m_cx = p_app->GetProfileInt(m_lpszSection, s_window_width,  def_window_width  );
-  m_cy = p_app->GetProfileInt(m_lpszSection, s_window_height,  def_window_height  ); 
+  m_x  = p_app->GetProfileInt(m_lpszSection, s_window_left,  m_default_x  );
+  m_y  = p_app->GetProfileInt(m_lpszSection, s_window_top,  m_default_y  );
+  m_cx = p_app->GetProfileInt(m_lpszSection, s_window_width,  m_default_cx  );
+  m_cy = p_app->GetProfileInt(m_lpszSection, s_window_height,  m_default_cy  ); 
 }
 
 
