@@ -14,6 +14,10 @@
 // Comments: Test dialog added, but it seems that it doesn't work...
 //
 //*********************************************************
+// REVISION by KIRILL, on 1/30/2004 22:40:08
+// Comments: Test dialog removed. Client thread creted.
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -105,6 +109,7 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
   m_b_standalone = TRUE;
   m_bWorking = false;
 
+  m_scene.SetSceneUID( -1 ); //negative means that there is no available scene
   m_thread_params.bShouldExit = false;
   m_client_thread = StartClientThread( &m_thread_params ); //start client thread
 };

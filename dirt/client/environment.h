@@ -446,6 +446,10 @@ public:
   double GetHorizontalAngle( void ) const;
   double GetVerticalAngle( void ) const;
 
+  //temp, KIRILL
+  void SetEyePoint( const CVector &eyePoint ) { m_eyePoint = eyePoint; }
+  //
+
   //setters for picture size and view angles
   virtual void SetWidth(int width);
   virtual void SetHeight(int height);
