@@ -23,10 +23,15 @@
 //				Added CVector position to Light, modified constructors
 //				Added Ray constructor without parameters
 //*********************************************************
+// REVISION by Vader on 01/14/2004
+// Comments: Changes in the definition of Solid interface
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
 //*********************************************************
+
 
 #include "common/vector.h"
 
@@ -80,8 +85,8 @@ public:
 class	Solid
 {
 public:
-	virtual int Intersect( Ray *ray, double *distance);
-	virtual void reflect(Ray *falling, Ray *reflected);
+	virtual int Intersect( Ray *ray, double *distance)=0;
+	virtual void reflect(Ray *falling, Ray *reflected)=0;
 }; 
 
 class	Light			// model of an abstract light source
