@@ -104,6 +104,10 @@ SOURCE=.\ClientDlg.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\environment.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\COMMON\LogBox.cpp
 # ADD CPP /I "..\CLIENT"
 # End Source File
@@ -131,6 +135,10 @@ SOURCE=.\CLIENT.h
 # Begin Source File
 
 SOURCE=.\ClientDlg.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\environment.h
 # End Source File
 # Begin Source File
 

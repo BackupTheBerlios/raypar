@@ -5,8 +5,8 @@
 // Comments: interface for the CVector class.
 //
 //***********************************
-// REVISION by ..., on ...
-// Comments: ...
+// REVISION by Tonic on 12/11/2003
+// Comments: Fixed a bug in CVector operator =, added missing z component assignment
 //
 //***********************************
 
@@ -58,9 +58,13 @@ public:
   double operator* ( const  CVector& v )
 	{	return v.x*x + v.y*y + v.z*z; }
 
- 	
+ 	//*************
+	//operator =
+	//last modified by Tonic on 12/11/2003
+	//bugfix, added missing z=v.z
+	//*************
 	CVector& operator= ( const CVector& v )
-	{	x=v.x; y=v.y;	return *this;}
+	{	x=v.x; y=v.y; z=v.z;	return *this;}
 
   //Be carefull with this operator!
   int operator == ( const CVector& v ) const
