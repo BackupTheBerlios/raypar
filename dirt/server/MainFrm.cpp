@@ -255,7 +255,7 @@ void CMainFrame::OnOpenScene()
     if ( ret != 0 ){
       ErrorMessage( "yyparse returned error '%d'", ret );
       m_scene.Empty();
-      yyerrok;
+      //yyerrok;
     }else{    
       m_scene.SetSceneUID(GetNewSceneUID());
       ASSERT( m_scene.IsValid() );
