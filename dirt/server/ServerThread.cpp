@@ -14,6 +14,9 @@
 #include "stdafx.h"
 #include "server.h"
 #include "ServerThread.h"
+#include "common/protocol.h"
+#include "srvcmd.h"
+
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -94,7 +97,8 @@ void CServerControl::AcceptClient()
   SServerThreadParam* sp = new SServerThreadParam; //this memory will have been 
                                                   // freed by the thread
   
-  cl_sock.Detach(); //pre
+  sp->h_socket = cl_sock;
+  cl_sock.Detach(); 
 
   CWinThread* srv_thr = StartServerThread( sp );
   if ( !srv_thr ){
@@ -115,9 +119,58 @@ UINT ServerThreadFunction( void* param )
   ASSERT( AfxIsValidAddress(param, sizeof (SServerThreadParam ) ) );
   //server_thread_stop_event.ResetEvent();
 
-  Message(" SERVER THREAD !!! ");
+  SOCKET _socket = sp->h_socket;
+  delete sp; //we must free thread parameters in this thread!
 
-  delete sp; //we must do it here!
+  CSocket cl_sock;
+  int ret = cl_sock.Attach( _socket );
+  
+
+  if (!ret){
+    ASSERT( 0 );
+    CString err_text = GetErrorMessageByErrorCode( GetLastError() );
+    ErrorMessage( "Can't attach socket: '%s'", (LPCSTR)err_text );
+    return ERROR_RETURN;
+  }
+
+  CString sock_name;
+  UINT sock_port;
+  ret = cl_sock.GetPeerName(sock_name, sock_port);
+
+  if (!ret){
+    CString err_text = GetErrorMessageByErrorCode( GetLastError() );
+    ErrorMessage( "Can't get peer name: '%s'", (LPCSTR)err_text );
+    return ERROR_RETURN;
+  }
+
+  Message("Client connected: '%s:%d'", (LPCSTR)sock_name, sock_port);
+
+  CSocketFile sock_file( &cl_sock );
+  CArchive arIn( &sock_file, CArchive::load );
+  CArchive arOut( &sock_file, CArchive::store );
+
+  int last_session_id = 1; //let it be here for a while
+
+  bool bEnd = false;
+  while (!bEnd) {
+    int cmd_id;
+    arIn >> cmd_id;
+
+    switch(cmd_id){
+      case CMD_CONNECTION_INIT: CmdConnectionInit(arIn, arOut, last_session_id); break; 
+      case CMD_GET_FRAME_DATA:  break;
+      case CMD_GET_SCENE_DATA:  break;
+      default:{      
+          ASSERT(0);
+          ErrorMessage( "Unknown command received from client ['']! Terminating connection" );
+          bEnd = true;
+        }
+    }
+  }
+
+
+  cl_sock.Close();
+  
   return 0;
 }
 
@@ -132,3 +185,4 @@ void StopServerThread()
 {  
   server_thread_stop_event.ResetEvent();
 }
+

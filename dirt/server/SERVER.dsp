@@ -52,7 +52,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /machine:I386
-# ADD LINK32 /nologo /subsystem:windows /machine:I386
+# ADD LINK32 /nologo /version:1.0 /subsystem:windows /machine:I386
 
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
@@ -78,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 /nologo /subsystem:windows /map /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 /nologo /version:1.0 /subsystem:windows /map /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -92,6 +92,14 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\ChildView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\client\environment.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\client\geometry.cpp
 # End Source File
 # Begin Source File
 
@@ -149,6 +157,10 @@ SOURCE=.\ray_lex.l.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\common\SceneArray.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\SceneBuilder.cpp
 # End Source File
 # Begin Source File
@@ -169,12 +181,20 @@ SOURCE=.\ServerThread.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\SrvCmd.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
 # End Source File
 # Begin Source File
 
 SOURCE=..\common\utils.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\Vector.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -183,6 +203,14 @@ SOURCE=..\common\utils.cpp
 # Begin Source File
 
 SOURCE=.\ChildView.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\CLIENT\environment.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\CLIENT\geometry.h
 # End Source File
 # Begin Source File
 
@@ -211,6 +239,10 @@ SOURCE=..\common\protocol.h
 # Begin Source File
 
 SOURCE=.\Resource.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\SceneArray.h
 # End Source File
 # Begin Source File
 
@@ -266,6 +298,7 @@ SOURCE=.\ray_lex.l
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
 # PROP Ignore_Default_Tool 1
+USERDEP__RAY_L="ray_lex.l.cpp"	
 # Begin Custom Build - Building Lexer
 InputPath=.\ray_lex.l
 InputName=ray_lex
@@ -286,6 +319,8 @@ SOURCE=.\ray_lex.y
 
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
+# PROP Ignore_Default_Tool 1
+USERDEP__RAY_LE="LexParser.cpp"	
 # Begin Custom Build - Building Parser
 InputPath=.\ray_lex.y
 InputName=ray_lex

@@ -65,6 +65,14 @@
 // REVISION by KIRILL, on 1/24/2004 03:42:00
 // Comments: Some refactoring was done
 //*********************************************************
+// REVISION by KIRILL, on 1/25/2004 18:23:15
+// Comments: CLightArray and CSolidArray moved to COMMON\SceneArray.h
+//*********************************************************
+// REVISION by KIRILL, on 1/25/2004 18:39:25
+// Comments: IsValid() routine added in CLight, CSolid and 
+//   its descendants which provides checking of its members.
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -74,6 +82,7 @@
 #define CLIENT_ENVIRONMENT_H_INCLUDED
 
 #include "common/vector.h"
+#include "common/SceneArray.h"
 
 //geometry-related parameters
 #define	INFINITY	30000 //maximal distance
@@ -157,6 +166,9 @@ public:
   // ?K?  No comment!!! What does this do with its perameters?
   virtual double GetReflectionCoefficient(void) const
   { return 1.0; };
+
+  virtual int IsValid(void) const // Will be =0
+  { return 1; }  //temporally
 }; 
 
 ///////////////////////////////////////////////////////////
@@ -165,9 +177,8 @@ public:
 class	CLight			
 {
 private:
-  //RGB brightness, each component in [0;1]
-  CVector m_color;
-  CVector m_position;	 // ?K? NO comment
+  CVector m_position;	 // Light position  
+  CVector m_color; //RGB brightness, each component is in [0;1]
   
 public:
   CLight(); //default constructor
@@ -179,30 +190,16 @@ public:
 
   void getColor(CVector &color) const;
   void setColor(const CVector &color);
+
+  //nonzero if the object has valid parameters, zero otherwise
+  int IsValid(void) const;
+
+  //storing and loading routines. Nonzero if received invalid values.
+  //this may throw communication exceptions.
+  int write(CArchive& ar) const;
+  int read (CArchive& ar);
 };
 
-
-///////////////////////////////////////////////////////////
-// CSolidArray     - storage class for all geometrical objects (based on CArray collection)
-
-class CSolidArray : protected CPtrArray{
-public:
-  CSolid* GetAt( int nIndex ) const {return (CSolid*) CPtrArray::GetAt(nIndex); }
-  CSolid* operator[](int nIndex) const { return GetAt(nIndex); }
-  int Add( CSolid* solid )  { return CPtrArray::Add( solid ); }
-  int GetSize() const {return CPtrArray::GetSize();}
-};
-
-///////////////////////////////////////////////////////////
-// CLightArray     - storage class for all lights (based on CArray collection)
-
-class CLightArray : protected CPtrArray{
-public:
-  CLight* GetAt( int nIndex ) const {return (CLight*) CPtrArray::GetAt(nIndex); }
-  CLight* operator[](int nIndex) const { return GetAt(nIndex); }
-  int Add( CLight* light )  { return CPtrArray::Add( light ); }
-  int GetSize() const {return CPtrArray::GetSize();}
-};
 
 ///////////////////////////////////////////////////////////
 //  Environment - ?K? decription?
@@ -211,8 +208,6 @@ class	Environment
 {
   CLightArray m_lights;
   CSolidArray	m_solids;
-  //int		m_lightsCount;
-  //int		m_solidsCount;
   CVector	m_AmbientColor;
   
 public:
@@ -232,6 +227,11 @@ public:
   
   //returns first intersected object and distance from ray origin point
   CSolid *	Intersect ( const Ray &ray, double &t ) const;
+
+  int IsValid(void) const;
+
+  int write(CArchive& ar) const;
+  int read (CArchive& ar);
 };
 
 ///////////////////////////////////////////////////////////

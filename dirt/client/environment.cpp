@@ -41,6 +41,10 @@
 // REVISION by KIRILL, on 1/24/2004 03:42:00
 // Comments: Some refactoring was done
 //*********************************************************
+// REVISION by KIRILL, on 1/25/2004 18:26:30
+// Comments: I've modified checking of pointers
+// in Environment::Add(CLight*) and Environment::Add(CSolid*) 
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -48,7 +52,15 @@
 #include "stdafx.h"
 #include "environment.h"
 
+//Such return means that an error occured in function
+#define STORING_ERROR_RETURN 1
+#define LOADING_ERROR_RETURN 2
 
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
 
 ///////////////////////////////////////////////////////////
 //  Ray       ?K? decription?
@@ -131,22 +143,29 @@ void CSolid::GetColor( const Ray &falling, CVector &color) const
 ///////////////////////////////////////////////////////////
 
 CLight::CLight()
-: m_color(1,1,1)
+: m_color(0,0,0)
 {}
 
 CLight::CLight(  const CVector &color,  const CVector &position )
 : m_color( color )
 , m_position( position )
 {
-  ASSERT( color.IsNormalized() );  
+  ASSERT( IsValid() );  
 }
 
 CLight::CLight( double r, double g, double b, double x, double y, double z)
 : m_color(r,g,b)
 , m_position(x,y,z)
 {
-  ASSERT( m_color.IsNormalized() );
+  ASSERT( IsValid() );
 };
+
+int CLight::IsValid() const
+{
+  if ( !m_color.IsNormalized() ) return 0;
+
+  return 1;
+}
 
 void CLight::getPosition(CVector &position) const
 {
@@ -168,6 +187,30 @@ void CLight::setColor( const CVector &color)
   ASSERT( color.IsNormalized() );  
   m_color = color;
 };
+
+
+//Storing routine
+int CLight::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  ar << m_position;
+  ar << m_color;
+  return 0;
+}
+
+//Loading routine. Nonzero if received invalid values.
+int CLight::read (CArchive& ar)
+{
+  ar >> m_position;
+  ar >> m_color;
+
+  if (!IsValid()){
+    ASSERT( 0 );
+    return 1;
+  }
+  
+  return 0;
+}
 
 
 
@@ -192,14 +235,14 @@ void Environment::Add ( CLight *light )
   int i;
   int lightsCount = m_lights.GetSize();
   
-  
+  #ifdef _DEBUG
   //check if this element is already present
   //if it holds, do not add repeatedly, just return
   for( i = 0; i < lightsCount; i++ )
-    {
-    if( m_lights.GetAt(i) == light )
-      return;
-    }
+    if( m_lights[i] == light )
+      ASSERT(0);
+  #endif//_DEBUG
+    
   //actually add light source to environment
   m_lights.Add(light);
 };
@@ -211,13 +254,15 @@ void Environment::Add ( CSolid *solid )
   int i;
   int solidsCount = m_solids.GetSize();
   
+
+  #ifdef _DEBUG
   //check if this element is already present
   //if it holds, do not add repeatedly, just return
   for( i = 0; i < solidsCount; i++ )
-    {
-    if( m_solids.GetAt(i) == solid )
-      return;
-    }
+    if( m_solids[i] == solid )
+      ASSERT(0);
+  #endif//_DEBUG
+    
   //actually add element to environment
   m_solids.Add(solid);
 };
@@ -273,6 +318,39 @@ CSolid * Environment::Intersect (  const Ray &ray, double &t ) const
   return closestObj;
 };
 
+int Environment::IsValid(void) const
+{
+  if ( !m_AmbientColor.IsNormalized() ) return 0;
+  if ( !m_lights.IsValid() ) return 0;
+  if ( !m_lights.IsValid() ) return 0;
+}
+
+int Environment::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+
+  ar << m_AmbientColor;
+  if ( !m_lights.write( ar ) ){
+    return STORING_ERROR_RETURN;
+  }
+
+  return 0;
+}
+
+int Environment::read (CArchive& ar)
+{
+  m_lights.Empty();
+  m_solids.Empty();
+
+  ar >> m_AmbientColor;
+
+  if ( !m_lights.read( ar ) || m_lights.IsValid() ){
+    m_lights.Empty();
+    return LOADING_ERROR_RETURN;
+  }
+
+  return 0;
+}
 
 
 ///////////////////////////////////////////////////////////
@@ -450,12 +528,13 @@ void CCamera::PixelRay(int x, int y, Ray &ray) const
 
 void CCamera::UpdateHorizontalDir(void)
 {
-  //compute the dot product [viewDir x topDir]
+  //compute the vector product [viewDir x topDir]
+
+  //?K?:  Why don't we use vector product form CVector here?
   
   m_horDir.x = m_viewDir.y*m_topDir.z - m_viewDir.z*m_topDir.y;
   m_horDir.y = -(m_viewDir.x*m_topDir.z - m_viewDir.z*m_topDir.x);
   m_horDir.z = m_viewDir.x*m_topDir.y - m_viewDir.y*m_topDir.x;
   m_horDir.Normalize();
 };
-
 

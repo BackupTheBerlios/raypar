@@ -222,7 +222,8 @@ void CClientDlg::OnButtonTest()
   COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
   
   Environment		scene;
-  scene.SetAmbientColor(CVector(1,1,1));
+  scene.SetAmbientColor( CVector(1,1,1) );
+
   CVector			sphereCenter(0,0,5), sphereCenter2(1,0,5), red(1,0,0), green(0,1,0), white(1,1,1);
   //CColorSphere	solidObject(sphereCenter, 2,white, );
   //CColorSphere	solidObject2(sphereCenter2, 2,white);
