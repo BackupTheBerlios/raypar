@@ -65,6 +65,7 @@ LINK32=link.exe
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir "..\BUILT"
 # PROP Intermediate_Dir "Debug"
+# PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
 # ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
@@ -77,7 +78,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 /nologo /subsystem:windows /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 /nologo /subsystem:windows /map /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -91,6 +92,14 @@ LINK32=link.exe
 # Begin Source File
 
 SOURCE=.\ChildView.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LexParser.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LexParser.cpp.h
 # End Source File
 # Begin Source File
 
@@ -115,6 +124,32 @@ SOURCE=..\common\ParserVar.cpp
 # Begin Source File
 
 SOURCE=..\common\protocol.cpp
+
+!IF  "$(CFG)" == "SERVER - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
+
+# ADD CPP /Yu
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=.\ray_lex.l.cpp
+
+!IF  "$(CFG)" == "SERVER - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
+
+# SUBTRACT CPP /YX /Yc /Yu
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\SceneBuilder.cpp
 # End Source File
 # Begin Source File
 
@@ -123,6 +158,10 @@ SOURCE=.\SERVER.cpp
 # Begin Source File
 
 SOURCE=.\SERVER.rc
+# End Source File
+# Begin Source File
+
+SOURCE=.\ServerSceneBuilder.cpp
 # End Source File
 # Begin Source File
 
@@ -175,7 +214,15 @@ SOURCE=.\Resource.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\common\SceneBuilder.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\SERVER.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\ServerSceneBuilder.h
 # End Source File
 # Begin Source File
 
@@ -212,11 +259,44 @@ SOURCE=.\res\Toolbar.bmp
 # End Group
 # Begin Source File
 
-SOURCE=..\common\ray_lex.l
+SOURCE=.\ray_lex.l
+
+!IF  "$(CFG)" == "SERVER - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Building Lexer
+InputPath=.\ray_lex.l
+InputName=ray_lex
+
+"$(InputName).l.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	flex.exe -Pyy -i -t $(InputName).l > $(InputName).l.cpp
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\ray_lex.y
+SOURCE=.\ray_lex.y
+
+!IF  "$(CFG)" == "SERVER - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
+
+# Begin Custom Build - Building Parser
+InputPath=.\ray_lex.y
+InputName=ray_lex
+
+"$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	bison.exe -pyy -o LexParser.cpp -d $(InputName).y
+
+# End Custom Build
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 

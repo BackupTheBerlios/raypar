@@ -40,11 +40,18 @@ public:
   bool IsString(void) { return m_type == String; }
 
   //be carefull using this
-  double   GetDouble() { ASSERT(m_type==Double); return m_double; };
-  CVector& GetVector() { ASSERT(m_type==Vector); return m_vector; };
-  CString& GetString() { ASSERT(m_type==String); return m_string; };
+  double   GetDouble() const { ASSERT(m_type==Double); return m_double; };
+  const CVector& GetVector() const { ASSERT(m_type==Vector); return m_vector; };
+  const CString& GetString() const { ASSERT(m_type==String); return m_string; };
+
+  void SetDouble(double dbl)          { m_type = Double; m_double = dbl; }
+  void SetString(LPCSTR str)          { m_type = String; m_string = str; }
+  void SetVector(const CVector& vect) { m_type = Vector; m_vector = vect; }
 
   void operator = (const CVar& o);
+  void operator = (double dbl)          { SetDouble( dbl ); }
+  void operator = (LPCSTR str)          { SetString( str ); }
+  void operator = (const CVector& vect) { SetVector( vect ); }
 
 protected:
   Type m_type;

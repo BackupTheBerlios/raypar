@@ -33,3 +33,4 @@ void CVar::operator = (const CVar& o)
   if ( m_type == String )
     m_string = o.m_string;
 }
+

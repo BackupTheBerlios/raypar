@@ -188,11 +188,19 @@ void CMainFrame::OnRun()
 
 }
 
+extern FILE *yyin; //located in ray_lex.l.cpp    
+extern int yyparse(void);
+
 void CMainFrame::OnOpenScene() 
 {
-  // TODO: Add your command handler code here
-  ErrorMessageWithBox("There is no realization yet");
-
+  yyin = fopen( "E:\\scene.txt", "r");
+  ASSERT( yyin );
+  int ret = yyparse();
+  if ( ret != 0 ){
+    ErrorMessage( "yyparse returned error '%d'", ret );
+  }
+  fclose(yyin);
+  yyin = 0;
 }
 
 void CMainFrame::OnOpenCamera() 
