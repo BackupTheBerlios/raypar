@@ -227,7 +227,7 @@ int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
   //Now we check whether we have finished the picture or no;
   bool bFoundNotReceived = false;
   //we start from the end. It seems to be more efficient
-  for(int i=m_lines_count; i>=0 && !bFoundNotReceived; i--)
+  for(int i=m_lines_count-1; i>=0 && !bFoundNotReceived; i--)
     if (! m_lines_info[i].m_bReceived )
       bFoundNotReceived = true;
 
