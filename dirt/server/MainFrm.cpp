@@ -318,79 +318,7 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
     //save result in BMP file if needed
   if(m_serverOptions.DoSaveFile())
   {
-    HANDLE hf;                 // file handle 
-    BITMAPINFOHEADER bmih;
-    BITMAPFILEHEADER hdr;       // bitmap file-header
-    DWORD dwTmp;
-    DWORD dwTotal;              // total count of bytes 
-    DWORD cb;                   // incremental count of bytes
-    CString filename;
-
-
-    bmih.biSize = sizeof(BITMAPINFOHEADER);
-    bmih.biWidth = m_srv_ctrl.GetWidth();
-    bmih.biHeight = m_srv_ctrl.GetHeight();
-    bmih.biPlanes = 1;
-    bmih.biBitCount = 32;
-    bmih.biCompression = BI_RGB;
-    bmih.biSizeImage = m_srv_ctrl.GetWidth() * m_srv_ctrl.GetHeight() * 4;
-    bmih.biXPelsPerMeter = 0;
-    bmih.biYPelsPerMeter = 0;
-    bmih.biClrImportant = 0;
-    bmih.biClrUsed = 0;
-
-    int number=m_current_scene_number;  
-    char tempbuf[20];
-    
-    filename = m_serverOptions.GetFileName()+"rendered_"+itoa(number,tempbuf,10)+".bmp";
-    hf = CreateFile(filename, 
-                     GENERIC_READ | GENERIC_WRITE, 
-                     (DWORD) 0, 
-                      NULL, 
-                     CREATE_ALWAYS, 
-                     FILE_ATTRIBUTE_NORMAL, 
-                     (HANDLE) NULL); 
-    if (hf == INVALID_HANDLE_VALUE) 
-        ErrorMessage("Error saving bitmap");
-    hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
-    // Compute the size of the entire file. 
-    hdr.bfSize = (DWORD) (sizeof(BITMAPFILEHEADER) + 
-                 bmih.biSize + bmih.biClrUsed 
-                 * sizeof(RGBQUAD) + bmih.biSizeImage); 
-    hdr.bfReserved1 = 0; 
-    hdr.bfReserved2 = 0; 
-
-    // Compute the offset to the array of color indices. 
-    hdr.bfOffBits = (DWORD) sizeof(BITMAPFILEHEADER) + 
-                    bmih.biSize + bmih.biClrUsed 
-                    * sizeof (RGBQUAD); 
-  
-    // Copy the BITMAPFILEHEADER into the .BMP file. 
-    if (!WriteFile(hf, (LPVOID) &hdr, sizeof(BITMAPFILEHEADER), 
-        (LPDWORD) &dwTmp,  NULL)) 
-    {
-       ErrorMessage("Error saving bitmap");
-    }
-    // Copy the BITMAPINFOHEADER and RGBQUAD array into the file. 
-    if (!WriteFile(hf, (LPVOID) &(bmih), sizeof(BITMAPINFOHEADER) 
-                    + bmih.biClrUsed * sizeof (RGBQUAD), 
-                    (LPDWORD) &dwTmp, ( NULL)))
-    {
-       ErrorMessage("Error saving bitmap");
-    }
-
-    // Copy the array of color indices into the .BMP file. 
-    dwTotal = cb = bmih.biSizeImage; 
-    if (!WriteFile(hf, (LPSTR) bitmap_lines, (int) cb, (LPDWORD) &dwTmp,NULL))
-    {
-      ErrorMessage("Error saving bitmap");
-    }
-
-    // Close the .BMP file. 
-    if (!CloseHandle(hf)) 
-    {
-      ErrorMessage("Error saving bitmap");
-    }
+    SaveBitmap(m_current_scene_number, bitmap_lines); 
   }
 
   delete[] bitmap_lines;
@@ -482,4 +410,80 @@ void CMainFrame::_FillUpCurrentScene(void)
 
   ASSERT( m_scene->IsValid() );
   ASSERT( m_camera->IsValid() );
+}
+
+void CMainFrame::SaveBitmap(int imageNumber, void *bitmap_lines)
+{
+  HANDLE hf;                 // file handle 
+  BITMAPINFOHEADER bmih;
+  BITMAPFILEHEADER hdr;       // bitmap file-header
+  DWORD dwTmp;
+  DWORD dwTotal;              // total count of bytes 
+  DWORD cb;                   // incremental count of bytes
+  CString filename;
+
+
+  bmih.biSize = sizeof(BITMAPINFOHEADER);
+  bmih.biWidth = m_srv_ctrl.GetWidth();
+  bmih.biHeight = m_srv_ctrl.GetHeight();
+  bmih.biPlanes = 1;
+  bmih.biBitCount = 32;
+  bmih.biCompression = BI_RGB;
+  bmih.biSizeImage = m_srv_ctrl.GetWidth() * m_srv_ctrl.GetHeight() * 4;
+  bmih.biXPelsPerMeter = 0;
+  bmih.biYPelsPerMeter = 0;
+  bmih.biClrImportant = 0;
+  bmih.biClrUsed = 0;
+
+  char tempbuf[20];
+  
+  filename = m_serverOptions.GetFileName()+"rendered_"+itoa(imageNumber,tempbuf,10)+".bmp";
+  hf = CreateFile(filename, 
+                   GENERIC_READ | GENERIC_WRITE, 
+                   (DWORD) 0, 
+                    NULL, 
+                   CREATE_ALWAYS, 
+                   FILE_ATTRIBUTE_NORMAL, 
+                   (HANDLE) NULL); 
+  if (hf == INVALID_HANDLE_VALUE) 
+      ErrorMessage("Error saving bitmap");
+  hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
+  // Compute the size of the entire file. 
+  hdr.bfSize = (DWORD) (sizeof(BITMAPFILEHEADER) + 
+               bmih.biSize + bmih.biClrUsed 
+               * sizeof(RGBQUAD) + bmih.biSizeImage); 
+  hdr.bfReserved1 = 0; 
+  hdr.bfReserved2 = 0; 
+
+  // Compute the offset to the array of color indices. 
+  hdr.bfOffBits = (DWORD) sizeof(BITMAPFILEHEADER) + 
+                  bmih.biSize + bmih.biClrUsed 
+                  * sizeof (RGBQUAD); 
+
+  // Copy the BITMAPFILEHEADER into the .BMP file. 
+  if (!WriteFile(hf, (LPVOID) &hdr, sizeof(BITMAPFILEHEADER), 
+      (LPDWORD) &dwTmp,  NULL)) 
+  {
+     ErrorMessage("Error saving bitmap");
+  }
+  // Copy the BITMAPINFOHEADER and RGBQUAD array into the file. 
+  if (!WriteFile(hf, (LPVOID) &(bmih), sizeof(BITMAPINFOHEADER) 
+                  + bmih.biClrUsed * sizeof (RGBQUAD), 
+                  (LPDWORD) &dwTmp, ( NULL)))
+  {
+     ErrorMessage("Error saving bitmap");
+  }
+
+  // Copy the array of color indices into the .BMP file. 
+  dwTotal = cb = bmih.biSizeImage; 
+  if (!WriteFile(hf, (LPSTR) bitmap_lines, (int) cb, (LPDWORD) &dwTmp,NULL))
+  {
+    ErrorMessage("Error saving bitmap");
+  }
+
+  // Close the .BMP file. 
+  if (!CloseHandle(hf)) 
+  {
+    ErrorMessage("Error saving bitmap");
+  }
 }

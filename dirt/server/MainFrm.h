@@ -102,6 +102,8 @@ protected:  // control bar embedded members
   CCamera* m_camera;  //current camera
   int m_current_scene_number; //current scene number
 
+  void SaveBitmap(int imageNumber, void* bitmap_lines);
+
   bool m_bSceneLoaded;  
 
   //fills up current scene (m_current_scene_number) params
