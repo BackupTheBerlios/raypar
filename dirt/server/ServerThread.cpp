@@ -51,6 +51,47 @@ struct SServerThreadParam{
 
 
 ///////////////////////////////////////////////////////////
+//  CLinesController::CLineItem  - supports lines distribution among clients
+//
+
+CLinesController::CLineItem::CLineItem()
+: m_line_width( 0 )
+, m_data(0)
+{
+  Reset();
+}
+
+CLinesController::CLineItem::~CLineItem()
+{ 
+  delete[] m_data;
+}
+
+//allocates memry for data
+void CLinesController::CLineItem::AllocateData(int line_width)
+{      
+  ASSERT( line_width > 0 );
+  m_line_width = line_width;
+  ASSERT( m_data == NULL );
+  m_data =  new COLORREF[m_line_width];
+}
+
+//frees allocated memory
+void CLinesController::CLineItem::FreeData(int line_width)
+{      
+  delete[] m_data;
+  m_data = 0;
+}
+
+//resets line state to ungiven
+void CLinesController::CLineItem::Reset(void)
+{
+  m_bGiven = false;
+  m_bReceived = false;
+  m_timestamp_given = 0;
+}
+
+
+///////////////////////////////////////////////////////////
 //  CLinesController  - supports lines distribution among clients
 //
 
@@ -62,7 +103,8 @@ CLinesController::CLinesController()
 , m_lines_info(0)
 , m_scene_uid(0)
 , m_rendered_count(0)
-{}
+{
+}
 
 CLinesController::~CLinesController()
 {
@@ -82,11 +124,11 @@ void CLinesController::Init( int scene_uid, int line_width, int lines_count //im
                           
   delete [] m_lines_info;
 
+  m_scene_uid = scene_uid;
   m_lines_count = lines_count;
   m_line_width  = line_width;
   m_search_step = search_step;
-  m_bCompleted  = false;
-  m_scene_uid   = scene_uid;
+  m_bCompleted  = false;  
   m_rendered_count = 0;
   
   m_lines_info = new CLineItem[m_lines_count] ;
@@ -225,7 +267,7 @@ void* CLinesController::BuildBitmapBits(void) const
   COLORREF* m_data = new COLORREF[ m_lines_count * m_line_width ];
 
   COLORREF* cur_p = m_data;
-  for(int i=0; i<m_lines_count; i++ ){
+  for(int i=m_lines_count-1; i>=0; i-- ){ //note bitamp lines format!
     ASSERT( m_lines_info[i].m_bReceived );
     memcpy( cur_p, m_lines_info[i].m_data, sizeof(COLORREF)*m_line_width );
     cur_p += m_line_width;
@@ -233,6 +275,18 @@ void* CLinesController::BuildBitmapBits(void) const
 
   return m_data;
 }
+
+void CLinesController::ResetAllLines()
+{
+  ASSERT( m_lines_info ); //must be already initialized
+
+  for(int i=0; i<m_lines_count; i++)
+    m_lines_info[i].Reset(); //reset all lines
+
+  m_rendered_count = 0;
+  m_bCompleted = false;
+}
+
 
 ///////////////////////////////////////////////////////////
 //  CServerSocket    - server socket class
@@ -261,11 +315,15 @@ void CServerSocket::OnAccept(int errorCode)
 
 #pragma warning( disable : 4355 )
 
-CServerControl::CServerControl(CEnvironment& scene)
+CServerControl::CServerControl()
 : m_srv_sock( *this )
 , m_last_session_id( 0 )
-, m_scene( scene )
+, m_scene( 0 )
 , m_p_frame( 0 )
+, m_can_read_scene_event(FALSE, TRUE) //manual reset event
+, m_can_modify_scene_event(TRUE, TRUE) //initially signalled, manual reset event
+, m_b_server_should_stop(0)
+, m_reading_clients_count(0)
 { 
 }
 
@@ -277,11 +335,25 @@ CServerControl::~CServerControl()
 
 //  Creates socket and starts listening
 //  returns 0 if successful
-int CServerControl::StartServer(CWnd* p_frame, int portNum, int imageWidth, int imageHeight)
+int CServerControl::StartServer(CWnd* p_frame, int portNum
+                                , CEnvironment* p_scene, CCamera* p_camera )
 {
   ASSERT( p_frame );
-  m_p_frame = p_frame;
+  ASSERT( p_scene );
+  ASSERT( p_camera );  
+  ASSERT( p_scene->GetSceneUID() > 0 ); //normally loaded scene has positive uid?
   
+  m_p_frame = p_frame;
+  m_scene = p_scene;
+  m_camera = p_camera;
+
+  m_b_server_should_stop = false;
+
+  m_lines.Init( m_scene->GetSceneUID()
+      , m_camera->GetWidth(), m_camera->GetHeight() );
+
+  m_can_read_scene_event.SetEvent(); //clients may read scene params
+
   int ret = m_srv_sock.Create( portNum );
   if ( !ret ){
     CString err_str = GetErrorMessageByErrorCode(ret);
@@ -289,17 +361,23 @@ int CServerControl::StartServer(CWnd* p_frame, int portNum, int imageWidth, int 
     return ERROR_RETURN; 
   }
 
-  //KIRILL: temp:
-  int scene_uid = m_scene.GetSceneUID();
-  m_lines.Init( scene_uid, imageWidth, imageHeight );
-  m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
+  ret = m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
+  if ( !ret ){
+    CString err_str = GetErrorMessageByErrorCode(ret);
+    ErrorMessage("Can't start listening: '%s'", (LPCSTR)err_str);
+    return ERROR_RETURN; 
+  }
 
   return 0;
 }
 
 int CServerControl::StopServer()
 {
-  m_srv_sock.Close();
+  m_b_server_should_stop = true;
+  m_srv_sock.Close();  
+
+  WaitForSingleObject( m_can_modify_scene_event, INFINITE ); //we should wait for 
+                                      //all clients to finish reading
   return 0; 
 }
 
@@ -316,7 +394,7 @@ void CServerControl::AcceptClient()
   cl_sock.Detach(); 
   sp->p_srv_ctrl = this;
 
-  CWinThread* srv_thr = StartServerThread( sp );
+  CWinThread* srv_thr = StartServerThread( sp );  //new thread for client is created
   if ( !srv_thr ){
     ErrorMessageWithBox( "Unable to create server thread!" );
     delete sp; //we have to do this
@@ -344,14 +422,14 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
   ASSERT( p_image_lines_info );
   ASSERT( p_camera_info );
 
-  m_lines_change_cs.Lock(); //we lock the access to the lines info
+  CSingleLock lines_lock(&m_lines_change_cs, TRUE);
+                                          //we lock the access to the lines info
 
-  
-  p_camera_info->m_camera_pos = CVector(0,0,0);
+  p_camera_info->m_camera_pos = m_camera->GetEyePoint();
   p_camera_info->m_camera_y_axis = CVector(0,1,0);
   p_camera_info->m_camera_z_axis = CVector(0,0,1);
   
-  *p_scene_id = m_lines.GetSceneUID(); 
+  *p_scene_id = m_scene->GetSceneUID(); 
   ASSERT( *p_scene_id > 0);//zero or negative scene id means that 
                            //the scene wasn't loaded
   
@@ -360,9 +438,6 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
   p_image_lines_info->m_line_number = m_lines.GetLine2Render();//may be negative
                         //negative means that the image was completed
                         //and there is no line to render.
-  
-  m_lines_change_cs.Unlock();
-
   return 0;
 }
 
@@ -370,7 +445,7 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
 //returns pointer to the scene
 CEnvironment* CServerControl::GetScene(void)
 {  
-  return &m_scene;
+  return m_scene;
 }
 
 // processes image line, received from the client
@@ -381,7 +456,7 @@ CEnvironment* CServerControl::GetScene(void)
 void CServerControl::LineReceived(int scene_id, int line_num
                                   , int pixel_count, COLORREF* line_data)
 {
-  m_lines_change_cs.Lock();
+  CSingleLock lines_lock(&m_lines_change_cs, TRUE);
 
   if ( pixel_count = m_lines.GetWidth()  && scene_id == m_lines.GetSceneUID() 
        && line_num >= 0 && line_num < m_lines.GetHeight())  
@@ -400,19 +475,62 @@ void CServerControl::LineReceived(int scene_id, int line_num
         ::PostMessage(*m_p_frame, WM_SERVER_LINE_RENDERED, percent, 0);
       }
     }
-    
   }
-
-  m_lines_change_cs.Unlock();
 }
 
 
-//allocates memry and create bitmap bits from 
+//allocates memory and create bitmap bits from 
 //received image lines. must be called only when the scene is done
 void* CServerControl::BuildBitmapBits(void) const
 {
   ASSERT( m_lines.IsCompleted() );
   return m_lines.BuildBitmapBits();
+}
+
+//client should call this before reading the scene
+//this may block
+void CServerControl::WantStartReadScene()
+{
+  WaitForSingleObject( m_can_read_scene_event, INFINITE );
+  CSingleLock m_reading_lock(&m_reading_count_cs, TRUE);
+  m_reading_clients_count++;
+  m_can_modify_scene_event.ResetEvent(); //someone is reading scene!
+  afxDump <<"ResetEvent, cl_cnt = " << m_reading_clients_count << "\n";
+}
+
+//client should call this after it finished reading the scene
+void CServerControl::FinishedReadingScene()
+{
+  CSingleLock m_reading_lock(&m_reading_count_cs, TRUE);
+  m_reading_clients_count--;
+
+  ASSERT( m_reading_clients_count>=0 );
+  
+  if( m_reading_clients_count == 0 ){  
+    m_can_read_scene_event.SetEvent();
+    afxDump <<"SetEvent\n";
+  }
+}
+
+
+//Setups new scene info. Thread safe.
+void CServerControl::SetNewScene(CEnvironment* p_scene, CCamera* p_camera)
+{
+  ASSERT( p_scene );
+  ASSERT( p_camera );
+    
+  ASSERT( p_camera->GetHeight() == m_lines.GetHeight() );
+  ASSERT( p_camera->GetWidth()  == m_lines.GetWidth() );
+
+  m_can_read_scene_event.ResetEvent();
+  WaitForSingleObject( m_can_read_scene_event, INFINITE );
+  m_scene = p_scene;
+  m_camera = p_camera;
+
+  CSingleLock lines_lock(&m_lines_change_cs, TRUE); //lock lines access
+  m_lines.ResetAllLines();
+
+  m_can_read_scene_event.SetEvent(); //allow clients to work
 }
 
 ///////////////////////////////////////////////////////////
@@ -430,8 +548,6 @@ UINT ServerThreadFunction( void* param )
   delete sp; //we must free thread parameters in this thread!
 
   TRY{
-  
-
     CSocket cl_sock;
     int ret = cl_sock.Attach( _socket );
 
@@ -463,9 +579,11 @@ UINT ServerThreadFunction( void* param )
 
     int current_session_id = p_srv_ctrl->GetNewSessionId(); 
 
+    p_srv_ctrl->WantStartReadScene(); //may block
+    
     bool bEnd = false;
     
-    while (!bEnd) {
+    while (!bEnd && !p_srv_ctrl->ShouldStop()) {
       int cmd_id;
       arIn >> cmd_id;
 
@@ -506,13 +624,18 @@ UINT ServerThreadFunction( void* param )
           }
       }
     }
+    cl_sock.Close();
+    p_srv_ctrl->FinishedReadingScene();    
   }
   CATCH(CArchiveException, e)
   {
-    //this exception probably means that the connection was closed    
+    //this exception probably means that the connection was closed so we ignore it
+
+    p_srv_ctrl->FinishedReadingScene(); //we should notify that we are dead
   }AND_CATCH(CFileException, pEx){
-    //this exception probably means that the connection was closed
-    //so we ignore it    
+    //this exception probably means that the connection was closed so we ignore it    
+    
+    p_srv_ctrl->FinishedReadingScene(); //we should notify that we are dead
   }AND_CATCH_ALL(pEx){
     ErrorMessageFromException(pEx, TRUE);
   }
@@ -526,5 +649,4 @@ CWinThread* StartServerThread( void * param )
 {  
   return AfxBeginThread( ServerThreadFunction, param );
 }
-
 

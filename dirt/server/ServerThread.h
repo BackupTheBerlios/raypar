@@ -31,34 +31,14 @@ struct CCameraInfo;
 class CLinesController
 {
 protected:
-  class CLineItem{ //this class stores all information about single lines
+  class CLineItem{ //this class stores all information about single line
   public:
-    CLineItem()
-      : m_bGiven( 0 )
-      , m_bReceived( 0 )
-      , m_timestamp_given( 0 )
-      , m_line_width( 0 )
-      , m_data(0)
-    {}
-
-    ~CLineItem()
-    { 
-      delete[] m_data;
-    }
+    CLineItem();
+    ~CLineItem();
     
-    void AllocateData(int line_width)
-    {      
-      ASSERT( line_width > 0 );
-      m_line_width = line_width;
-      ASSERT( m_data == NULL );
-      m_data =  new COLORREF[m_line_width];
-    }
-
-    void FreeData(int line_width)
-    {      
-      delete[] m_data;
-      m_data = 0;
-    }
+    void AllocateData(int line_width); //allocates memry for data
+    void FreeData(int line_width);  //frees allocated memory
+    void Reset(void); //resets line state to ungiven
 
     int m_bGiven; //was the line already given?
     int m_bReceived; //was the line already received?
@@ -83,7 +63,7 @@ public:
 
   //Gives next line to render to client
   //Negative if the scene was alredy finished
-  int  GetLine2Render(void);
+  int GetLine2Render(void);
 
   //Stores image line information
   //Nonzero if the image is completed
@@ -98,6 +78,9 @@ public:
 
   //returns the percentage of rendered lines
   int GetRenderedPercent(void) const;
+
+  //resets all lines
+  void ResetAllLines(void);
 
   //allocates memry and create bitmap bits from 
   //received image lines. must be called only when the scene is done
@@ -138,16 +121,19 @@ public:
 
 class CServerControl {
 public:
-  CServerControl(CEnvironment& scene);
+  CServerControl();
   ~CServerControl();
   
   //  Creates socket and starts listening
   //  returns 0 if successful
-  int StartServer(CWnd* p_frame, int portNum, int imageWidth, int imageHeight);
+  int CServerControl::StartServer(CWnd* p_frame, int portNum
+                                  , CEnvironment* p_scene, CCamera* p_camera );
 
   //Stops server and closes listening socket
   int StopServer();
-  
+
+  //Setups new scene info. Thread safe.
+  void SetNewScene(CEnvironment* p_scene, CCamera* p_camera);
   
   //this functions can be called from different threads!
   //Generate client session id.
@@ -178,28 +164,55 @@ public:
   //received image lines. must be called only when the scene is done
   void* BuildBitmapBits(void) const;
 
+  //current rendering image width and height getters
   int GetWidth(void) const { return m_lines.GetWidth(); }
   int GetHeight(void) const { return m_lines.GetHeight(); }
-  
+
+  //return the value of m_b_server_should_stop flag
+  //if returned true client should terminate thread
+  bool ShouldStop(void) { return m_b_server_should_stop; }
+
+  //client should call this before reading the scene
+  //this may block
+  void WantStartReadScene();
+
+  //client should call this after it finished reading the scene
+  void FinishedReadingScene();
 
 protected:
   void AcceptClient(void);
   
 protected:  
-  CServerSocket m_srv_sock;  //server socket - is used for Listen()
-  CEvent m_stop_server_event; //signal means that all server threads must stop
+  CServerSocket m_srv_sock;  //server socket - is used for Listen()  
 
   CCriticalSection m_lines_change_cs; //lock this if work with lines
-
   CCriticalSection m_session_id_change_cs; //lock this when you read or modify 
                                 //m_last_session_id.  Used in GetNewSessionId();
-                               
+
+  bool m_b_server_should_stop; //true means that all clients should terminate
 
   int m_last_session_id;    //is used to generate unique session ids
   CLinesController m_lines;    //all the information about the lines is stored here
-  CEnvironment& m_scene;        //current scene
-  
   CWnd* m_p_frame;    //we send some notification messages to this window
+
+  //all scene inforamtaion
+  CEnvironment* m_scene;        //current scene
+  CCamera* m_camera;            //carrent camera info
+
+  //these members are used for thread safe scene reading/modifying
+  int m_reading_clients_count; //number of clients, reading the scene
+
+  CCriticalSection m_reading_count_cs; //m_reading_clients_count can be read or modifyed
+                                    //only in this critical section
+
+
+
+  CEvent m_can_modify_scene_event; //signal means that the server may modify scene
+
+  CEvent m_can_read_scene_event; //signal means that client thread may read scene
+                                 //this is manual reset event
+
+  
 
   friend CServerSocket;
 };
