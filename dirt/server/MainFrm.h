@@ -73,6 +73,7 @@ protected:  // control bar embedded members
 	CToolBar    m_wndToolBar;
 	CChildView  m_wndView;
   CLogWnd     m_log_wnd;
+  CWindowSettings m_settings;
 
 // Generated message map functions
 protected:

@@ -14,12 +14,14 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CLogWnd dialog
 
+const char logWindowSection[] = "Options\\LogWindow";
 
 CLogWnd::CLogWnd(CWnd* pParent /*=NULL*/)
 	: CDialog(CLogWnd::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CLogWnd)
 	//}}AFX_DATA_INIT
+  m_settings.SetSection(logWindowSection);
 }
 
 
@@ -57,6 +59,14 @@ int CLogWnd::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	if (CDialog::OnCreate(lpCreateStruct) == -1)
 		return -1;
    
+  m_settings.GetDataFromReg();
+  int x,y,cx,cy;
+  x = m_settings.GetX();
+  y = m_settings.GetY();
+  cx = m_settings.GetCx();
+  cy = m_settings.GetCy();
+
+  SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
   return 0;
 }
 
@@ -68,3 +78,16 @@ void CLogWnd::OnSysCommand( UINT nID, LPARAM lParam )
     CDialog::OnSysCommand(nID, lParam);
 }
 
+// temporary function
+void CLogWnd::UNKNOWN_FUNCTION()
+{
+  CRect rect;
+  GetWindowRect(rect);
+  
+  m_settings.SetX(rect.left);
+  m_settings.SetY(rect.top);
+  m_settings.SetCx(rect.right - rect.left);
+  m_settings.SetCy(rect.bottom - rect.top);
+  
+  m_settings.SaveDataToReg();
+}

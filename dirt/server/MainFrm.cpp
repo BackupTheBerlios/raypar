@@ -31,6 +31,9 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
 
+//register section for MainFrame
+const char mainFrameSection[] = "Options\\MainFrame";
+
 
 IMPLEMENT_DYNAMIC(CMainFrame, CFrameWnd)
 
@@ -67,7 +70,7 @@ static UINT indicators[] =
 CMainFrame::CMainFrame()
 {
 	// TODO: add member initialization code here
-	
+  m_settings.SetSection(mainFrameSection);
 }
 
 CMainFrame::~CMainFrame()
@@ -110,6 +113,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_log_box.Attach( m_log_wnd.GetDlgItem( IDC_LOG_LIST )->m_hWnd );
 	  
   m_log_wnd.ShowWindow( SW_NORMAL );
+
+  //Loading info from reg on create
+  m_settings.GetDataFromReg();
+  int x,y,cx,cy;
+  x = m_settings.GetX();
+  y = m_settings.GetY();
+  cx = m_settings.GetCx();
+  cy = m_settings.GetCy();
+
+  SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
 
   //KIRILL: Dummy caption generator
   SetWindowText( "SERVER [FPS = 3] [ 4 clients ]" );
@@ -176,8 +189,9 @@ void CMainFrame::OnViewOptions()
 {
 	// TODO: Add your command handler code here
 	//ErrorMessage("There is no realization yet");
+  m_serverOptions.GetDataFromReg();
   COptionsDialog dlg(NULL, &m_serverOptions);
-  dlg.DoModal();
+  if(dlg.DoModal() == IDOK) m_serverOptions.SaveDataToReg();
   
 }
 
@@ -214,6 +228,15 @@ void CMainFrame::OnOpenCamera()
 
 void CMainFrame::OnDestroy() 
 {
+  CRect rect;
+  GetWindowRect(rect);
+  
+  m_settings.SetX(rect.left);
+  m_settings.SetY(rect.top);
+  m_settings.SetCx(rect.right - rect.left);
+  m_settings.SetCy(rect.bottom - rect.top);
+  
+  m_settings.SaveDataToReg();
 	CFrameWnd::OnDestroy();
   m_log_box.Detach();	
 }

@@ -6,6 +6,7 @@
 #endif // _MSC_VER > 1000
 // LogWnd.h : header file
 //
+#include "Options.h" 
 
 /////////////////////////////////////////////////////////////////////////////
 // CLogWnd dialog
@@ -34,6 +35,9 @@ public:
 
 // Implementation
 protected:
+  CWindowSettings m_settings;
+  //!!! temporary
+  void UNKNOWN_FUNCTION();
 
 	// Generated message map functions
 	//{{AFX_MSG(CLogWnd)
