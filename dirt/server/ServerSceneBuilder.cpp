@@ -38,39 +38,55 @@ void CServerSceneBuilder::Init(void)
 }
 
 //zero if successfull
-int CServerSceneBuilder::AddSphere(const CVector& pos, double radius, const CVector& color)
+int CServerSceneBuilder::AddSphere(const CVector& pos, double radius, const CVector& color
+   , double Betta /*= 0.0*/, double nRefr /*= 1.0*/
+   , double reflCoeff /*= 1.0*/, double smoothness /*= 1.0*/)
 {
-  return _AddSolid( new CSphere( pos, radius, color ) );
+  return _AddSolid( new CSphere( pos, radius, color
+            , Betta, nRefr, 0, 1,reflCoeff, smoothness ) );
 //  Message("[PARSER]  Sphere pos = ( %.3f, %.3f, %.3f), radius = %.3f",  pos.x, pos.y, pos.z, radius );
 }
 
-int CServerSceneBuilder::AddPlane(const CVector& normal, double distance, const CVector& color)
+int CServerSceneBuilder::AddPlane(const CVector& normal, double distance, const CVector& color
+   , double Betta /*= 0.0*/, double nRefr /*= 1.0*/
+   , double reflCoeff /*= 1.0*/, double smoothness /*= 1.0*/)
 {
-  return _AddSolid( new CPlane( normal, distance, color ) );
+  return _AddSolid( new CPlane( normal, distance, color
+                ,reflCoeff, smoothness, Betta, nRefr ) );
 }
 
 int CServerSceneBuilder::AddBox(const CVector &pos, const CVector &e0
-    , const CVector &e1, const CVector &e2, const CVector &color)
+    , const CVector &e1, const CVector &e2, const CVector &color
+    , double Betta /*= 0.0*/, double nRefr /*= 1.0*/
+    , double reflCoeff /*= 1.0*/, double smoothness /*= 1.0*/)
 {
-  return _AddSolid( new CBox( pos, e0, e1, e2, color ) );
+  return _AddSolid( new CBox( pos, e0, e1, e2, color 
+    , Betta, nRefr, 0, 1,reflCoeff, smoothness ) );
 }
 
 int CServerSceneBuilder::AddTriangle(const CVector &a, const CVector &b
-                                      , const CVector &c, const CVector &color)
+                                      , const CVector &c, const CVector &color
+   , double Betta /*= 0.0*/, double nRefr /*= 1.0*/
+   , double reflCoeff /*= 1.0*/, double smoothness /*= 1.0*/)
 {
-  return _AddSolid( new CTriangle(a, b, c, color) );
+  return _AddSolid( new CTriangle(a, b, c, color
+    ,reflCoeff, smoothness, Betta, nRefr ) );
 }
 
 int CServerSceneBuilder::AddCylinder(const CVector &base, const CVector &direction
-                               , double length, double radius, const CVector &color)
+                               , double length, double radius, const CVector &color
+   , double Betta /*= 0.0*/, double nRefr /*= 1.0*/
+   , double reflCoeff /*= 1.0*/, double smoothness /*= 1.0*/)
+
 {
-  return _AddSolid( new CCylinder( base, direction, length, radius, color ) );
+  return _AddSolid( new CCylinder( base, direction, length, radius, color
+         ,reflCoeff, smoothness, Betta, nRefr ) );
 }
 
 //zero if successfull
 int CServerSceneBuilder::AddLight(const CVector& pos, const CVector& color)
 {
-  CLight* p_light = new CLight( pos, color );
+  CLight* p_light = new CLight( color, pos );
   if ( !p_light->IsValid() ){ 
     ParserError( "Invalid light!" );
     delete p_light;

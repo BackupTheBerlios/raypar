@@ -25,6 +25,7 @@
 #include "server.h"
 #include "mainfrm.h"
 
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -304,7 +305,6 @@ int CServerControl::StartServer(CWnd* p_frame, int portNum, int imageWidth, int 
   //KIRILL: temp:
   int scene_uid = m_scene.GetSceneUID();
   m_lines.Init( scene_uid, imageWidth, imageHeight );
-  m_bSceneCompleted = false;
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
 
   return 0;
@@ -312,7 +312,8 @@ int CServerControl::StartServer(CWnd* p_frame, int portNum, int imageWidth, int 
 
 int CServerControl::StopServer()
 {
-  return 0; //?K?
+  m_srv_sock.Close();
+  return 0; 
 }
 
 //Accepts client and builds server thread for this client
@@ -379,17 +380,10 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
 }
 
 
-//If you need to operate with scene you have to block the access to it
-CEnvironment* CServerControl::GetAndLockScene(void)
-{
-  m_scene_change_mutex.Lock(); //we lock the access
+//returns pointer to the scene
+CEnvironment* CServerControl::GetScene(void)
+{  
   return &m_scene;
-}
-
-//When you finished your work you must free scene access
-void CServerControl::UnlockScene(void)
-{
-  m_scene_change_mutex.Unlock(); //we unlock the access
 }
 
 // processes image line, received from the client
@@ -409,8 +403,7 @@ void CServerControl::LineReceived(int scene_id, int line_num
      //and the line number received is appropriate.
   {
     int bCompleted = m_lines.LineWasRendered(line_num, line_data);
-    if ( bCompleted ){      
-      m_bSceneCompleted = true;
+    if ( bCompleted ){       
       ASSERT( m_p_frame );
       m_p_frame->SendMessage(WM_SERVER_FINISHED_SCENE);
     }else{
@@ -546,8 +539,4 @@ CWinThread* StartServerThread( void * param )
   return AfxBeginThread( ServerThreadFunction, param );
 }
 
-void StopServerThread()
-{
-  //?K?
-}
 

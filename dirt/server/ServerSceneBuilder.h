@@ -32,13 +32,27 @@ public:
   void Init(void);
 
   //these functions add objects to scene. zero if successfull
-  int AddSphere(const CVector& pos, double radius, const CVector& color);
-  int AddPlane(const CVector& normal, double distance, const CVector& color);
+  int AddSphere(const CVector& pos, double radius, const CVector& color
+    , double Betta = 0.0, double nRefr = 1.0
+    , double reflCoeff = 1.0, double smoothness = 1.0 );
+
+  int AddPlane(const CVector& normal, double distance, const CVector& color
+    , double Betta = 0.0, double nRefr = 1.0
+    , double reflCoeff = 1.0, double smoothness = 1.0 );
+
   int AddBox(const CVector &pos, const CVector &e0
-       , const CVector &e1, const CVector &e2, const CVector &color);
-  int AddTriangle(const CVector &a, const CVector &b, const CVector &c, const CVector &color);
+       , const CVector &e1, const CVector &e2, const CVector &color
+       , double Betta = 0.0, double nRefr = 1.0
+       , double reflCoeff = 1.0, double smoothness = 1.0 );
+
+  int AddTriangle(const CVector &a, const CVector &b, const CVector &c, const CVector &color
+    , double Betta = 0.0, double nRefr = 1.0
+    , double reflCoeff = 1.0, double smoothness = 1.0 );
+
   int AddCylinder(const CVector &base, const CVector &direction
-       , double length, double radius, const CVector &color);
+       , double length, double radius, const CVector &color
+       , double Betta = 0.0, double nRefr = 1.0
+       , double reflCoeff = 1.0, double smoothness = 1.0 );
 
   int AddLight(const CVector& pos, const CVector& color);
   

@@ -399,7 +399,7 @@ USERDEP__RAY_LE="LexParser.cpp"
 InputPath=.\ray_lex.y
 InputName=ray_lex
 
-"$(InputName).cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+"LexParser.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	bison.exe -pyy -o LexParser.cpp -d $(InputName).y
 
 # End Custom Build

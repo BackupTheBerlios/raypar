@@ -121,6 +121,8 @@ protected:
 	afx_msg void OnStop();
 	afx_msg void OnUpdateStop(CCmdUI* pCmdUI);
 	afx_msg void OnUpdateRun(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateOpenScene(CCmdUI* pCmdUI);
+	afx_msg void OnUpdateViewOptions(CCmdUI* pCmdUI);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

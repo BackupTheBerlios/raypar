@@ -161,11 +161,8 @@ public:
                            CImageLinesInfo* p_image_lines_info,
                            CCameraInfo*  p_camera_info );
 
-  //If you need to operate with scene you have to block the access to it
-  CEnvironment* GetAndLockScene(void);
-
-  //When you finished your work you must free scene access
-  void UnlockScene(void);
+  //gives current scene
+  CEnvironment* GetScene(void);
 
   // return line number which the client should render.
   // negative means that there is nothing to render
@@ -193,15 +190,13 @@ protected:
   CServerSocket m_srv_sock;  //server socket - is used for Listen()
   CEvent m_stop_server_event; //signal means that all server threads must stop
 
-  CMutex m_scene_change_mutex; //lock this if work with the scene
   CCriticalSection m_lines_change_cs; //lock this if work with lines
                                
 
   int m_last_session_id;    //is used to generate unique session ids
   CLinesController m_lines;    //all the information about the lines is stored here
   CEnvironment& m_scene;        //current scene
-  bool m_bSceneCompleted;
-
+  
   CWnd* m_p_frame;    //we send some notification messages to this window
 
   friend CServerSocket;

@@ -158,43 +158,23 @@ int CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
   CEnvironment* p_scene = 0;
   
 
-  TRY{  //We should be very careful when we lock 
-        //access to the scene object
-    p_scene = p_srv_ctrl->GetAndLockScene();
-    int current_scene_uid = p_scene->GetSceneUID();
-    ASSERT( p_scene );
+  p_scene = p_srv_ctrl->GetScene();
+  int current_scene_uid = p_scene->GetSceneUID();
+  ASSERT( p_scene );
+  BOOL bNoSuchScene = FALSE;
 
-    BOOL bNoSuchScene = FALSE;
+  if (p_scene->GetSceneUID() != scene_uid ){
+    //Client sent unknown scene uid. We should terminate the connection
 
-    if (p_scene->GetSceneUID() != scene_uid ){
-      //We were asked for another scene!!!
-      //Probably scene changed recently
-      p_srv_ctrl->UnlockScene();
-
-      p_scene = 0;  //we set p_scene to zero because bNoSuchScene == TRUE will 
-           //will lead to sending to the client notification 
-           //that it should rerequest scene_uid, lines and camera information 
-           //(Client should send CMD_GET_FRAME_DATA again)
-      bNoSuchScene = TRUE;
-    }
+    ASSERT( 0 );
+    ErrorMessage("CL[%s]Wrong data requested by client. Terminating the connection"
+        , client_name);
+    return ERROR_MUST_TERMINATE;
+  }
     
-    CGetSceneData::A get_scene_A( current_session_id, bNoSuchScene, *p_scene);
-    ret = get_scene_A.write( arOut );
 
-    if( p_scene ) {  //Haven't we unlocked the scene yet?
-      p_srv_ctrl->UnlockScene();
-      p_scene = 0;  
-    }
-  }
-  CATCH_ALL( e )
-  {
-    if ( p_scene ) { //Haven't we unlocked the scene yet?
-      p_srv_ctrl->UnlockScene();
-      p_scene = 0;
-    }
-    THROW_LAST(); //we don't really wish to process this exception here
-  }
-  END_CATCH_ALL  
+  CGetSceneData::A get_scene_A( current_session_id, bNoSuchScene, *p_scene);
+  ret = get_scene_A.write( arOut );
 
   if ( ret ){
     ASSERT( 0 );

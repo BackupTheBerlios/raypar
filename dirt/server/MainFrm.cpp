@@ -45,12 +45,14 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_RUN, OnRun)
 	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)	
 	ON_WM_DESTROY()
-  ON_MESSAGE( WM_USER_ADD_LOG_MSG, OnUserAddLogMessage )
-  ON_MESSAGE( WM_SERVER_FINISHED_SCENE, OnServerFinishedScene )
-  ON_MESSAGE( WM_SERVER_LINE_RENDERED, OnServerLineRendered )
 	ON_COMMAND(ID_STOP, OnStop)
 	ON_UPDATE_COMMAND_UI(ID_STOP, OnUpdateStop)
 	ON_UPDATE_COMMAND_UI(ID_RUN, OnUpdateRun)
+	ON_UPDATE_COMMAND_UI(ID_OPEN_SCENE, OnUpdateOpenScene)
+  ON_MESSAGE( WM_USER_ADD_LOG_MSG, OnUserAddLogMessage )
+  ON_MESSAGE( WM_SERVER_FINISHED_SCENE, OnServerFinishedScene )
+  ON_MESSAGE( WM_SERVER_LINE_RENDERED, OnServerLineRendered )
+	ON_UPDATE_COMMAND_UI(ID_VIEW_OPTIONS, OnUpdateViewOptions)
 	//}}AFX_MSG_MAP
 	// Global help commands
 	ON_COMMAND(ID_HELP_FINDER, CFrameWnd::OnHelpFinder)
@@ -120,6 +122,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		TRACE0("Failed to create status bar\n");
 		return -1;      // fail to create
 	}
+
+  m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "");  
 
   if ( !m_log_wnd.Create(IDD_DIALOG_LOG, 0) ){
 		TRACE0("Failed to create log window\n");
@@ -219,10 +223,16 @@ void CMainFrame::OnRun()
     m_bitmap_lines = 0;
   }
 
-  m_srv_ctrl.StartServer( this, 8700, m_serverOptions.GetImageWidth()
+  int ret = m_srv_ctrl.StartServer( this, m_serverOptions.GetServerPort()
+                            , m_serverOptions.GetImageWidth()
                             , m_serverOptions.GetImageHeight() );
-  m_bServerStarted = true;
-  Message("Servers started on port '8700'");  
+  if ( !ret ){
+    m_bServerStarted = true;
+    Message("Servers started on port '%d'", m_serverOptions.GetServerPort());
+  }else{
+    ErrorMessage("Unable to start server!");
+  }
+  
 }
 
 extern FILE *yyin; //located in ray_lex.l.cpp    
@@ -310,6 +320,9 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
 //that the scene rendering was finished (it is sent once per scene)
 LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 {
+  m_srv_ctrl.StopServer();
+  m_bServerStarted = false;	
+  
   int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
 
   ASSERT( m_bitmap_lines == NULL );
@@ -345,11 +358,23 @@ void CMainFrame::OnStop()
 
 void CMainFrame::OnUpdateStop(CCmdUI* pCmdUI) 
 {
-	if ( !m_bServerStarted ) 
+	if ( !m_bServerStarted || m_scene.GetSceneUID() <= 0 )
     pCmdUI->Enable(FALSE);		
 }
 
 void CMainFrame::OnUpdateRun(CCmdUI* pCmdUI) 
+{
+	if ( m_bServerStarted || m_scene.GetSceneUID() <= 0 ) 
+    pCmdUI->Enable(FALSE);	
+}
+
+void CMainFrame::OnUpdateOpenScene(CCmdUI* pCmdUI) 
+{
+	if ( m_bServerStarted ) 
+    pCmdUI->Enable(FALSE);	
+}
+
+void CMainFrame::OnUpdateViewOptions(CCmdUI* pCmdUI) 
 {
 	if ( m_bServerStarted ) 
     pCmdUI->Enable(FALSE);	

@@ -38,13 +38,13 @@ void yyerror(const char* str_err)
 start : expr
 
 expr :
- |expr sphere 
  |expr light 
- |expr setambientcolor
+ |expr setambientcolor 
+ |expr sphere  
  |expr plane
  |expr box 
  |expr triangle
- |expr cylinder
+ |expr cylinder 
  ;
 
 
@@ -54,11 +54,19 @@ sphere : IDSPHERE '(' VECTOR  dlm REAL dlm VECTOR ')' ';'
  }
 ;
 
+sphere : IDSPHERE '(' VECTOR  dlm REAL dlm VECTOR dlm REAL dlm REAL dlm REAL dlm REAL')' ';' 
+ {    
+    glb_scene_builder->AddSphere( $3, $5, $7,     $9, $11, $13, $15 );  
+ }
+;
+
+
 light : IDLIGHT '(' VECTOR dlm  VECTOR ')' ';' 
  {    
     glb_scene_builder->AddLight( $3.GetVector(), $5.GetVector() );  
  }
 ;
+
 
 setambientcolor: IDSETAMBIENTCOLOR '(' VECTOR  ')' ';' 
  {    
@@ -72,22 +80,50 @@ plane : IDPLANE '(' VECTOR  dlm REAL dlm VECTOR ')' ';'
  }
 ;
 
+plane : IDPLANE '(' VECTOR  dlm REAL dlm VECTOR dlm REAL dlm REAL dlm REAL dlm REAL ')' ';' 
+ {    
+    glb_scene_builder->AddPlane( $3,$5,$7,  $9,$11,$13,$15 );  
+ }
+;
+
+
+
 box : IDBOX '(' VECTOR dlm VECTOR dlm VECTOR dlm VECTOR dlm VECTOR ')' ';'
  {
     glb_scene_builder->AddBox( $3, $5, $7, $9, $11 );
  }
 ;
 
+box : IDBOX '(' VECTOR dlm VECTOR dlm VECTOR dlm VECTOR dlm VECTOR dlm REAL dlm REAL dlm REAL dlm REAL')' ';'
+ {
+    glb_scene_builder->AddBox( $3,$5,$7,$9,$11,  $13,$15,$17,$19 );
+ }
+;
+
+
 triangle : IDTRIANGLE '(' VECTOR dlm VECTOR dlm VECTOR dlm VECTOR ')' ';'
  {
     glb_scene_builder->AddTriangle( $3, $5, $7, $9 );
  }
+;
+
+triangle : IDTRIANGLE '(' VECTOR dlm VECTOR dlm VECTOR dlm VECTOR dlm REAL dlm REAL dlm REAL dlm REAL')' ';'
+ {
+    glb_scene_builder->AddTriangle( $3,$5,$7,$9,   $11,$13,$15,$17);
+ }
+;
 
 cylinder : IDCYLINDER '(' VECTOR dlm VECTOR dlm REAL dlm REAL dlm VECTOR ')' ';'
  {
-    glb_scene_builder->AddCylinder( $3, $5, $7, $9, $11 );
+    glb_scene_builder->AddCylinder( $3,$5,$7,$9,$11 );
  } 
- 
+;
+
+cylinder : IDCYLINDER '(' VECTOR dlm VECTOR dlm REAL dlm REAL dlm VECTOR dlm REAL dlm REAL dlm REAL dlm REAL')' ';'
+ {
+    glb_scene_builder->AddCylinder( $3,$5,$7,$9,$11,  $13,$15,$17,$19 );
+ } 
+; 
 
 VECTOR : '[' REAL dlm REAL dlm REAL ']'
  {
