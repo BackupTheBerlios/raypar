@@ -8,18 +8,25 @@
 //*********************************************************
 // COMMENT by Tonic, on 12/11/2003
 // initial revision, implemented data-centric properties only
-//
+//*********************************************************
+// REVISION by Tonic, on 14/11/2003
+// Comments:	Adding functionality to Solid (virtual intersect, reflect methods), 
+//				Environment( intersect ), defined INFINITY
 //*********************************************************
 // REVISION by KIRILL, on 1/9/2004 03:10:10
 // Comments: I've modified header a little. My macroses are stupid 
 // and don't understand your (TONIC's) idea of header formating :)
-//
+//*********************************************************
+// REVISION by Tonic, on 12/01/2004
+// Comments:	Added getters and setters for Ray, Light
+//				components, getter for Enviroment light sources
+//				Added CVector position to Light, modified constructors
+//				Added Ray constructor without parameters
 //*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
 //*********************************************************
-
 
 #include "common/vector.h"
 
@@ -28,6 +35,15 @@
 #define	MAX_LIGHTS	10
 #define	MAX_SOLIDS	100
 
+//geometry-related parameters
+#define	INFINITY	30000 //maximal distance
+
+struct	Medium				// main properties of the medium
+{
+	double	nRefr;			// refraction coefficient
+	double	Betta;			// attenuation coefficient
+}; 
+
 class	Ray
 {
 private:
@@ -35,30 +51,54 @@ private:
 	CVector	origin;
 	// direction must be normalized
 	CVector	direction;
-
+	
 public:
+	
+	Ray ( CVector *origin, CVector *direction );
+	Ray(void)
+	{	
+		origin.x = 0;
+		origin.y = 0;
+		origin.z = 0;
+		direction.x = 1;
+		direction.y= 1;
+		direction.z= 1;
+	}
 
-	Ray ( CVector *origin, CVector *direction ); 
+	//in getters one must provide a pointer to the place
+	//where a copy of a private member will be written
+	void getOrigin(CVector *origin);
+	void getDirection(CVector *direction);
+	
+	void setOrigin(CVector *origin);
+	void setDirection(CVector *direction);
+	
 };
 
 
 //interface for a geometric object
 class	Solid
 {
+public:
+	virtual Solid * Intersect( Ray *ray, double *distance);
+	virtual void reflect(Ray *falling, Ray *reflected);
 }; 
 
 class	Light			// model of an abstract light source
 {
 	//RGB brightness, each component in [0;1]
 	CVector color;
-
+	CVector position;	
 public:
 	
 	Light(); //default constructor initialized to white
-	Light(double r, double g, double b);
-	Light(CVector *color);
+	Light(double r, double g, double b, double x, double y, double z);
+	Light(CVector *color, CVector *position);
 
-	virtual	~Light() {};	// force virtual destructor in all descendants
+	void getPosition(CVector *position);
+	void setPosition(CVector *position);
+	void getColor(CVector *color);
+	void setColor(CVector *color);
 };
 
 class	Environment
@@ -77,7 +117,12 @@ public:
 	
 	void	Add ( Light *light );
 	void	Add ( Solid *solid );
+
+	int		getLightsCount(void)
+	{ return lightsCount; };
+
+	void getLightByNumber(int number, Light *light);
 	
 	//returns first intersected object and distance from ray origin point
-	Solid		*Intersect ( Ray *ray, double *t );
+	Solid *	Intersect ( Ray *ray, double *t );
 };

@@ -117,6 +117,11 @@ SOURCE=..\COMMON\msg.cpp
 # End Source File
 # Begin Source File
 
+
+SOURCE=.\simpleTracer.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\common\protocol.cpp
 # End Source File
 # Begin Source File
@@ -170,7 +175,15 @@ SOURCE=.\Resource.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\simpleTracer.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\trace.h
 # End Source File
 # Begin Source File
 

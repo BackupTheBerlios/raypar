@@ -15,5 +15,10 @@
 // Comments: MOVED to COMMON 
 //
 //***********************************
+// REVISION by Tonic on 11/01/2004
+// Comments: Added Normalize() method
+//
+//***********************************
+
 
 #error MOVED to COMMON
