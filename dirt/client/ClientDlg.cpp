@@ -225,8 +225,8 @@ void CClientDlg::OnButtonTest()
   CVector			sphereCenter(0,0,5), sphereCenter2(1,0,5), red(1,0,0), green(0,1,0), white(1,1,1);
   //CColorSphere	solidObject(sphereCenter, 2,white, );
   //CColorSphere	solidObject2(sphereCenter2, 2,white);
-  //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
-  CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),0.01,2,true,0.0,1,0.5);
+  CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
+  //CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),0.01,2,true,0.0,1,0.5);
   CVector			a(-1, -2, 2.5), b(1,-2,2.5), c(0,1,2.5);
   CTriangle		solidObject3(a,b,c, CVector(1,1,1));
   CLight			lightSource( 1.0, 1.0, 1.0, 0, 0, 8);
@@ -236,8 +236,8 @@ void CClientDlg::OnButtonTest()
   CLight            lightSource5(1.0,0,0, 0,0,0); 
   CVector		origin(0,0,0), zAxis(0,0,1), yAxis(0,1,0);
   CCamera	  camera( origin, zAxis, yAxis, imgWidth,imgHeight );
-  //  CImage    image;
-  //  image.Create( imgWidth, imgHeight, 24);
+//    CImage    image;
+ //   image.Create( imgWidth, imgHeight, 24);
   
   Ray				rayToTrace(CVector(0,0,0), CVector(0,0,1));
   SimpleTracer	tracer;
@@ -249,11 +249,11 @@ void CClientDlg::OnButtonTest()
   camera.Yaw(-0.5);
   camera.Shift(-2);
   //camera.Move(2);
-  //scene.Add( &solidObject );
-  scene.Add( &solidObject2 );
+  scene.Add( &solidObject );
+  //scene.Add( &solidObject2 );
   //scene.Add( &solidObject3 );
-  scene.Add( &lightSource );
-  scene.Add( &lightSource2 );
+    scene.Add( &lightSource );
+    scene.Add( &lightSource2 );
   //  scene.Add( &lightSource3 );
   scene.Add( &lightSource4 );
   scene.Add( &lightSource5 );
@@ -277,7 +277,7 @@ void CClientDlg::OnButtonTest()
     
     CTestDialog test_dlg( imgWidth, imgHeight, img);
     test_dlg.DoModal();
-    //image.Save("out.bmp");
+//    image.Save("out.bmp");
     delete[] img;
 };
 
