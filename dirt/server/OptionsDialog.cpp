@@ -79,6 +79,11 @@ END_MESSAGE_MAP()
 void COptionsDialog::OnOK() 
 {
   int ret = UpdateData(TRUE);
+
+
+  if((m_fileName.GetAt(m_fileName.GetLength()-1)) != '\\')
+    m_fileName+="\\"; 
+  
   
   if ( ret ){
     //correct data were entered

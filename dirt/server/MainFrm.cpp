@@ -315,12 +315,15 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
     //save result in BMP file if needed
   if(m_serverOptions.DoSaveFile())
   {
+    int number=1;  //!!!TEMPORARY
+    char tempbuf[20];
     HANDLE hf;                 // file handle 
     BITMAPINFOHEADER bmih;
     BITMAPFILEHEADER hdr;       // bitmap file-header
     DWORD dwTmp;
     DWORD dwTotal;              // total count of bytes 
     DWORD cb;                   // incremental count of bytes
+    CString filename;
 
 
     bmih.biSize = sizeof(BITMAPINFOHEADER);
@@ -337,8 +340,10 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 
 
 
-        // Create the .BMP file. 
-    hf = CreateFile(m_serverOptions.GetFileName(), 
+        // Create the .BMP file.
+    filename = "c:\\"+m_serverOptions.GetFileName()+"rendered_"+itoa(number,tempbuf,10)+".bmp";
+    filename = "debug1\\1.bmp";
+    hf = CreateFile(filename, 
                      GENERIC_READ | GENERIC_WRITE, 
                      (DWORD) 0, 
                       NULL, 
@@ -346,7 +351,7 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
                      FILE_ATTRIBUTE_NORMAL, 
                      (HANDLE) NULL); 
     if (hf == INVALID_HANDLE_VALUE) 
-        ErrorMessage("Error creating file");
+        ErrorMessage("Error saving bitmap");
     hdr.bfType = 0x4d42;        // 0x42 = "B" 0x4d = "M" 
     // Compute the size of the entire file. 
     hdr.bfSize = (DWORD) (sizeof(BITMAPFILEHEADER) + 
@@ -364,27 +369,27 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
     if (!WriteFile(hf, (LPVOID) &hdr, sizeof(BITMAPFILEHEADER), 
         (LPDWORD) &dwTmp,  NULL)) 
     {
-       ErrorMessage("Error writing BITMAPFILEHEADER into file");
+       ErrorMessage("Error saving bitmap");
     }
     // Copy the BITMAPINFOHEADER and RGBQUAD array into the file. 
     if (!WriteFile(hf, (LPVOID) &(bmih), sizeof(BITMAPINFOHEADER) 
                     + bmih.biClrUsed * sizeof (RGBQUAD), 
                     (LPDWORD) &dwTmp, ( NULL)))
     {
-       ErrorMessage("Error writing BITMAPINFOHEADER and RGBQUAD array into file");
+       ErrorMessage("Error saving bitmap");
     }
 
     // Copy the array of color indices into the .BMP file. 
     dwTotal = cb = bmih.biSizeImage; 
     if (!WriteFile(hf, (LPSTR) bitmap_lines, (int) cb, (LPDWORD) &dwTmp,NULL))
     {
-      ErrorMessage("Error writing Image into file");
+      ErrorMessage("Error saving bitmap");
     }
 
     // Close the .BMP file. 
     if (!CloseHandle(hf)) 
     {
-      ErrorMessage("Error closing file");
+      ErrorMessage("Error saving bitmap");
     }
   }
 
