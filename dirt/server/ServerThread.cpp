@@ -545,6 +545,9 @@ UINT ServerThreadFunction( void* param )
       return ERROR_RETURN;
     }
 
+    BOOL bReuseAddr = 1;
+    cl_sock.SetSockOpt(SO_REUSEADDR, &bReuseAddr, 4); //because of TIME_WAIT
+    
     CString sock_name;
     UINT sock_port;
     ret = cl_sock.GetPeerName(sock_name, sock_port);
@@ -604,6 +607,11 @@ UINT ServerThreadFunction( void* param )
                 bEnd = true;
             break;
           }
+        case CMD_CLOSE_CONNECTION:
+          {
+            bEnd = true;
+            break;
+          }
         default:{
             ASSERT(0);
             ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );
@@ -611,6 +619,7 @@ UINT ServerThreadFunction( void* param )
           }
       }
     }
+    cl_sock.ShutDown(2);
     cl_sock.Close();
     p_srv_ctrl->FinishedReadingScene();    
   }

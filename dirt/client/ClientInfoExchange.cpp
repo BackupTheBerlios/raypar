@@ -129,6 +129,8 @@ int ClientInfoExchange(int rendereded_line_number, COLORREF* line_data
       return CIE_COMMUNICATION_ERROR;    
   }
 
+  arOut << CMD_CLOSE_CONNECTION; //notify server that connection should be closed
+
   return CIE_NORMAL_RENDER_RETURN; //0
 }
 

@@ -440,6 +440,7 @@ void CClientDlg::DoCommunications(void)
 
     if (!res){      
       CString err_text = GetErrorMessageByErrorCode();
+
       if (m_b_standalone) 
         ErrorMessage("%s", err_text);
       else
@@ -453,6 +454,9 @@ void CClientDlg::DoCommunications(void)
         else
           ErrorMessageWithBox( err_text );
       }else{           
+        BOOL bReuseAddr = 1;
+        socket.SetSockOpt(SO_REUSEADDR, &bReuseAddr, 4); //because of TIME_WAIT
+
         int new_line_to_render;
         int ret = ClientInfoExchange(m_line_to_render, m_line_data
              , socket, m_scene, m_camera, new_line_to_render );
@@ -462,6 +466,8 @@ void CClientDlg::DoCommunications(void)
         }
         m_line_to_render = new_line_to_render;
           
+
+        socket.ShutDown(2);
         socket.Close();
         if ( ret == CIE_NORMAL_RENDER_RETURN ){
           ASSERT( m_line_to_render >=0 );

@@ -305,10 +305,6 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
 //that the scene rendering was finished (it is sent once per scene)
 LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 {
-  static int count = 0;  //temp!!!
-  count++;
-
-  afxDump << "OnServerFinishedScene()\n";
 
   void* bitmap_lines = m_srv_ctrl.BuildBitmapBits();
   m_wndView.SetBitmapParams( m_srv_ctrl.GetWidth()
@@ -316,12 +312,11 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
   delete[] bitmap_lines;
 
   int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
-  if ( count > 1 ){
+  if ( 1 ){
     m_srv_ctrl.StopServer();
     m_bServerStarted = false;	    
   }else{
-    //temp
-    m_camera.SetEyePoint( CVector(0, 0, count/10.0) );
+    //temp    
     m_srv_ctrl.SetNewScene(&m_scene, &m_camera);    
   }
 
