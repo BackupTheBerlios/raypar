@@ -1,3 +1,5 @@
+#error NOT USED       //KIRILL 
+
 //*********************************************************
 //** SceneBuilder.h **
 // Created By: KIRILL
@@ -5,6 +7,10 @@
 // Comments: interface for the CSceneBuilder class.
 //  This is an abstract class which supports scene loading
 //  You have to use its server or client realization
+//
+//*********************************************************
+// REVISION by KIRILL, on 1/29/2004 18:40:31
+// Comments: NOT USED
 //
 //*********************************************************
 // REVISION by ..., on ...

@@ -29,6 +29,8 @@
 #include "ServerThread.h"
 #include "Options.h"
 #include "OptionsDialog.h"
+#include "CLIENT/environment.h"
+#include "ServerSceneBuilder.h"
 
 //We use this windows message and user code  in order to send 
 //information to the main thread. 
@@ -80,7 +82,13 @@ protected:  // control bar embedded members
 	CToolBar    m_wndToolBar;
 	CChildView  m_wndView;
   CLogWnd     m_log_wnd;
-  CWindowSettings* m_settings;
+
+  CWindowSettings m_settings;
+  CEnvironment m_scene;
+  CServerSceneBuilder m_scene_builder;
+  int m_last_scene_uid;
+
+  int GetNewSceneUID(void) { return ++m_last_scene_uid; }
 
 // Generated message map functions
 protected:
@@ -94,7 +102,6 @@ protected:
 	afx_msg void OnViewOptions();
 	afx_msg void OnRun();
 	afx_msg void OnOpenScene();
-	afx_msg void OnOpenCamera();
 	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()

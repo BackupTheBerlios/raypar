@@ -43,7 +43,7 @@ public:
 
 // Implementation
 protected:
-  CWindowSettings *m_settings;
+  CWindowSettings m_settings;
   
 	// Generated message map functions
 	//{{AFX_MSG(CLogWnd)

@@ -26,7 +26,9 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-
+///////////////////////////////////////////////////////////
+// this gloabal variable is used tby lexer/parser
+CServerSceneBuilder* glb_scene_builder;
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
@@ -41,8 +43,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_VIEW_LOGWINDOW, OnViewLogwindow)
 	ON_COMMAND(ID_VIEW_OPTIONS, OnViewOptions)
 	ON_COMMAND(ID_RUN, OnRun)
-	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)
-	ON_COMMAND(ID_OPEN_CAMERA, OnOpenCamera)
+	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)	
 	ON_WM_DESTROY()
   ON_MESSAGE( WM_USER_ADD_LOG_MSG, OnUserAddLogMessage )
 	//}}AFX_MSG_MAP
@@ -65,15 +66,22 @@ static UINT indicators[] =
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame()
-{
-	// TODO: add member initialization code here
-  m_settings = new CWindowSettings(mainFrameSection
-                             , MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
-                             , MAINFRAME_DEFAULT_WIDTH, MAINFRAME_DEFAULT_HEIGHT);
+: m_scene_builder( m_scene )
+, m_srv_ctrl( m_scene )
+, m_settings(mainFrameSection, MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
+                             , MAINFRAME_DEFAULT_WIDTH, MAINFRAME_DEFAULT_HEIGHT)
+
+{	
+  m_last_scene_uid = 1; //zero scene uid means that scene wasn't loaded
+  m_scene.SetSceneUID( 0 ); 
+  glb_scene_builder = &m_scene_builder;
+	m_settings.SetSection(mainFrameSection);
+  
 }
 
 CMainFrame::~CMainFrame()
 {
+  glb_scene_builder = 0;
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -114,12 +122,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
   m_log_wnd.ShowWindow( SW_NORMAL );
 
   //Loading info from reg on create
-  m_settings->GetDataFromReg();
+  m_settings.GetDataFromReg();
   int x,y,cx,cy;
-  x = m_settings->GetX();
-  y = m_settings->GetY();
-  cx = m_settings->GetCx();
-  cy = m_settings->GetCy();
+  x = m_settings.GetX();
+  y = m_settings.GetY();
+  cx = m_settings.GetCx();
+  cy = m_settings.GetCy();
 
   SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
 
@@ -208,21 +216,42 @@ extern int yyparse(void);
 
 void CMainFrame::OnOpenScene() 
 {
-  yyin = fopen( "E:\\scene.txt", "r");
-  ASSERT( yyin );
-  int ret = yyparse();
-  if ( ret != 0 ){
-    ErrorMessage( "yyparse returned error '%d'", ret );
+//  OPENFILENAME ofn = {sizeof(ofn)};
+//  ofn.hwndOwner = *this;
+//  ofn.lpstrFilter = "*.sc";
+//  char file_name[MAX_PATH];
+//  file_name[0] = 0;
+//  ofn.lpstrFile = file_name;
+//  ofn.nMaxFile = MAX_PATH;
+//  ofn.lpstrTitle = "Open scene file..."
+//  BOOL ret = GetOpenFileName( ofn );
+
+  CFileDialog ofd( TRUE, 0, 0, 0, "Scene Files (*.sc)|*.sc|All Files (*.*)", this);
+  int ret = ofd.DoModal();
+
+  if ( ret == IDOK ){
+    m_scene.Empty(); //we clean the scene
+    m_scene.SetSceneUID(0); //and set it uid to 0 - that means that the scene isn't loaded
+
+    yyin = fopen( ofd.GetPathName(), "r");
+    ASSERT( yyin );
+    int ret = yyparse();
+    if ( ret != 0 ){
+      ErrorMessage( "yyparse returned error '%d'", ret );
+      m_scene.Empty();
+    }else{    
+      m_scene.SetSceneUID(GetNewSceneUID());
+      ASSERT( m_scene.IsValid() );
+    }
+    
+    fclose(yyin);
+    yyin = 0;
+  }else{
+    //error occurred or Cancel was pressed
+    int err = CommDlgExtendedError();
+    if (err)
+      ErrorMessage("Error open Dialog box - %d ", err);
   }
-  fclose(yyin);
-  yyin = 0;
-}
-
-void CMainFrame::OnOpenCamera() 
-{
-  ErrorMessageWithBox("There is no realization yet");
-  // TODO: Add your command handler code here
-
 }
 
 void CMainFrame::OnDestroy() 
@@ -230,12 +259,12 @@ void CMainFrame::OnDestroy()
   CRect rect;
   GetWindowRect(rect);
   
-  m_settings->SetX(rect.left);
-  m_settings->SetY(rect.top);
-  m_settings->SetCx(rect.right - rect.left);
-  m_settings->SetCy(rect.bottom - rect.top);
+  m_settings.SetX(rect.left);
+  m_settings.SetY(rect.top);
+  m_settings.SetCx(rect.right - rect.left);
+  m_settings.SetCy(rect.bottom - rect.top);
   
-  m_settings->SaveDataToReg();
+  m_settings.SaveDataToReg();
 	CFrameWnd::OnDestroy();
   m_log_box.Detach();	
 }

@@ -44,7 +44,7 @@ expr :
 
 sphere : IDSPHERE '(' vector ','  REAL ',' vector ')' ';' 
  {    
-    glb_scene_builder->AddSphere( $3.GetVector(), $5.GetDouble(), $3.GetVector() );  
+    glb_scene_builder->AddSphere( $3.GetVector(), $5.GetDouble(), $7.GetVector() );  
  }
 ;
 

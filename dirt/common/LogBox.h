@@ -30,7 +30,7 @@
 
 
 
-class CLogBox : protected CListBox
+class CLogBox : public CListBox
 {
 // Construction
 public:
