@@ -47,6 +47,9 @@
 // REVISION by Vader, on 1/26/2004 
 // Comments: IsValid() added for CBox and CPlane
 //*********************************************************
+// REVISION by Tonic, on 01/29/2004
+// Comments: Modified CPlane, CTriangle constructors to support transparency
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -81,7 +84,8 @@ public:
             , double radius, const CVector &color, double Betta = 0.0
             , double nRefr = 1.0 , bool isTransparent = false 
             , double outerBetta = 0.0, double outerRefr = 1.0
-            , double reflectionCoefficient = 1.0);
+            , double reflectionCoefficient = 1.0
+            , double smoothness = 1.0);
   
   void SetPosition( const CVector &position);
   void SetRadius(double radius);
@@ -91,13 +95,13 @@ public:
 
   virtual int Intersect(  const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
-  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
 };
 
 ///////////////////////////////////////////////////////////////////
 // CPlane 
 
-class CPlane : public CSolid
+  class CPlane : public CSolid
 {
   CVector m_n;    // Plane is defined by equation
   double m_D;    // (n,r) + D = 0;   |n| = 1 !!!
@@ -106,9 +110,11 @@ class CPlane : public CSolid
 public:
   CPlane();
   CPlane( const CVector &n, double D, const CVector color,
-          double reflectionCoefficient, double smoothness);
+               double reflectionCoefficient = 1.0, double smoothness = 1.0, 
+               bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0);
   CPlane(double a, double b, double c, double d, const CVector color,
-         double reflectionCoefficient, double smoothness); // for   ax + by + cz + d = 0
+               double reflectionCoefficient = 1.0, double smoothness = 1.0, 
+               bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0); // for   ax + by + cz + d = 0
   
   void SetPosition( const CVector &n, double D);
   void SetPosition(double a, double b, double c, double d);
@@ -163,7 +169,7 @@ public:
      //returns 0 if there is no intersection
 
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
-  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
   
   //this method checks whether the plane is correctly defined
   //1) sides m_e[i] should be nonzero and orthogonal
@@ -191,7 +197,8 @@ private:
     
 public:
   CTriangle(const CVector &a, const CVector &b
-            , const CVector &c, const CVector &color);
+            , const CVector &c, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, 
+               bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0);
   
   virtual int  Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect  ( const Ray &falling, Ray &reflected) const;
@@ -224,7 +231,7 @@ public:
   CCylinder( Ray &axis, double length, double radius, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0, double outerRefr = 1.0 );
   virtual int Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
-  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
+  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
 
   virtual int  IsValid(void) const;
 };

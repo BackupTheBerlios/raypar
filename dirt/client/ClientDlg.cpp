@@ -221,7 +221,7 @@ void CClientDlg::OnButtonTest()
   ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
   COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
 
-  Environment		scene;
+  CEnvironment		scene;
   scene.SetAmbientColor( CVector(0.0,0.0,0.0) );
 
   CVector			sphereCenter(0,0,2), sphereCenter2(1,0,5), red(1,0,0), green(0,1,0), white(1,1,1);
@@ -232,8 +232,8 @@ void CClientDlg::OnButtonTest()
   //CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
   //            CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
 
-  CVector			a(-1, -2, 2.5), b(1,-2,2.5), c(0,1,2.5);
-  //CTriangle		solidObject3(a,b,c, CVector(1,1,1));
+  CVector			a(-1, -2, 0.5), b(1,-2,0.5), c(0,1,0.5);
+  CTriangle		solidObject3( a, b, c, red, 0.1, 1.0, true);
   Ray         axis( CVector(0,-1,3), CVector(0,1,0) );
   CCylinder   cylinder( axis, 2, 1, CVector(1.0, 0.8, 0.0), 0.5, 1.0, true, 0.0, 2.0, 0.0, 1.0 );
   CLight			lightSource( 1.0, 1.0, 1.0, 0, 0, 4);
@@ -261,7 +261,7 @@ void CClientDlg::OnButtonTest()
   //scene.Add( &solidObject );
   //solidObject.SetSmoothness( 10 );
   //scene.Add( &solidObject2 );
-  //scene.Add( &solidObject3 );
+  scene.Add( &solidObject3 );
   scene.Add( &cylinder );
   //scene.Add( &lightSource );
   scene.Add( &lightSource2 );

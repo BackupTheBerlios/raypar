@@ -51,6 +51,9 @@
 // REVISION by KIRILL, on 1/28/2004 17:18:43
 // Comments: Environment renamed to CEnvironment
 //*********************************************************
+// REVISION by Tonic, on 1/29/2004
+// Comments: Added default refraction function to CSolid
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -140,6 +143,12 @@ void CSolid::GetColor( const Ray &falling, CVector &color) const
 
 int CSolid::IsValid(void) const
 {
+  if ( !geq(medium.Betta,0) )
+    return 0;
+  
+  if ( !geq(medium.nRefr,0) )
+    return 0;
+  
   if( leq(m_smoothness,0) )
     return 0;
   
@@ -148,9 +157,31 @@ int CSolid::IsValid(void) const
   
   if( !m_color.IsNormalized() )
     return 0;
-
+  
   return 1;
 };
+
+void CSolid::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const 
+{
+  outside = true;
+  CVector vector;
+  falling.getDirection( vector );
+  refracted.setDirection( vector );
+  refractedMedium.Betta = medium.Betta;
+  refractedMedium.nRefr = medium.nRefr;
+  
+  double distance = INFINITY;
+  
+  if( Intersect( falling, distance ) )
+  {
+    falling.getPoint( distance, vector);
+  }
+  else
+    falling.getOrigin( vector );
+  
+  refracted.setOrigin( vector );
+};
+
 ///////////////////////////////////////////////////////////
 // CLight     - model of an abstract light source
 ///////////////////////////////////////////////////////////
@@ -365,7 +396,6 @@ int CEnvironment::read (CArchive& ar)
   
   return 0;
 }
-
 
 ///////////////////////////////////////////////////////////
 //CCamera    - this class is fully responsible for transformation

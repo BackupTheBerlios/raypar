@@ -60,4 +60,4 @@ AFX_HIDP_FAILED_TO_AUTO_REGISTER  = AFX_HIDP_default
 
 [MAP]
 #include <client.hm>
-#include <D:\Program Files\Microsoft Visual Studio\VC98\MFC\include\afxhelp.hm>
+#include <MFC\include\afxhelp.hm>

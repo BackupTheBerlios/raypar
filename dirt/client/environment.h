@@ -78,6 +78,9 @@
 // REVISION by KIRILL, on 1/28/2004 17:18:43
 // Comments: Environment renamed to CEnvironment
 //*********************************************************
+// REVISION by Tonic, on 1/29/2004
+// Comments: Added default refraction function to CSolid
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -111,7 +114,7 @@ class	Ray
 public:
   
   Ray ( const CVector &origin,  const CVector &direction );
-
+  
   Ray() 
     : m_origin(0,0,0)
     , m_direction(0,0,0) 
@@ -128,9 +131,9 @@ public:
   
   void setOrigin( const CVector &origin);
   void setDirection( const CVector &direction);
-
+  
   void operator = (const Ray& r);  
-
+  
 protected:
   int  operator == (const Ray&) const; //declared, but not defined
 };
@@ -143,85 +146,83 @@ class	CSolid
 private:
   double m_smoothness, m_reflectionCoefficient;
   CVector m_color;
-
-protected:
+  Medium medium;  
   bool m_isTransparent;
-
+  
 public:
-  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0 ) :
+  CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0, bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 ) :
       m_color(0,0,0)
-  {
-    m_reflectionCoefficient =  reflectionCoefficient;
-    m_smoothness = smoothness;
-    m_isTransparent = false;
-
-    ASSERT( IsValid() );
-  };
-
-  // ?K?  No comment!!! What does this do with its perameters?
-  virtual int Intersect( const Ray &ray, double &distance) const = 0;
-
-  // ?K?  No comment!!! What does this do with its perameters?
-  virtual void Reflect( const Ray &falling, Ray &reflected) const = 0;
-
-  //do nothing by default as Solid is by default opaque 
-  // ?K?  What does this do with its perameters?
-  virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const 
-  {}  //?K?  must be = 0;
-  
-  //returns the color of the point, in which given ray
-  //intersects the solid
-  //by default (in this class) always returns white
-  //can be redefined returning to check whether there is actually
-  //an intersection, to support colored and textured objects
-  virtual void GetColor( const Ray &falling, CVector &color) const;
-  
-  //the refractable object may be opaque
-  //which is a default value
-  //if we change this, we should redefine
-  //Refract and GetInnerMedium functions
-  virtual bool IsTransparent(void) const
-  {
-    return m_isTransparent;
-  };
-  
-  virtual double GetReflectionCoefficient(void) const
-  {
-    return m_reflectionCoefficient;
-  };
-
-  virtual void SetReflectionCoefficient(double reflectionCoefficient)
-  {
-    //do not touch ">=" here!!
-    //reflectionCoefficient CANNOT be negative, even if
-    //its absolute value is very small
-    ASSERT( (reflectionCoefficient >= 0) && !(reflectionCoefficient > 1.0) );
-    m_reflectionCoefficient = reflectionCoefficient;
-  };
-
-  //smoothness is the exponent of the cosine of
-  //angle between normale direction and light direction
-  //in computing the lighting. The more id the smoothness
-  //the more focused spot is left by a light source
-  //see SimpleTracer::ProcessLights for usage
-  virtual double GetSmoothness(void) const
-  {
-    return m_smoothness;
-  };
-
-  virtual void SetSmoothness(double smoothness )
-  {
-    ASSERT( smoothness > VECTOR_EQUAL_EPS );
-    m_smoothness = smoothness;
-  };
- 
-   virtual void SetColor( const CVector &color )
-   {
-     ASSERT( color.IsNormalized() );
-     m_color = color;
-   };
-
-  virtual int IsValid(void) const;
+      {
+        m_reflectionCoefficient =  reflectionCoefficient;
+        m_smoothness = smoothness;
+        m_isTransparent = isTransparent;
+        medium.Betta = Betta;
+        medium.nRefr = nRefr;
+        
+        ASSERT( IsValid() );
+      };
+      
+      // ?K?  No comment!!! What does this do with its perameters?
+      virtual int Intersect( const Ray &ray, double &distance) const = 0;
+      
+      // ?K?  No comment!!! What does this do with its perameters?
+      virtual void Reflect( const Ray &falling, Ray &reflected) const = 0;
+      
+      virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium, bool &outside) const;
+      
+      //returns the color of the point, in which given ray
+      //intersects the solid
+      //by default (in this class) always returns white
+      //can be redefined returning to check whether there is actually
+      //an intersection, to support colored and textured objects
+      virtual void GetColor( const Ray &falling, CVector &color) const;
+      
+      //the refractable object may be opaque
+      //which is a default value
+      //if we change this, we should redefine
+      //Refract and GetInnerMedium functions
+      virtual bool IsTransparent(void) const
+      {
+        return m_isTransparent;
+      };
+      
+      virtual double GetReflectionCoefficient(void) const
+      {
+        return m_reflectionCoefficient;
+      };
+      
+      virtual void SetReflectionCoefficient(double reflectionCoefficient)
+      {
+        //do not touch ">=" here!!
+        //reflectionCoefficient CANNOT be negative, even if
+        //its absolute value is very small
+        ASSERT( (reflectionCoefficient >= 0) && !(reflectionCoefficient > 1.0) );
+        m_reflectionCoefficient = reflectionCoefficient;
+      };
+      
+      //smoothness is the exponent of the cosine of
+      //angle between normale direction and light direction
+      //in computing the lighting. The more id the smoothness
+      //the more focused spot is left by a light source
+      //see SimpleTracer::ProcessLights for usage
+      virtual double GetSmoothness(void) const
+      {
+        return m_smoothness;
+      };
+      
+      virtual void SetSmoothness(double smoothness )
+      {
+        ASSERT( smoothness > VECTOR_EQUAL_EPS );
+        m_smoothness = smoothness;
+      };
+      
+      virtual void SetColor( const CVector &color )
+      {
+        ASSERT( color.IsNormalized() );
+        m_color = color;
+      };
+      
+      virtual int IsValid(void) const;
 }; 
 
 ///////////////////////////////////////////////////////////
@@ -240,13 +241,13 @@ public:
   
   void getPosition(CVector &position) const ;
   void setPosition(const CVector &position);
-
+  
   void getColor(CVector &color) const;
   void setColor(const CVector &color);
-
+  
   //nonzero if the object has valid parameters, zero otherwise
   int IsValid(void) const;
-
+  
   //storing and loading routines. Nonzero if received invalid values.
   //this may throw communication exceptions.
   int write(CArchive& ar) const;
@@ -280,9 +281,9 @@ public:
   
   //returns first intersected object and distance from ray origin point
   CSolid *	Intersect ( const Ray &ray, double &t ) const;
-
+  
   int IsValid(void) const;
-
+  
   int write(CArchive& ar) const;
   int read (CArchive& ar);
 };
@@ -353,11 +354,11 @@ public:
   virtual void SetHeight(int height);
   virtual void SetHorizontalAngle(double horizontalAngle);
   virtual void SetVerticalAngle(double verticalAngle);
-
+  
 protected:
   //called when view direction
   //or top direction are updated
   void UpdateHorizontalDir(void);
-
+  
 };
 #endif // CLIENT_ENVIRONMENT_H_INCLUDED

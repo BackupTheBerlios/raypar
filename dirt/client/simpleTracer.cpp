@@ -33,6 +33,9 @@
 // REVISION by Tonic, on 01/28/2004
 // Comments: Added background color support to SimpleTracer
 //*********************************************************
+// REVISION by Tonic, on 01/29/2004
+// Comments: Added transparency support for flat objects
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
@@ -177,17 +180,18 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
       if( nearestObject->IsTransparent() )
       {
         Ray refracted;
-        
+        bool newOutside;
+
         Medium newMedium;
         CVector refractedDir, color(0,0,0);
-        nearestObject->Refract( ray, refracted, newMedium);
+        nearestObject->Refract( ray, refracted, newMedium, newOutside);
         refracted.getDirection( refractedDir );
 
         if( refractedDir*normalDir < 0)
         {
           //no full inner reflection
           
-          if( !outside )
+          if( newOutside )
           {
             //compute the light in the refracted ray origin point
             normalDir *= -1;
@@ -199,7 +203,7 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
           };
           
           refracted.setOrigin( normalPos + VECTOR_EQUAL_EPS*refractedDir );
-          strace(newMedium, refracted, scene, color, depth - 1, !outside);
+          strace(newMedium, refracted, scene, color, depth - 1, newOutside);
           resultColor += color*(1 - reflectionCoefficient)*m_shadeRoRefracted;
         };
       };
