@@ -84,8 +84,6 @@ protected:
   int m_lines_count;
   bool m_bCompleted;
 
-  CEnvironment m_scene;
-
   CLineItem* m_lines_info;
 };
 
@@ -113,8 +111,8 @@ public:
 
 class CServerControl {
 public:
-  CServerControl();
-  //virtual ~CServerControl();
+  CServerControl(CEnvironment& scene);
+  ~CServerControl();
 
   int StartServer(int portNum);
   int StopServer();
@@ -153,7 +151,7 @@ protected:
   int m_last_session_id;
   CLinesController m_lines;    //all the information about the lines is stored here
 
-  CEnvironment m_scene;        //current scene
+  CEnvironment& m_scene;        //current scene
 
   friend CServerSocket;
 };

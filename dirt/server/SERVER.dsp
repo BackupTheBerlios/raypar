@@ -107,10 +107,6 @@ SOURCE=.\LexParser.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\LexParser.cpp.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\common\LogBox.cpp
 # End Source File
 # Begin Source File
@@ -169,10 +165,6 @@ SOURCE=..\common\SceneArray.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\SceneBuilder.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\SERVER.cpp
 # End Source File
 # Begin Source File
@@ -222,6 +214,10 @@ SOURCE=..\CLIENT\geometry.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\LexParser.cpp.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\COMMON\LogBox.h
 # End Source File
 # Begin Source File
@@ -259,10 +255,6 @@ SOURCE=.\Resource.h
 # Begin Source File
 
 SOURCE=..\common\SceneArray.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\SceneBuilder.h
 # End Source File
 # Begin Source File
 

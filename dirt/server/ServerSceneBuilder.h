@@ -16,18 +16,33 @@
 
 #pragma once
 
-#include "common/SceneBuilder.h"
+//this return code means that the object has invalid parameters (eg. - negative color)
+#define ERROR_INVALID_PARAMS 1 
 
-class CServerSceneBuilder : public CSceneBuilder
+class CEnvironment;
+class CVector;
+class CSolid;
+
+class CServerSceneBuilder
 {
 public:
-	CServerSceneBuilder();
+	CServerSceneBuilder(CEnvironment& scene);
   virtual ~CServerSceneBuilder();
-  virtual void AddSphere(const CVector& pos, double radius);
-  virtual void AddLight(const CVector& pos, const CVector& color);
-  virtual void AddComment(LPCSTR comment); //for debug purpose
+
+  //zero if successfull
+  int AddSphere(const CVector& pos, double radius, const CVector& color);
+
+  //zero if successfull
+  int AddLight(const CVector& pos, const CVector& color);
+  void AddComment(LPCSTR comment); //for debug purpose
 
   virtual void ParserError( LPCSTR error );
+protected:
+  //Checks p_solid->IsValid and adds valid object to the scene and returns zero
+  //or destroys invalid object and returns nonzero
+  int _AddSolid(CSolid* p_solid);
+
+  CEnvironment& m_scene;
 };
 
 #endif //_SERVERSCENEBUILDER_H

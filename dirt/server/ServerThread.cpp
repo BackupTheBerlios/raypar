@@ -218,9 +218,14 @@ void CServerSocket::OnAccept(int errorCode)
 
 #pragma warning( disable : 4355 )
 
-CServerControl::CServerControl()
+CServerControl::CServerControl(CEnvironment& scene)
 : m_srv_sock( *this )
 , m_last_session_id( 0 )
+, m_scene( scene )
+{ 
+}
+
+CServerControl::~CServerControl()
 {  
 }
 
@@ -240,16 +245,16 @@ int CServerControl::StartServer(int portNum)
   //KIRIL: temp:
   m_lines.Init(300,300);
 
-  m_scene.Empty();
-  m_scene.SetSceneUID(0);
-  m_scene.SetAmbientColor(CVector(0.3,0,0));
-  m_scene.Add( new CLight( 1.0, 1.0, 1.0, 0, 0, 4) );
-  m_scene.Add( new CLight( 1.0, 1.0, 0, 0, 0, 6) );
-  m_scene.Add( new CLight( 0, 1.0, 0, 1, -1, 2) );
-  m_scene.Add( new CLight( 0, 0, 1.0, 1, 0, 2) );
-  m_scene.Add( new CLight(1.0,0,0, 0,0,0) );
-  m_scene.Add( new CSphere(  CVector(0,0,1), 0.4, CVector(1,1,1) ) );
-  m_scene.Add( new CSphere(  CVector(1,0,0.5), 0.6, CVector(0,1,1) ) );
+//  m_scene.Empty();
+//  m_scene.SetSceneUID(0);
+//  m_scene.SetAmbientColor(CVector(0.3,0,0));
+//  m_scene.Add( new CLight( 1.0, 1.0, 1.0, 0, 0, 4) );
+//  m_scene.Add( new CLight( 1.0, 1.0, 0, 0, 0, 6) );
+//  m_scene.Add( new CLight( 0, 1.0, 0, 1, -1, 2) );
+//  m_scene.Add( new CLight( 0, 0, 1.0, 1, 0, 2) );
+//  m_scene.Add( new CLight(1.0,0,0, 0,0,0) );
+//  m_scene.Add( new CSphere(  CVector(0,0,1), 0.4, CVector(1,1,1) ) );
+//  m_scene.Add( new CSphere(  CVector(1,0,0.5), 0.6, CVector(0,1,1) ) );
   
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
   return 0;

@@ -35,11 +35,11 @@ void CLogWnd::DoDataExchange(CDataExchange* pDX)
 
 
 BEGIN_MESSAGE_MAP(CLogWnd, CDialog)
-	//{{AFX_MSG_MAP(CLogWnd)
-	ON_WM_SIZE()
-	ON_WM_CREATE()
+  //{{AFX_MSG_MAP(CLogWnd)
+  ON_WM_SIZE()
+  ON_WM_CREATE()
   ON_WM_DESTROY()
-	//}}AFX_MSG_MAP
+  //}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////

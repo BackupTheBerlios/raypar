@@ -18,11 +18,9 @@
 
 //let it live here for a while
 #define YYSTYPE CVar 
-#include "common/SceneBuilder.h"
+#include "ServerSceneBuilder.h"
 #include "LexParser.cpp.h"
-
-//extern CVar yylval;
-extern CSceneBuilder* glb_scene_builder;
+extern CServerSceneBuilder* glb_scene_builder;
 
 
 %}

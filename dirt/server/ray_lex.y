@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "common/ParserVar.h"
-#include "common/SceneBuilder.h"
+#include "ServerSceneBuilder.h"
 
 #define YYSTYPE CVar
 #define YYDEBUG 1
@@ -13,7 +13,7 @@ void* alloca(int size){ return new BYTE[size]; }
 
 
 extern int yylex();
-extern CSceneBuilder* glb_scene_builder;
+extern CServerSceneBuilder* glb_scene_builder;
 
 extern "C" int yywrap(void)
 { 
@@ -42,9 +42,9 @@ expr :
  ;
 
 
-sphere : IDSPHERE '(' vector ','  REAL ')' ';' 
+sphere : IDSPHERE '(' vector ','  REAL ',' vector ')' ';' 
  {    
-    glb_scene_builder->AddSphere( $3.GetVector(), $5.GetDouble() );  
+    glb_scene_builder->AddSphere( $3.GetVector(), $5.GetDouble(), $3.GetVector() );  
  }
 ;
 
