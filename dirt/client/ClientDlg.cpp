@@ -190,17 +190,7 @@ BOOL CClientDlg::OnInitDialog()
   UpdateData(FALSE);
 
   //Loading info from reg on create
-  CRect rect;
-  GetWindowRect(rect);
-  
-  m_settings.GetDataFromReg();
-  int x,y,cx,cy;
-  x = m_settings.GetX();
-  y = m_settings.GetY();
-  cx = rect.right - rect.left;
-  cy = rect.bottom - rect.top;
-
-  SetWindowPos(&CWnd::wndTop, x, y, cx, cy, 0);
+  m_settings.LoadNonResizablePosition(this);
   SetWindowText( "DiRT client" );
 
   return TRUE;  // return TRUE  unless you set the focus to a control
@@ -222,14 +212,8 @@ void CClientDlg::OnSysCommand(UINT nID, LPARAM lParam)
 
 void CClientDlg::OnDestroy()
 {
-  CRect rect;
-  GetWindowRect(rect);
-  m_settings.SetX(rect.left);
-  m_settings.SetY(rect.top);
-//  Do not need to store size for dialog
-  m_settings.SetCx(rect.right - rect.left);
-  m_settings.SetCy(rect.bottom - rect.top);
-  m_settings.SaveDataToReg();
+  
+  m_settings.SavePosition(this);
 
   UpdateData(TRUE);
   m_options.SetConnectPeriod(m_connect_period);
