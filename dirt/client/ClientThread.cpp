@@ -64,7 +64,16 @@ UINT ClientThreadFunction(void* param)
 
       ASSERT( line_number >=0 && line_number < imgHeight );
 
-      SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
+      CSimpleTracerSettings settings;
+      settings.m_defaultDepth = 5;
+      settings.m_shadeA = 0.08;
+      settings.m_shadeB = 0.08;
+      settings.m_shadeC = 0.08;
+      settings.m_shadeRoD = 1;
+      settings.m_shadeRoReflected = 1;
+      settings.m_shadeRoRefracted = 1;
+
+      SimpleTracer	tracer( settings );
 
       Medium			medium; //base medium - vacuum
       medium.Betta = 0;

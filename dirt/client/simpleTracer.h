@@ -37,6 +37,9 @@
 // REVISION by KIRILL, on 1/28/2004 17:22:22
 // Comments: CEnvironment changed to CCEnvironment
 //*********************************************************
+// REVISION by Tonic, on 2/2/2004 
+// Comments: Tracer settings went to CSimpleTracerSettings class
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -55,7 +58,30 @@ struct Medium;
 class CEnvironment;
 class CCamera;
 
+class CSimpleTracerSettings
+{
+public:
+    //maximum recursion depth
+  int m_defaultDepth;
+  
+  //shading model coefficients
+  // color = shadeRoD*(normalDir*lightDirection)/(shadeA + shadeB*dist + shadeC*dist^2) 
+  // + m_shadeRoReflected*reflectedColor + m_shadeRoRefracted*refractedColor 
+  double m_shadeA, m_shadeB, m_shadeC, m_shadeRoD, m_shadeRoReflected, m_shadeRoRefracted;
+  CVector m_backgroundColor;
 
+  int IsValid(void) const;
+  
+  int write(CArchive& ar) const;
+  int read (CArchive& ar);
+
+  CSimpleTracerSettings()
+    : m_backgroundColor(0,0,0)
+  {
+    m_defaultDepth = 0;
+    m_shadeA = m_shadeB = m_shadeC = m_shadeRoD = m_shadeRoReflected = m_shadeRoRefracted = 0;
+  };
+};
 
 class SimpleTracer : public Tracer
 {
@@ -69,26 +95,19 @@ public:
   //will produce
   static void VisibleColor( const CVector &LightColor, const CVector &MaterialColor, CVector &resultColor);
   
-  SimpleTracer(int defaultDepth = 5, double shadeA = 0.1, double shadeB = 0.1
-              , double shadeC = 0.1, double shadeRoD = 1
-              , double shadeRoReflected = 1, double shadeRoRefracted = 1)
+  SimpleTracer(const CSimpleTracerSettings &settings)
     : m_backgroundColor(0,0,0)
   {
-    ASSERT( defaultDepth > 0);
-    ASSERT( shadeA > VECTOR_EQUAL_EPS );
-    ASSERT( shadeB > 0 );
-    ASSERT( shadeC > 0 );
-    ASSERT( shadeRoD > VECTOR_EQUAL_EPS );
-    ASSERT( shadeRoReflected > VECTOR_EQUAL_EPS );
-    ASSERT( shadeRoRefracted > VECTOR_EQUAL_EPS );
+    ASSERT( settings.IsValid() );
     
-    m_defaultDepth = defaultDepth;
-    m_shadeA = shadeA;
-    m_shadeB = shadeB;
-    m_shadeC = shadeC;
-    m_shadeRoD = shadeRoD;
-    m_shadeRoReflected = shadeRoReflected;
-    m_shadeRoRefracted = shadeRoRefracted;
+    m_defaultDepth = settings.m_defaultDepth;
+    m_shadeA = settings.m_shadeA;
+    m_shadeB = settings.m_shadeB;
+    m_shadeC = settings.m_shadeC;
+    m_shadeRoD = settings.m_shadeRoD;
+    m_shadeRoReflected = settings.m_shadeRoReflected;
+    m_shadeRoRefracted = settings.m_shadeRoRefracted;
+    m_backgroundColor = settings.m_backgroundColor;
   };
   
   void SetBackgroundColor( const CVector &backgroundColor )
@@ -110,17 +129,14 @@ private:
   //RESETS color in the beginning, so do not put any valuable data
   //there as it will be erased
   void processLights( const Medium &curMed, const CEnvironment &scene, const Ray &normale, CVector &color, double smoothness ) const;
-  
+
   //maximum recursion depth
   int m_defaultDepth;
+
   
-  //shading model coefficients
-  // color = shadeRoD*(normalDir*lightDirection)/(shadeA + shadeB*dist + shadeC*dist^2) 
-  // + m_shadeRoReflected*reflectedColor + m_shadeRoRefracted*refractedColor 
   double m_shadeA, m_shadeB, m_shadeC, m_shadeRoD, m_shadeRoReflected, m_shadeRoRefracted;
   CVector m_backgroundColor;
 };
-
 
 //pixel color computing routine
 //which takes scene, camera, tracer and pixel coords as parameters

@@ -40,6 +40,9 @@
 // Comments: Fixed a bug in detecting object transparency 
 // via reflectionCoefficient
 //*********************************************************
+// REVISION by Tonic, on 2/2/2004 
+// Comments: Tracer settings went to CSimpleTracerSettings class
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
@@ -249,4 +252,74 @@ void RenderPixel( const CEnvironment &scene, const Medium &medium, const CCamera
   Ray ray;
   camera.PixelRay(x,y,ray);
   tracer.trace( medium, ray, scene, color, true);
+};
+
+///////////////////////////////////////////////////////////
+//  CSimpleTracerSettings
+
+int CSimpleTracerSettings::IsValid(void) const
+{
+  //checking maximum recursion depth
+  if( m_defaultDepth <= 0 )
+    return 0;
+
+  //shading parameters
+  if( leq( m_shadeA, 0 ))
+    return 0;
+ 
+  if( !(m_shadeB > 0) )
+    return 0;
+
+  if( !(m_shadeC > 0) )
+    return 0;
+
+  if( leq( m_shadeRoD, 0))
+    return 0;
+  
+  if( leq( m_shadeRoReflected, 0) || !geq(1,m_shadeRoReflected))
+    return 0;
+
+  if( leq( m_shadeRoRefracted, 0) || !geq( 1,m_shadeRoRefracted))
+    return 0;
+
+  if( !m_backgroundColor.IsNormalized() )
+    return 0;
+
+  return 1;
+};
+
+int CSimpleTracerSettings::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+
+  ar << m_defaultDepth;
+  ar << m_shadeA;
+  ar << m_shadeB;
+  ar << m_shadeC;
+  ar << m_shadeRoD;
+  ar << m_shadeRoReflected;
+  ar << m_shadeRoRefracted;
+  ar << m_backgroundColor;
+
+  return 0;
+};
+
+int CSimpleTracerSettings::read (CArchive& ar)
+{
+  ar >> m_defaultDepth;
+  ar >> m_shadeA;
+  ar >> m_shadeB;
+  ar >> m_shadeC;
+  ar >> m_shadeRoD;
+  ar >> m_shadeRoReflected;
+  ar >> m_shadeRoRefracted;
+  ar >> m_backgroundColor;
+
+  if ( !IsValid() )
+  {
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  };
+
+  return 0;
 };
