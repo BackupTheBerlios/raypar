@@ -546,7 +546,7 @@ void CSphere::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedi
 
 int  CSphere::IsValid(void) const
 {
-  if( m_color.IsNormalized() && (m_radius > VECTOR_EQUAL_EPS) && (m_radius > INFINITY) )
+  if( m_color.IsNormalized() && (m_radius > VECTOR_EQUAL_EPS) && (m_radius < INFINITY) )
     return 1;
   else return 0;
 };
