@@ -254,15 +254,15 @@ int CGetSceneData::Q::read(CArchive& ar)
 ///////////////////////////////////////////////////////////
 
 CGetSceneData::A::A(  const int& session_id, const int& scene_uid
-                      , const Environment& scene )
- : m_session_id ( const_cast<int&>         ( session_id ) )
- , m_scene_uid  ( const_cast<int&>         ( scene_uid  ) )
- , m_scene      ( const_cast<Environment&> ( scene      ) ) 
+                      , const CEnvironment& scene )
+ : m_session_id ( const_cast<int&>          ( session_id ) )
+ , m_scene_uid  ( const_cast<int&>          ( scene_uid  ) )
+ , m_scene      ( const_cast<CEnvironment&> ( scene      ) ) 
 {}
 
 
 CGetSceneData::A::A( int *p_session_id, int* p_scene_uid
-                      , Environment* p_scene )
+                      , CEnvironment* p_scene )
  : m_session_id ( *p_session_id ) 
  , m_scene_uid  ( *p_scene_uid  ) 
  , m_scene      ( *p_scene      ) 

@@ -48,6 +48,9 @@
 // REVISION by KIRILL, on 1/26/2004
 // Comments: CSolid::IsValid added
 //*********************************************************
+// REVISION by KIRILL, on 1/28/2004 17:18:43
+// Comments: Environment renamed to CEnvironment
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -226,19 +229,19 @@ int CLight::read (CArchive& ar)
 
 
 ///////////////////////////////////////////////////////////
-//  Environment - ?K? decription?
+//  CEnvironment - ?K? decription?
 ///////////////////////////////////////////////////////////
 
-Environment::Environment( )
+CEnvironment::CEnvironment( )
 : m_AmbientColor(0,0,0)
 {}
 
-Environment::~Environment () 
+CEnvironment::~CEnvironment () 
 {
   //do nothing as contained objects may be reused
 }
 
-void Environment::Add ( CLight *light )
+void CEnvironment::Add ( CLight *light )
 {
   ASSERT( light != NULL );
   
@@ -257,7 +260,7 @@ void Environment::Add ( CLight *light )
     m_lights.Add(light);
 };
 
-void Environment::Add ( CSolid *solid )
+void CEnvironment::Add ( CSolid *solid )
 {
   ASSERT( solid != NULL );
   
@@ -278,19 +281,19 @@ void Environment::Add ( CSolid *solid )
 };
 
 
-void  Environment::SetAmbientColor( const CVector &AmbientColor )
+void  CEnvironment::SetAmbientColor( const CVector &AmbientColor )
 {
   ASSERT( AmbientColor.IsNormalized() );  
   
   m_AmbientColor = AmbientColor;
 };
 
-void  Environment::GetAmbientColor( CVector &AmbientColor ) const
+void  CEnvironment::GetAmbientColor( CVector &AmbientColor ) const
 {
   AmbientColor = m_AmbientColor;
 }
 
-void Environment::getLightByNumber(int number, CLight &light) const
+void CEnvironment::getLightByNumber(int number, CLight &light) const
 {
   //there is a light source with such a number
   ASSERT( (number >= 0) && (number < m_lights.GetSize()) );
@@ -300,7 +303,7 @@ void Environment::getLightByNumber(int number, CLight &light) const
 
 
 //determines the closest intersected object and distance
-CSolid * Environment::Intersect (  const Ray &ray, double &t ) const
+CSolid * CEnvironment::Intersect (  const Ray &ray, double &t ) const
 {
   CSolid*  closestObj = NULL;
   //do not allow intersections with objects
@@ -328,7 +331,7 @@ CSolid * Environment::Intersect (  const Ray &ray, double &t ) const
   return closestObj;
 };
 
-int Environment::IsValid(void) const
+int CEnvironment::IsValid(void) const
 {
   if ( !m_AmbientColor.IsNormalized() ) return 0;
   if ( !m_lights.IsValid() ) return 0;
@@ -336,7 +339,7 @@ int Environment::IsValid(void) const
   return 1;
 }
 
-int Environment::write(CArchive& ar) const
+int CEnvironment::write(CArchive& ar) const
 {
   ASSERT( IsValid() );
   
@@ -348,7 +351,7 @@ int Environment::write(CArchive& ar) const
   return 0;
 }
 
-int Environment::read (CArchive& ar)
+int CEnvironment::read (CArchive& ar)
 {
   m_lights.Empty();
   m_solids.Empty();

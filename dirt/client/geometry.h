@@ -55,6 +55,8 @@
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
 
+#pragma once
+
 #include "environment.h"
 
 #define EPSILON (1E-9)
@@ -64,7 +66,6 @@
 
 class CSphere : public CSolid
 {
-private:
   CVector m_position;
   double  m_radius;
   Medium  m_innerMedium;

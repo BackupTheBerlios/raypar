@@ -36,9 +36,11 @@
 
 #include "stdafx.h"
 #include "simpleTracer.h"
-#include "../COMMON/msg.h"
+#include "COMMON/msg.h"
+#include "environment.h"
 
-void SimpleTracer::processLights( const Medium &curMed, const Environment &scene, const Ray &normale, CVector &color, double smoothness ) const
+void SimpleTracer::processLights( const Medium &curMed, const CEnvironment &scene, 
+                                 const Ray &normale, CVector &color, double smoothness ) const
 {
   ASSERT( smoothness > VECTOR_EQUAL_EPS );
 
@@ -81,7 +83,7 @@ void SimpleTracer::processLights( const Medium &curMed, const Environment &scene
   };
 };
 
-void CRenderer::RenderPixel( const Environment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color)
+void CRenderer::RenderPixel( const CEnvironment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color)
 {
   ASSERT((x>=0) && (y>=0));
   
@@ -107,12 +109,14 @@ void SimpleTracer::VisibleColor( const CVector &LightColor, const CVector &Mater
   resultColor.z = LightColor.z*MaterialColor.z;
 };
 
-void SimpleTracer::trace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, bool outside) const
+void SimpleTracer::trace( const Medium &curMed, const Ray &ray, 
+             const CEnvironment &scene, CVector &resultColor, bool outside) const
 {
   strace(curMed, ray, scene, resultColor, m_defaultDepth, outside);
 };
 
-void SimpleTracer::strace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, int depth, bool outside) const
+void SimpleTracer::strace( const Medium &curMed, const Ray &ray, 
+             const CEnvironment &scene, CVector &resultColor, int depth, bool outside) const
 {
   CSolid	*nearestObject;
   double	  t = INFINITY;
@@ -220,9 +224,9 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray, const Environme
     //the maximum component equal to 1
     
     if( (resultColor.x > 1) || (resultColor.y > 1) || (resultColor.z > 1))
-    {
-      double maxComp = (resultColor.x > resultColor.y) ? resultColor.x : resultColor.y;
-      maxComp = (maxComp > resultColor.z) ? maxComp : resultColor.z;
+    {      
+      double maxComp = max (resultColor.x, resultColor.y);
+      maxComp = max( maxComp, resultColor.z);
       resultColor /= maxComp;
     }
     

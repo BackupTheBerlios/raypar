@@ -74,7 +74,9 @@
 // REVISION by KIRILL, on 1/25/2004 18:39:25
 // Comments: IsValid() routine added in CLight, CSolid and 
 //   its descendants which provides checking of its members.
-//
+//*********************************************************
+// REVISION by KIRILL, on 1/28/2004 17:18:43
+// Comments: Environment renamed to CEnvironment
 //*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
@@ -253,9 +255,9 @@ public:
 
 
 ///////////////////////////////////////////////////////////
-//  Environment - ?K? decription?
+//  CEnvironment - ?K? decription?
 
-class	Environment
+class	CEnvironment
 {
   CLightArray m_lights;
   CSolidArray	m_solids;
@@ -263,8 +265,8 @@ class	Environment
   
 public:
   
-  Environment (); //initialize CLightArray and CSolidArray params
-  virtual ~Environment () ;	//do nothing as contained objects may be reused
+  CEnvironment (); //initialize CLightArray and CSolidArray params
+  virtual ~CEnvironment () ;	//do nothing as contained objects may be reused
   
   void	Add ( CLight *light );
   void	Add ( CSolid *solid );

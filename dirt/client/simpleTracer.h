@@ -1,4 +1,4 @@
-
+//*********************************************************
 //** simpleTracer.h **
 // Created By: Tonic
 // On: 01/10/2004
@@ -34,18 +34,36 @@
 // REVISION by Tonic, on 01/28/2004
 // Comments: Added background color support to SimpleTracer
 //*********************************************************
+// REVISION by KIRILL, on 1/28/2004 17:22:22
+// Comments: CEnvironment changed to CCEnvironment
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//*********************************************************
+
+
 
 #if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
 #define CLIENT_SIMPLETRACER_H_INCLUDED
 
+#pragma once
+
 #include "trace.h"
+#include "common/vector.h"
+
+struct Medium;
+class CEnvironment;
+class CCamera;
+
+
 
 class SimpleTracer : public Tracer
 {
 public:
   //bool outside - whether the ray begins outside of all objects
   //used for tracing refracted rays
-  virtual void trace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, bool outside) const;
+  virtual void trace( const Medium &curMed, const Ray &ray, 
+             const CEnvironment &scene, CVector &resultColor, bool outside) const;
   
   //determines what visible color will the combination of material color and falling light color
   //will produce
@@ -84,12 +102,12 @@ public:
 
 private:
   //added maximum recursion depth to the parameter list
-  void strace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, int depth, bool outside) const;
+  void strace( const Medium &curMed, const Ray &ray, const CEnvironment &scene, CVector &resultColor, int depth, bool outside) const;
   
   //computes the color in the given point due to light sources ONLY
   //RESETS color in the beginning, so do not put any valuable data
   //there as it will be erased
-  void processLights( const Medium &curMed, const Environment &scene, const Ray &normale, CVector &color, double smoothness ) const;
+  void processLights( const Medium &curMed, const CEnvironment &scene, const Ray &normale, CVector &color, double smoothness ) const;
   
   //maximum recursion depth
   int m_defaultDepth;
@@ -101,12 +119,15 @@ private:
   CVector m_backgroundColor;
 };
 
+
 //class to contain pixel color computing routine
 //which takes scene, camera, tracer and pixel coords as parameters
 class CRenderer
 {
 public:
-		static void RenderPixel( const Environment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color); 
+   static void RenderPixel( const CEnvironment &scene, 
+                            const Medium &medium, const CCamera &camera, 
+                            const Tracer &tracer, int x, int y, CVector &color); 
 };
 
 #endif //CLIENT_SIMPLETRACER_H_INCLUDED

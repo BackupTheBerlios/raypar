@@ -42,7 +42,7 @@
 class CArchive;
 class CLightArray;
 class CSolidArray;
-class Environment;
+class CEnvironment;
 
 
 ///////////////////////////////////////////////////////////
@@ -172,15 +172,15 @@ struct CGetSceneData {
   {
     int& m_session_id;
     int& m_scene_uid;
-    Environment& m_scene;
+    CEnvironment& m_scene;
     
     A(  const int& session_id
        , const int& scene_uid
-       , const Environment& scene       
+       , const CEnvironment& scene       
      );
     A(int *p_session_id
        , int* p_scene_uid
-       , Environment* p_scene
+       , CEnvironment* p_scene
      );
     int write(CArchive& ar);
     int read(CArchive& ar);
