@@ -17,6 +17,7 @@
 #include "srvcmd.h"
 #include "common/utils.h"
 #include "common/protocol.h"
+#include "client/geometry.h"   //?K? temp
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -219,6 +220,7 @@ void CServerSocket::OnAccept(int errorCode)
 
 CServerControl::CServerControl()
 : m_srv_sock( *this )
+, m_last_session_id( 0 )
 {  
 }
 
@@ -234,6 +236,21 @@ int CServerControl::StartServer(int portNum)
     ErrorMessage("Can't create socket: '%s'", (LPCSTR)err_str);
     return ERROR_RETURN; 
   }
+
+  //KIRIL: temp:
+  m_lines.Init(300,300);
+
+  m_scene.Empty();
+  m_scene.SetSceneUID(0);
+  m_scene.SetAmbientColor(CVector(0.3,0,0));
+  m_scene.Add( new CLight( 1.0, 1.0, 1.0, 0, 0, 4) );
+  m_scene.Add( new CLight( 1.0, 1.0, 0, 0, 0, 6) );
+  m_scene.Add( new CLight( 0, 1.0, 0, 1, -1, 2) );
+  m_scene.Add( new CLight( 0, 0, 1.0, 1, 0, 2) );
+  m_scene.Add( new CLight(1.0,0,0, 0,0,0) );
+  m_scene.Add( new CSphere(  CVector(0,0,1), 0.7, CVector(1,1,1) ) );
+  m_scene.Add( new CSphere(  CVector(1,0,0.5), 0.6, CVector(0,1,1) ) );
+
   m_srv_sock.Listen( MAX_CLIENTS_IN_QUEUE ); 
   return 0;
 }
@@ -291,6 +308,21 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
   return 0;
 }
 
+
+//If you need to operate with scene you have to block the access to it
+CEnvironment* CServerControl::GetAndLockScene(void)
+{
+  m_scene_change_mutex.Lock(); //we lock the access
+  return &m_scene;
+}
+
+//When you finished your work you must free scene access
+void CServerControl::UnlockScene(void)
+{
+  m_scene_change_mutex.Unlock(); //we unlock the access
+}
+
+
 ///////////////////////////////////////////////////////////
 //  ServerThreadFunction
 //
@@ -310,7 +342,7 @@ UINT ServerThreadFunction( void* param )
 
   if (!ret){
     ASSERT( 0 );
-    CString err_text = GetErrorMessageByErrorCode( GetLastError() );
+    CString err_text = GetErrorMessageByErrorCode(  );
     ErrorMessage( "Can't attach socket: '%s'", (LPCSTR)err_text );
     return ERROR_RETURN;
   }
@@ -320,14 +352,13 @@ UINT ServerThreadFunction( void* param )
   ret = cl_sock.GetPeerName(sock_name, sock_port);
 
   if (!ret){
-    CString err_text = GetErrorMessageByErrorCode( GetLastError() );
+    CString err_text = GetErrorMessageByErrorCode( );
     ErrorMessage( "Can't get peer name: '%s'", (LPCSTR)err_text );
     return ERROR_RETURN;
   }
 
-  #define MAX_CLIENT_NAME_LEN  64
-  char client_name[MAX_CLIENT_NAME_LEN]; //this name is used to identify the client in logs
-  sprintf(client_name, "%s:%d", (LPCSTR)sock_name, sock_port);
+  CString client_name; //this name is used to identify the client in logs
+  client_name.Format("%s:%d", (LPCSTR)sock_name, sock_port);
 
   Message("CL[%s] Client connected", client_name);
 
@@ -338,6 +369,7 @@ UINT ServerThreadFunction( void* param )
   int current_session_id = p_srv_ctrl->GetNewSessionId(); 
 
   bool bEnd = false;
+    
   while (!bEnd) {
     int cmd_id;
     arIn >> cmd_id;
@@ -357,7 +389,14 @@ UINT ServerThreadFunction( void* param )
             bEnd = true;
           break;
         }
-      case CMD_GET_SCENE_DATA:  break;
+      case CMD_GET_SCENE_DATA:
+        {    
+          int ret = CmdGetSceneData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
+          if ( ERROR_MUST_TERMINATE == ret )
+              bEnd = true;          
+          bEnd = true; //KIRILL: temporarily 
+          break;
+        }
       default:{
           ASSERT(0);
           ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );

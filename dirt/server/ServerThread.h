@@ -18,6 +18,8 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include "client/environment.h" //?K? !!
+
 struct CImageLinesInfo;
 struct CCameraInfo;
 
@@ -75,11 +77,14 @@ public:
   int GetWidth(void) const { return m_line_width; }
   int GetHeight(void) const { return m_lines_count; }
 
+
 protected:
   int m_search_step;
   int m_line_width;
   int m_lines_count;
   bool m_bCompleted;
+
+  CEnvironment m_scene;
 
   CLineItem* m_lines_info;
 };
@@ -126,20 +131,29 @@ public:
                            CImageLinesInfo* p_image_lines_info,
                            CCameraInfo*  p_camera_info );
 
+  //If you need to operate with scene you have to block the access to it
+  CEnvironment* GetAndLockScene(void);
+
+  //When you finished your work you must free scene access
+  void UnlockScene(void);
+
+
 protected:
   void AcceptClient(void);
- 
- 
+
+  
 protected:  
   CServerSocket m_srv_sock;
   CEvent m_stop_server_event; //signal means that all server threads must stop
 
-  CMutex m_scene_change_mutex; //lock this if you change the scene
-  CMutex m_change_lines_mutex; //lock this if you change lines content or
-                               //
+  CMutex m_scene_change_mutex; //lock this if work with the scene
+  CMutex m_change_lines_mutex; //lock this if work with lines
+                               
 
   int m_last_session_id;
   CLinesController m_lines;    //all the information about the lines is stored here
+
+  CEnvironment m_scene;        //current scene
 
   friend CServerSocket;
 };
