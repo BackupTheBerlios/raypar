@@ -218,19 +218,24 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 void CClientDlg::OnButtonTest() 
 {
   //KIRILL: Temporal button and function for testing of some features
-	int  imgWidth = 200, imgHeight = 200;
+
+  int  imgWidth = 300, imgHeight = 300;
+	
+  ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
 
 	COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
 
 	Environment		scene;
 	SimpleTracer	testedTracer;
-	CVector			sphereCenter(0,0,-5), sphereCenter2(1,0,-5);
+  
+  CVector			sphereCenter(0,0,-5), sphereCenter2(1,0,-5);
 	CSphere			solidObject(sphereCenter, 2);
 	CSphere			solidObject2(sphereCenter2, 2);
 	Light			lightSource( 1.0, 1.0, 1.0, 0, 0, -2);
 	Light			lightSource2( 1.0, 0, 0, 1, 1, -2);
 	Light			lightSource3( 0, 1.0, 0, 1, -1, -2);
 	Light			lightSource4( 0, 0, 1.0, 1, 0, -2);
+
 	CVector			planePoint;
 	CVector			origin(0,0,0);
 	SimpleTracer	tracer;
@@ -265,13 +270,14 @@ void CClientDlg::OnButtonTest()
 			Ray ray( origin, planePoint );
 			tracer.trace( medium, ray, scene, 1, color);
 	//		image.SetPixelRGB( i, imgHeight - j - 1, (char) (color.x*255.0), (char) (color.y*255.0), (char) (color.z*255.0));
-			img[i+j*imgWidth] = RGB((char) (color.x*255.0), (char) (color.y*255.0), (char) (color.z*255.0)); //Exactly this order!
-
+			
+      BYTE c_red = BYTE (color.x*255.0);
+			BYTE c_green = (char) (color.y*255.0);
+			BYTE c_blue = (char) (color.z*255.0);
+			
+      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
 		};
-	//image.Save( "out.bmp");
-	 for (int j=0; j<imgHeight-1; j++ )
-    img[imgWidth*j]=RGB(255,0,0);
-  
+    
   CTestDialog test_dlg( imgWidth, imgHeight, img);
   test_dlg.DoModal();
 
