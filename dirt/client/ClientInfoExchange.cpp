@@ -43,6 +43,9 @@ int DoGetFrameData(CArchive& arIn, CArchive& arOut, int session_id
 int DoGetSceneData(CArchive& arIn, CArchive& arOut, int session_id
       , int scene_uid, BOOL* p_scene_changed, CEnvironment* p_scene );
 
+//Sends line data to the server
+int DoSendLine(CArchive& arIn, CArchive& arOut, int session_id
+      , int scene_uid, int line_num, void* p_data);
 
 ///////////////////////////////////////////////////////////
 // ClientInfoExchange - does all the information exchange with server

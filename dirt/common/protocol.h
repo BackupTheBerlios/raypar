@@ -17,11 +17,19 @@
 #include "vector.h"
 
 
+//maximum allowed pixels_count int line (minimum is 1)
+//(is used in SendSceneLine)
+#define MAX_PIXELS_COUNT  65535
+
+
+
+
 ///////////////////////////////////////////////////////////
 // Protocol version
 
 //#define PROTOCOL_VERSION 1
-#define PROTOCOL_VERSION   2
+//#define PROTOCOL_VERSION 2
+#define PROTOCOL_VERSION 3
 
 
 ///////////////////////////////////////////////////////////
@@ -30,6 +38,7 @@
 #define CMD_CONNECTION_INIT  1
 #define CMD_GET_FRAME_DATA   2
 #define CMD_GET_SCENE_DATA   3
+#define CMD_SEND_LINE_DATA   4
 
 
 //Such return means that an error occured in function
@@ -87,14 +96,14 @@ struct CImageLinesInfo
 
 
 ///////////////////////////////////////////////////////////
-//  ConnectionInit
+//  ConnectionInit   - works with CMD_CONNECTION_INIT
 
 struct CConnectionInit{
   struct Q : public QA  
   {
     int& m_client_protocol_version;
     
-    Q(const int& client_protocol_version);
+    Q(int& client_protocol_version);
     Q(int *p_client_protocol_version);    
     int write(CArchive& ar);
     int read(CArchive& ar);
@@ -105,8 +114,8 @@ struct CConnectionInit{
     int& m_server_protocol_version;
     int& m_session_id;
     
-    A( const int& server_protocol_version
-       , const int& session_id       
+    A( int& server_protocol_version
+       , int& session_id       
      );
     A( int *p_server_protocol_version
        , int* p_session_id       
@@ -118,14 +127,14 @@ struct CConnectionInit{
 };
 
 ///////////////////////////////////////////////////////////
-// GetFrameData
+// GetFrameData     - works with CMD_GET_FRAME_DATA
 
 struct CGetFrameData{
   struct Q : public QA  
   {
     int& m_session_id;
     
-    Q(const int& session_id);
+    Q(int& session_id);
     Q(int *p_session_id);
     int write(CArchive& ar);
     int read(CArchive& ar);    
@@ -138,10 +147,10 @@ struct CGetFrameData{
     CCameraInfo& m_camera_info;
     CImageLinesInfo& m_image_info;
     
-    A(  const int& session_id
-       , const int& scene_uid
-       , const CCameraInfo& camera_info
-       , const CImageLinesInfo& image_info 
+    A(  int& session_id
+       , int& scene_uid
+       , CCameraInfo& camera_info
+       , CImageLinesInfo& image_info 
      );
     A(int *p_session_id
        , int* p_scene_uid
@@ -155,7 +164,7 @@ struct CGetFrameData{
 
 
 ///////////////////////////////////////////////////////////
-//  GetSceneData
+//  GetSceneData   - works with CMD_GET_SCENE_DATA
 
 struct CGetSceneData {
   struct Q : public QA  
@@ -163,7 +172,7 @@ struct CGetSceneData {
     int& m_session_id;
     int& m_scene_uid;
     
-    Q(const int& session_id, const int& scene_uid);
+    Q(int& session_id, int& scene_uid);
     Q(int *p_session_id, int *p_sscene_uid);
     int write(CArchive& ar);
     int read(CArchive& ar);    
@@ -176,9 +185,9 @@ struct CGetSceneData {
                            //so the m_scene is not written or read
     CEnvironment& m_scene;
     
-    A(  const int& session_id
-       , const BOOL& m_scene_changed
-       , const CEnvironment& scene       
+    A(  int& session_id
+       , BOOL& m_scene_changed
+       , CEnvironment& scene       
      );
     A(int *p_session_id
        , BOOL* p_scene_changed
@@ -189,6 +198,38 @@ struct CGetSceneData {
   };
 };
 
+
+///////////////////////////////////////////////////////////
+//  SendLineData   - works with CMD_SEND_LINE_DATA
+
+struct CSendLineData{
+  struct Q : public QA  
+  {
+    int&  m_session_id;
+    int&  m_scene_uid;
+    int&  m_line_num;
+    int&  m_pixels_count;
+    void*& m_data;
+
+    Q(int& session_id, int& scene_uid, int& line_num
+        , int& pixels_count, void*& data);
+
+    Q(int *p_session_id, int* p_scene_uid, int* p_line_num
+      , int *p_pixels_count, void **p_data);
+    int write(CArchive& ar);
+    int read(CArchive& ar);    
+  };
+
+  struct A : public QA  
+  {
+    int& m_session_id;
+    
+    A( int& session_id );
+    A( int *p_session_id );
+    int write(CArchive& ar);
+    int read(CArchive& ar);
+  };
+};
 
 
 

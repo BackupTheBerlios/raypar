@@ -50,7 +50,21 @@ int CmdGetFrameData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
 // client_name - text client name, which is used to identify the client in logs
 // current_session_id - current session id, we compare it with the session id,received from the client
 // p_srv_ctrl - pointer to the CServerControl object, which supports scene operations
-CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
+int CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
                int current_session_id, CServerControl* p_srv_ctrl);
+
+
+// Suports CMD_SEND_LINE_DATA command
+// Receives image line from the client
+//
+// arIn -  loading archive
+// arOut - storing archive
+// client_name - text client name, which is used to identify the client in logs
+// current_session_id - current session id, we compare it with the session id,received from the client
+// p_srv_ctrl - pointer to the CServerControl object, which supports scene operations
+int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
+               int current_session_id, CServerControl* p_srv_ctrl);
+
+
 
 #endif//_SRV_CMD_H

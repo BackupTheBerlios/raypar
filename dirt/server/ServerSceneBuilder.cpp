@@ -47,7 +47,7 @@ int CServerSceneBuilder::AddSphere(const CVector& pos, double radius, const CVec
 //zero if successfull
 int CServerSceneBuilder::AddLight(const CVector& pos, const CVector& color)
 {
-  CLight* p_light = new CLight;
+  CLight* p_light = new CLight( pos, color );
   if ( !p_light->IsValid() ){ 
     ParserError( "Invalid light!" );
     delete p_light;

@@ -129,7 +129,7 @@ int CmdGetFrameData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
 // client_name - text client name, which is used to identify the client in logs
 // current_session_id - current session id, we compare it with the session id,received from the client
 // p_srv_ctrl - pointer to the CServerControl object, which supports scene operations
-CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
+int CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
                int current_session_id, CServerControl* p_srv_ctrl)
 {
   ASSERT( p_srv_ctrl );
@@ -205,3 +205,62 @@ CmdGetSceneData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
   arOut.Flush();  
   return 0;
 }
+
+
+// Suports CMD_SEND_LINE_DATA command
+// Receives image line from the client
+//
+// arIn -  loading archive
+// arOut - storing archive
+// client_name - text client name, which is used to identify the client in logs
+// current_session_id - current session id, we compare it with the session id,received from the client
+// p_srv_ctrl - pointer to the CServerControl object, which supports scene operations
+int CmdSendLineData(CArchive& arIn, CArchive& arOut, LPCSTR client_name,
+               int current_session_id, CServerControl* p_srv_ctrl)
+{
+  ASSERT( p_srv_ctrl );
+  
+  int session_id;
+  int line_num;
+  int pixels_count;
+
+/*
+  CSendLineData::Q send_line_Q( &session_id );
+  int ret = send_line_Q.read( arIn );
+
+  if ( ret ){
+    ASSERT( 0 );
+    ErrorMessage("CL[%s] Error receiving data from client. Terminating connection."
+                    , client_name);
+    return ERROR_MUST_TERMINATE;
+  }
+
+  if ( session_id != current_session_id ){ 
+    //Client sent unknown session id. We should terminate connection
+
+    ASSERT( 0 );
+    ErrorMessage("CL[%s]Wrong data received from client. Terminating the connection"
+        , client_name);
+    return ERROR_MUST_TERMINATE;
+  }
+  
+  CImageLinesInfo image_lines_info;
+  CCameraInfo  camera_info;
+  int scene_uid;
+
+  p_srv_ctrl->FillSceneParameters( &scene_uid, &image_lines_info, &camera_info );
+
+  CGetFrameData::A get_frame_A( current_session_id, scene_uid
+                              , camera_info, image_lines_info);
+  ret = get_frame_A.write( arOut );
+
+  if ( ret ){
+    ASSERT( 0 );
+    ErrorMessage("CL[%s] Error sending data to client. Terminating connection.", client_name);
+    return ERROR_MUST_TERMINATE;
+  }
+
+  arOut.Flush();  */
+  return 0;
+}
+
