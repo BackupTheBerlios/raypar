@@ -42,11 +42,11 @@ class SimpleTracer : public Tracer
 public:
   //bool outside - whether the ray begins outside of all objects
   //used for tracing refracted rays
-  virtual void trace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, bool outside);
+  virtual void trace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, bool outside) const;
   
   //determines what visible color will the combination of material color and falling light color
   //will produce
-  static void VisibleColor(  CVector &LightColor,  CVector &MaterialColor, CVector &ResultColor );
+  static void VisibleColor( const CVector &LightColor, const CVector &MaterialColor, CVector &resultColor);
   
   SimpleTracer(int defaultDepth = 5, double shadeA = 0.1, double shadeB = 0.1, double shadeC = 0.1, double shadeRoD = 1, double shadeRoReflected = 1, double shadeRoRefracted = 1)
   {
@@ -68,12 +68,12 @@ public:
   };
 private:
   //added maximum recursion depth to the parameter list
-  void strace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, int depth, bool outside);
+  void strace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, int depth, bool outside) const;
   
   //computes the color in the given point due to light sources ONLY
   //RESETS color in the beginning, so do not put any valuable data
   //there as it will be erased
-  void processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color, double smoothness );
+  void processLights( const Medium &curMed, const Environment &scene, const Ray &normale, CVector &color, double smoothness ) const;
   
   //maximum recursion depth
   int m_defaultDepth;
@@ -89,7 +89,7 @@ private:
 class CRenderer
 {
 public:
-		static void RenderPixel( Environment &scene, Medium &medium, CCamera &camera, Tracer &tracer, int x, int y, CVector &color);
+		static void RenderPixel( const Environment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color); 
 };
 
 #endif //CLIENT_SIMPLETRACER_H_INCLUDED

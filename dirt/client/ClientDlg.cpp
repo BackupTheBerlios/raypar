@@ -229,8 +229,8 @@ void CClientDlg::OnButtonTest()
   //CColorSphere	solidObject2(sphereCenter2, 2,white);
   //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
   //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
-  CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
-              CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
+  //CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
+  //            CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
 
   CVector			a(-1, -2, 2.5), b(1,-2,2.5), c(0,1,2.5);
   //CTriangle		solidObject3(a,b,c, CVector(1,1,1));
@@ -257,9 +257,9 @@ void CClientDlg::OnButtonTest()
   //camera.Yaw(-0.8);
   //camera.Shift(-3);
   //camera.Move(-3);
-  //scene.Add( &solidObject );
+  scene.Add( &solidObject );
   solidObject.SetSmoothness( 10 );
-  scene.Add( &solidObject2 );
+  //scene.Add( &solidObject2 );
   //scene.Add( &solidObject3 );
   //scene.Add( &cylinder );
   //scene.Add( &lightSource );

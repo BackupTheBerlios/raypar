@@ -174,12 +174,12 @@ public:
   //which is a default value
   //if we change this, we should redefine
   //Refract and GetInnerMedium functions
-  virtual bool IsTransparent(void)
+  virtual bool IsTransparent(void) const
   {
     return m_isTransparent;
   };
   
-  virtual double GetReflectionCoefficient(void)
+  virtual double GetReflectionCoefficient(void) const
   {
     return m_reflectionCoefficient;
   };
@@ -189,7 +189,7 @@ public:
   //in computing the lighting. The more id the smoothness
   //the more focused spot is left by a light source
   //see SimpleTracer::ProcessLights for usage
-  virtual double GetSmoothness(void)
+  virtual double GetSmoothness(void) const
   {
     return m_smoothness;
   };

@@ -28,7 +28,7 @@ class Tracer
 public:
   //pure virtual function, needs to be redefined in all descendants.
   //the last argument is the pointer to object, in which the result is written
-  virtual void trace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, bool outside)=0;
+  virtual void trace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, bool outside) const =0;
 };
 
 #endif //CLIENT_TRACE_H_INCLUDED

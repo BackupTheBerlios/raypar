@@ -274,16 +274,6 @@ CCylinder::CCylinder( Ray &axis, double length, double radius,
                      bool isTransparent, double Betta, double nRefr,
                      double outerBetta, double outerRefr) : CSolid(reflectionCoefficient, smoothness)
 {
-  ASSERT(length > 10*VECTOR_EQUAL_EPS);
-  ASSERT(radius > 10*VECTOR_EQUAL_EPS);
-  int comparisonResult = geq( Betta, 0 );
-  ASSERT( comparisonResult );
-  ASSERT( nRefr > VECTOR_EQUAL_EPS );
-  comparisonResult = geq( outerBetta, 0 );
-  ASSERT( comparisonResult );
-  ASSERT( outerRefr > VECTOR_EQUAL_EPS );
-  ASSERT( (0 <= reflectionCoefficient) && (reflectionCoefficient <= 1.0) );
-
   axis.getOrigin(m_base);
   axis.getDirection(m_direction);
   m_direction.Normalize();
@@ -297,6 +287,8 @@ CCylinder::CCylinder( Ray &axis, double length, double radius,
   m_outerMedium.Betta = outerBetta;
   m_outerMedium.nRefr = outerRefr;
   m_isTransparent = isTransparent;
+
+  ASSERT( IsValid() );
 };
 
 int CCylinder::IsValid(void) const
@@ -356,25 +348,17 @@ CSphere::CSphere()
 CSphere::CSphere( const CVector &position, double radius, const CVector &color, double Betta, double nRefr, 
                  bool isTransparent, double outerBetta, double outerRefr, double reflectionCoefficient)
 {
-  ASSERT( radius > 0);
-  int comparisonResult = geq( Betta, 0 );
-  ASSERT( comparisonResult );
-  ASSERT( nRefr > 0 );
-  ASSERT( geq(reflectionCoefficient,0) && leq(reflectionCoefficient, 1) );
-  ASSERT( color.IsNormalized() );
-
   m_reflectionCoefficient = reflectionCoefficient;
-  // = is overridden operator for CVector, makes components the same
-
   m_position = position;
   m_radius = radius;
   m_innerMedium.Betta = Betta;
   m_innerMedium.nRefr = nRefr;
-
   m_outerMedium.Betta = outerBetta;
   m_outerMedium.nRefr = outerRefr;
   m_isTransparent = isTransparent;
   m_color = color;
+
+  ASSERT( IsValid() );
 };
 
 void CSphere::GetColor( const Ray &falling, CVector &color) const
@@ -1128,27 +1112,17 @@ int CBox::IsValid(void) const
 CTriangle::CTriangle(const CVector &a, const CVector &b, 
                      const CVector &c, const CVector &color)
 {
-  //check whether color components are correct
-  ASSERT( color.IsNormalized() );
-
   //compute two sides dot product
   //if it is really a triangle, it wil be nonzero
-  CVector ab, ac;
-  ab = b - a;
-  ac = c - a;
-  m_normal.x = ab.y*ac.z - ab.z*ac.y;     //?K? There is vector multiplication 
-  m_normal.y = -(ab.x*ac.z - ab.z*ac.x);   //?K?   operator ^  now. You may use it.
-  m_normal.z = ab.x*ac.y - ab.y*ac.x;
-  double len = m_normal.Length();
-  ASSERT( len > VECTOR_EQUAL_EPS );
-
-  //checks were passed, init private members
+  m_normal = (b-a)^(c-a);
   m_normal.Normalize();
   m_distance = a*m_normal;
   m_a = a;
   m_b = b;
   m_c = c;
   m_color = color;
+
+  ASSERT( IsValid() );
 };
 
 void CTriangle::GetColor( const Ray &falling, CVector &color) const

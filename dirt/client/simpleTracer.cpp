@@ -36,7 +36,7 @@
 #include "simpleTracer.h"
 #include "../COMMON/msg.h"
 
-void SimpleTracer::processLights( Medium &curMed, Environment &scene, Ray &normale, CVector &color, double smoothness )
+void SimpleTracer::processLights( const Medium &curMed, const Environment &scene, const Ray &normale, CVector &color, double smoothness ) const
 {
   ASSERT( smoothness > VECTOR_EQUAL_EPS );
 
@@ -79,7 +79,7 @@ void SimpleTracer::processLights( Medium &curMed, Environment &scene, Ray &norma
   };
 };
 
-void CRenderer::RenderPixel( Environment &scene, Medium &medium, CCamera &camera, Tracer &tracer, int x, int y, CVector &color)
+void CRenderer::RenderPixel( const Environment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color)
 {
   ASSERT((x>=0) && (y>=0));
   
@@ -88,7 +88,7 @@ void CRenderer::RenderPixel( Environment &scene, Medium &medium, CCamera &camera
   tracer.trace( medium, ray, scene, color, true);
 };
 
-void SimpleTracer::VisibleColor( CVector &LightColor,  CVector &MaterialColor, CVector &resultColor)
+void SimpleTracer::VisibleColor( const CVector &LightColor, const CVector &MaterialColor, CVector &resultColor)
 {
   //allow color components to be graeter than 1
   //normalization occures after this function
@@ -105,12 +105,12 @@ void SimpleTracer::VisibleColor( CVector &LightColor,  CVector &MaterialColor, C
   resultColor.z = LightColor.z*MaterialColor.z;
 };
 
-void SimpleTracer::trace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, bool outside)
+void SimpleTracer::trace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, bool outside) const
 {
   strace(curMed, ray, scene, resultColor, m_defaultDepth, outside);
 };
 
-void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, int depth, bool outside)
+void SimpleTracer::strace( const Medium &curMed, const Ray &ray, const Environment &scene, CVector &resultColor, int depth, bool outside) const
 {
   CSolid	*nearestObject;
   double	  t = INFINITY;
