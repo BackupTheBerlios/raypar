@@ -800,13 +800,14 @@ int CCamera::IsValid(void) const
   if( m_verticalAngle < m_minViewAngle )
     return 0;
   //or too wide
-  if( m_horizontalAngle < m_maxViewAngle )
+  if( m_horizontalAngle > m_maxViewAngle )
     return 0;
-  if( m_verticalAngle < m_maxViewAngle )
+  if( m_verticalAngle > m_maxViewAngle )
     return 0;
   
+  CVector temp = m_viewDir^m_topDir;
   //finally check if the directions are correct
-  if( !leq((m_horDir - m_viewDir^m_topDir).Length(), 0) )
+  if( !leq((m_horDir - temp).Length(), 0) )
     return 0;
   
   //everything seems to be ok
