@@ -209,10 +209,10 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 	return (HCURSOR) m_hIcon;
 }
 
+
 void CClientDlg::OnButtonTest() 
 {
   //KIRILL: Temporal button and function for testing of some features
-
 }
 
 void CClientDlg::OnButtonStart() 
