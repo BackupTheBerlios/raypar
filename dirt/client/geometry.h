@@ -25,6 +25,9 @@
 // REVISION by Tonic, on 01/17/2004
 // Comments: Added CTriangle class
 //*********************************************************
+// REVISION by Tonic, on 01/19/2004
+// Comments: Added transparency support for CSphere
+//*********************************************************
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
@@ -33,74 +36,88 @@
 
 class CSphere : public CSolid
 {
-	CVector m_position;
-	double m_radius;
-//	double radius2;
-
+  CVector m_position;
+  double m_radius, m_reflectionCoefficient;
+  bool m_isTransparent;
+  Medium m_innerMedium, m_outerMedium;
+  
 public:
-	//constructors
-
-	CSphere();
-	CSphere( CVector &position, double radius);
-
-	void SetPosition( CVector &position);
-	void SetRadius(double radius);
-	
-	virtual int Intersect(  Ray &ray, double &distance) ;
-	virtual void Reflect( Ray &falling, Ray &reflected) ;
+  //constructors
+  
+  //innerMedium is air (Betta=0, nRefr = 1)
+  //and the sphere is opaque by default
+  CSphere();
+  CSphere( CVector &position, double radius, double Betta = 0.0, double nRefr = 1.0 , bool isTransparent = false, double outerBetta = 0.0, double outerRefr = 1.0, double reflectionCoefficient = 1.0);
+  
+  virtual bool IsTransparent(void)
+  {
+    return m_isTransparent;
+  };
+  
+  virtual double GetReflectionCoefficient(void)
+  {
+    return m_reflectionCoefficient;
+  };
+  
+  void SetPosition( CVector &position);
+  void SetRadius(double radius);
+  
+  virtual int Intersect(  Ray &ray, double &distance) ;
+  virtual void Reflect( Ray &falling, Ray &reflected) ;
+  virtual void Refract( Ray &falling, Ray &refracted, Medium &refractedMedium);
 };
 
 class CColorSphere : public CSphere
-	{
-	private:
+{
+private:
 		CVector m_color;
-
-	public:
-        CColorSphere();
+    
+public:
+  CColorSphere();
 		CColorSphere(CVector &position, double radius, CVector &color);
-		CColorSphere(CVector &position, double radius);
-		virtual void GetColor( Ray &falling, CVector &color);
-		void SetColor( CVector &color );
-	};
+    CColorSphere(CVector &position, double radius);
+    virtual void GetColor( Ray &falling, CVector &color);
+    void SetColor( CVector &color );
+};
 
 class CPlane : public CSolid
 {
-	CVector m_n;    // Plane is defined by equation
-	double m_D;	  // (n,r) + D = 0;   |n| = 1 !!!
-				  // D - is distance from center (may be <0)
-
+  CVector m_n;    // Plane is defined by equation
+  double m_D;	  // (n,r) + D = 0;   |n| = 1 !!!
+  // D - is distance from center (may be <0)
+  
 public:
-	//construction
-	CPlane();
-	CPlane( CVector &n, double D);
-	CPlane(double a, double b, double c, double d); // for   ax + by + cz + d = 0
-	
-	void SetPosition( CVector &n, double D);
-	void SetPosition(double a, double b, double c, double d);
-
-	virtual int Intersect(  Ray &ray, double &distance) ;
-	virtual void Reflect( Ray &falling, Ray &reflected) ;
+  //construction
+  CPlane();
+  CPlane( CVector &n, double D);
+  CPlane(double a, double b, double c, double d); // for   ax + by + cz + d = 0
+  
+  void SetPosition( CVector &n, double D);
+  void SetPosition(double a, double b, double c, double d);
+  
+  virtual int Intersect(  Ray &ray, double &distance) ;
+  virtual void Reflect( Ray &falling, Ray &reflected) ;
 };
 
+
 class CTriangle : public CSolid
-	{
-	private:
+{
+private:
 		CVector m_a, m_b, m_c, m_color, m_normal;
-		double m_distance;
-
-		//plane equation is (m_normal,x) = m_distance
-
-		int planeIntersect( Ray &ray, double &distance);
-	
-	public:
-        CTriangle(CVector &a, CVector &b, CVector &c, CVector &color);
+    double m_distance;
+    
+    //plane equation is (m_normal,x) = m_distance
+    int planeIntersect( Ray &ray, double &distance);
+    
+public:
+  CTriangle(CVector &a, CVector &b, CVector &c, CVector &color);
 		//white by default
 		//CTriangle(CVector &a, CVector &b, CVector &c);
-
+  
 		virtual void GetColor( Ray &falling, CVector &color);
-		virtual int Intersect(  Ray &ray, double &distance);
-		virtual void Reflect( Ray &falling, Ray &reflected);
-
-	};
+    virtual int Intersect(  Ray &ray, double &distance);
+    virtual void Reflect( Ray &falling, Ray &reflected);
+    
+};
 
 #endif //CLIENT_GEOMETRY_H_INCLUDED

@@ -28,11 +28,11 @@ static char THIS_FILE[] = __FILE__;
 // CClientApp
 
 BEGIN_MESSAGE_MAP(CClientApp, CWinApp)
-	//{{AFX_MSG_MAP(CClientApp)
-		// NOTE - the ClassWizard will add and remove mapping macros here.
-		//    DO NOT EDIT what you see in these blocks of generated code!
-	//}}AFX_MSG
-	ON_COMMAND(ID_HELP, CWinApp::OnHelp)
+//{{AFX_MSG_MAP(CClientApp)
+// NOTE - the ClassWizard will add and remove mapping macros here.
+//    DO NOT EDIT what you see in these blocks of generated code!
+//}}AFX_MSG
+ON_COMMAND(ID_HELP, CWinApp::OnHelp)
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -40,9 +40,9 @@ END_MESSAGE_MAP()
 
 CClientApp::CClientApp()
 {
-	// TODO: add construction code here,
-	// Place all significant initialization in InitInstance
-}
+  // TODO: add construction code here,
+  // Place all significant initialization in InitInstance
+};
 
 /////////////////////////////////////////////////////////////////////////////
 // The one and only CClientApp object
@@ -54,68 +54,66 @@ CClientApp theApp;
 
 BOOL CClientApp::InitInstance()
 {
-	if (!AfxSocketInit())
-	{
-		AfxMessageBox(IDP_SOCKETS_INIT_FAILED);
-		return FALSE;
-	}
-
-	AfxEnableControlContainer();
-
-	// Standard initialization
-	// If you are not using these features and wish to reduce the size
-	//  of your final executable, you should remove from the following
-	//  the specific initialization routines you do not need.
-
+  if (!AfxSocketInit())
+  {
+    AfxMessageBox(IDP_SOCKETS_INIT_FAILED);
+    return FALSE;
+  }
+  
+  AfxEnableControlContainer();
+  
+  // Standard initialization
+  // If you are not using these features and wish to reduce the size
+  //  of your final executable, you should remove from the following
+  //  the specific initialization routines you do not need.
+  
 #ifdef _AFXDLL
-	Enable3dControls();			// Call this when using MFC in a shared DLL
+  Enable3dControls();			// Call this when using MFC in a shared DLL
 #else
-	Enable3dControlsStatic();	// Call this when linking to MFC statically
+  Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
-
+  
   m_ClientDlgHWND = 0;
+  
+  CClientDlg dlg;
+  m_pMainWnd = &dlg;
+  int nResponse = dlg.DoModal();
+  if (nResponse == IDOK)
+  {
+    // TODO: Place code here to handle when the dialog is
+    //  dismissed with OK
+  }
+  else if (nResponse == IDCANCEL)
+  {
+    // TODO: Place code here to handle when the dialog is
+    //  dismissed with Cancel
+  }
+  // Since the dialog has been closed, return FALSE so that we exit the
+  //  application, rather than start the application's message pump.
+  return FALSE;
+};
 
-	CClientDlg dlg;
-	m_pMainWnd = &dlg;
-	int nResponse = dlg.DoModal();
-	if (nResponse == IDOK)
-	{
-		// TODO: Place code here to handle when the dialog is
-		//  dismissed with OK
-	}
-	else if (nResponse == IDCANCEL)
-	{
-		// TODO: Place code here to handle when the dialog is
-		//  dismissed with Cancel
-	}
-
-	// Since the dialog has been closed, return FALSE so that we exit the
-	//  application, rather than start the application's message pump.
-	return FALSE;
-}
-
-
-#define MAX_LOG_MESSAGES_COUNT 5 //maximum naumber of log messages
-       //if we add more messages the first ones will be deleted
+#define MAX_LOG_MESSAGES_COUNT 105 //maximum naumber of log messages
+//if we add more messages the first ones will be deleted
 
 void ClientLogMessage( LPCSTR text, MessageType type ) //we don't use type yet
 {
   CWnd* p_wnd = AfxGetMainWnd();
   CClientDlg* p_dlg = (CClientDlg*) p_wnd; //Main window is CClientDlg
-
+  
   switch ( type ){
-    case msgNORMAL: p_dlg->m_log_box.AddMessage( text ); break;
-    case msgERROR : p_dlg->m_log_box.AddError( text ); break;
-    default: ASSERT( 0 ); //Unknown MessageType!
+  case msgNORMAL: p_dlg->m_log_box.AddMessage( text ); break;
+  case msgERROR : p_dlg->m_log_box.AddError( text ); break;
+  default: ASSERT( 0 ); //Unknown MessageType!
   }
-}
+};
 
 BOOL CClientApp::ProcessMessageFilter(int code, LPMSG lpMsg) 
 {
-	// TODO: Add your specialized code here and/or call the base class
-
-//  if ( m_ClientDlgHWND && lpMsg->m_ClientDlgHWND && 
-//          lpMsg->message == WM_KEYDOWN &&  )
-//  else
-    return CWinApp::ProcessMessageFilter(code, lpMsg);
-}
+  // TODO: Add your specialized code here and/or call the base class
+  
+  //  if ( m_ClientDlgHWND && lpMsg->m_ClientDlgHWND && 
+  //          lpMsg->message == WM_KEYDOWN &&  )
+  //  else
+  return CWinApp::ProcessMessageFilter(code, lpMsg);
+};

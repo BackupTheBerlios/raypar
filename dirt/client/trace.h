@@ -13,10 +13,12 @@
 // Comments: Changed interface to get parameters as references
 // instead of pointers
 //*********************************************************
+// REVISION by Tonic, on 01/19/2004
+// Comments: Removed unused double weight from the trace parameters list
+//*********************************************************
 
 #if !defined(CLIENT_TRACE_H_INCLUDED)
 #define CLIENT_TRACE_H_INCLUDED
-
 
 #include "..\common\vector.h"
 #include "environment.h"
@@ -24,9 +26,9 @@
 class Tracer
 {
 public:
-	//pure virtual function, needs to be redefined in all descendants.
-	//the last argument is the pointer to object, in which the result is written
-	virtual void trace( Medium &curMed,  Ray &ray,  Environment &scene, double weight, CVector &resultColor)=0;
+  //pure virtual function, needs to be redefined in all descendants.
+  //the last argument is the pointer to object, in which the result is written
+  virtual void trace( Medium &curMed,  Ray &ray,  Environment &scene, CVector &resultColor, bool outside)=0;
 };
 
 #endif //CLIENT_TRACE_H_INCLUDED

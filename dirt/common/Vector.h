@@ -17,16 +17,15 @@
 // Comments: Length() error corrected - sqrt(.) added
 //
 //*********************************************************
-// REVISION by KIRILL, on 1/16/2004 00:24:05
-// Comments: Some method weren't described as const. Corrected.
+// REVISION by Tonic, on 1/19/2004
+// Comments: added approximate comparison functions for double values
+// using VECTOR_EQUAL_EPS
 //
 //*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
 //*********************************************************
-
-
 
 #if !defined(AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_)
 #define AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_
@@ -38,91 +37,113 @@
 #include <math.h>
 #define VECTOR_EQUAL_EPS (1E-7)
 
+static bool eq(double a, double b)
+{
+  if( fabs(a-b) < VECTOR_EQUAL_EPS )
+    return true;
+  else return false;
+};
+
+//true if a >= b
+static bool geq(double a, double b)
+{
+  if( a > b - VECTOR_EQUAL_EPS )
+    return true;
+  else return false;
+};
+
+//true if a <= b
+static bool leq(double a, double b)
+{
+  if( a < b + VECTOR_EQUAL_EPS )
+    return true;
+  else return false;
+};
+
 class CVector
 {
 public:	
-	double x, y, z;
-	
+  double x, y, z;
+  
 public:
-	CVector() : x(0), y(0), z(0) {}
-	CVector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
-	CVector(const CVector &v) : x(v.x), y(v.y), z(v.z) {}  
-	
-	//operators
-	
-	CVector operator+ (const CVector& v) const
-	{	return CVector(x + v.x, y + v.y, z+v.z); }
-	
-	CVector operator- (const CVector& v) const
-	{	return CVector(x - v.x, y - v.y, z-v.z); }
-	
-	void operator+= (const CVector& v)
-	{	x+=v.x;	y+=v.y;	z+=v.z; }
-	
-	void operator-= (const CVector& v)
-	{	x-=v.x;	y-=v.y;	z-=v.z; }
-	
-	void operator*= (double m)
-	{	x*=m; y*=m; z*=m; }
-	
-	CVector operator* ( double m ) const
-	{	return CVector(x*m, y*m, z*m); }
-	
-	//don't forget about devizion by ZERO !
-	void operator/= ( double d )
-	{	x/=d; y/=d; z/=d; }
-	
-	//scalar multiplication
-	double operator* ( const  CVector& v ) const
-	{	return v.x*x + v.y*y + v.z*z; }
-	
-	//*************
-	//operator =
-	//last modified by Tonic on 12/11/2003
-	//bugfix, added missing z=v.z
-	//*************
-	CVector& operator= ( const CVector& v )
-	{	x=v.x; y=v.y; z=v.z;	return *this;}
-	
-	//Be carefull with this operator!
-	int operator == ( const CVector& v ) const
-	{ return ( ( fabs(v.x-x) < VECTOR_EQUAL_EPS) && 
-	( fabs(v.y-y) < VECTOR_EQUAL_EPS) && 
-	( fabs(v.z-z) < VECTOR_EQUAL_EPS ) ); }
-	
-	//Checks whether Vector equals to zero
-	//Be careful with this function!
-	int IsZero (void) const
-	{ return ( ( fabs(x) < VECTOR_EQUAL_EPS ) && 
-	( fabs(y) < VECTOR_EQUAL_EPS ) &&
-	( fabs(z) < VECTOR_EQUAL_EPS ) ); }
-	
-	double Length (void) const
-	{ return sqrt(x*x + y*y + z*z); }
-	
-	//sinonim for Length
-	double Len (void) const
-	{ return Length(); }
-	
-	//normalization to the length of 1
-	void  Normalize() {
-	  double len = Length();  
-	  if( len > VECTOR_EQUAL_EPS ){
-		  x /= len;  y /= len;  z /= len;
+  CVector() : x(0), y(0), z(0) {}
+  CVector(double _x, double _y, double _z) : x(_x), y(_y), z(_z) {}
+  CVector(const CVector &v) : x(v.x), y(v.y), z(v.z) {}  
+  
+  //operators
+  
+  CVector operator+ (const CVector& v) 
+  {	return CVector(x + v.x, y + v.y, z+v.z); }
+  
+  CVector operator- (const CVector& v) 
+  {	return CVector(x - v.x, y - v.y, z-v.z); }
+  
+  void operator+= (const CVector& v)
+  {	x+=v.x;	y+=v.y;	z+=v.z; }
+  
+  void operator-= (const CVector& v)
+  {	x-=v.x;	y-=v.y;	z-=v.z; }
+  
+  void operator*= (double m)
+  {	x*=m; y*=m; z*=m; }
+  
+  CVector operator* ( double m )
+  {	return CVector(x*m, y*m, z*m); }
+  
+  //don't forget about devizion by ZERO !
+  void operator/= ( double d )
+  {	x/=d; y/=d; z/=d; }
+  
+  //scalar multiplication
+  double operator* ( const  CVector& v )
+  {	return v.x*x + v.y*y + v.z*z; }
+  
+  //*************
+  //operator =
+  //last modified by Tonic on 12/11/2003
+  //bugfix, added missing z=v.z
+  //*************
+  CVector& operator= ( const CVector& v )
+  {	x=v.x; y=v.y; z=v.z;	return *this;}
+  
+  //Be carefull with this operator!
+  int operator == ( const CVector& v ) const
+  { return ( ( fabs(v.x-x) < VECTOR_EQUAL_EPS) && 
+  ( fabs(v.y-y) < VECTOR_EQUAL_EPS) && 
+  ( fabs(v.z-z) < VECTOR_EQUAL_EPS ) ); }
+  
+  //Checks whether Vector equals to zero
+  //Be careful with this function!
+  int IsZero (void) const
+  { return ( ( fabs(x) < VECTOR_EQUAL_EPS ) && 
+  ( fabs(y) < VECTOR_EQUAL_EPS ) &&
+  ( fabs(z) < VECTOR_EQUAL_EPS ) ); }
+  
+  double Length (void) const
+  { return sqrt(x*x + y*y + z*z); }
+  
+  //sinonim for Length
+  double Len (void) const
+  { return Length(); }
+  
+  //normalization to the length of 1
+  void  Normalize() {
+    double len = Length();  
+    if( len > VECTOR_EQUAL_EPS ){
+      x /= len;  y /= len;  z /= len;
     }    
   }
-	
+  
 #ifdef _DEBUG
-	void Dump(CDumpContext& dc = afxDump);
+  void Dump(CDumpContext& dc = afxDump);
 #endif//_DEBUG
 };
 
 //unary minus operator
-inline CVector operator- (const CVector& v)
+inline CVector operator- (const CVector& v) 
 {	return CVector(-v.x, -v.y, -v.z); }
 
-
-inline CVector operator* ( double m, const CVector& v ) 
+inline CVector operator* ( double m, const CVector& v )
 {	return CVector(v.x*m, v.y*m, v.z*m); }
 
 //don't forget about devision by ZERO !
@@ -130,6 +151,5 @@ inline CVector operator/ ( const CVector& v, double d )
 {	return CVector(v.x/d, v.y/d, v.z/d); }
 
 CDumpContext& operator << (CDumpContext& dc, const CVector& v);
-
 
 #endif // !defined(AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_)
