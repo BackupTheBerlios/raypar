@@ -166,6 +166,25 @@ SOURCE=.\hlp\SERVER.hpj
 
 !IF  "$(CFG)" == "SERVER - Win32 Release"
 
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - making help...
+OutDir=.\..\BUILT
+InputPath=.\hlp\SERVER.hpj
+InputName=SERVER
+
+"$(OutDir)\$(InputName).hlp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	start /wait hcw /C /E /M "hlp\$(InputName).hpj" 
+	if errorlevel 1 goto :Error 
+	if not exist "hlp\$(InputName).hlp" goto :Error 
+	copy "hlp\$(InputName).hlp" $(OutDir) 
+	goto :done 
+	:Error 
+	echo hlp\$(InputName).hpj(1) : error: 
+	type "hlp\$(InputName).log" 
+	:done 
+	
+# End Custom Build
+
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
 # PROP Ignore_Default_Tool 1
@@ -328,6 +347,17 @@ SOURCE=.\hlp\AfxCore.rtf
 SOURCE=.\hlp\SERVER.cnt
 
 !IF  "$(CFG)" == "SERVER - Win32 Release"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build - Copying contents file...
+OutDir=.\..\BUILT
+InputPath=.\hlp\SERVER.cnt
+InputName=SERVER
+
+"$(OutDir)\$(InputName).cnt" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy "hlp\$(InputName).cnt" $(OutDir)
+
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
 
