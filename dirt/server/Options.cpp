@@ -25,10 +25,14 @@ COptions::COptions()
 : m_imageWidth( 0 )
 , m_imageHeight( 0 )
 , m_serverPort( 0 )  
-{}
+{
+  GetDataFromReg();
+}
 
 COptions::~COptions()
-{}
+{
+  SaveDataToReg();
+}
 
 //
 // Registry entry names
