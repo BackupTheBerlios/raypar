@@ -120,14 +120,11 @@ private:
 };
 
 
-//class to contain pixel color computing routine
+//pixel color computing routine
 //which takes scene, camera, tracer and pixel coords as parameters
-class CRenderer
-{
-public:
-   static void RenderPixel( const CEnvironment &scene, 
-                            const Medium &medium, const CCamera &camera, 
-                            const Tracer &tracer, int x, int y, CVector &color); 
-};
+void RenderPixel( const CEnvironment &scene, 
+                  const Medium &medium, const CCamera &camera, 
+                  const Tracer &tracer, int x, int y, CVector &color); 
+
 
 #endif //CLIENT_SIMPLETRACER_H_INCLUDED

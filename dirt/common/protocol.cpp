@@ -227,18 +227,21 @@ int CGetFrameData::A::read(CArchive& ar)
 // CGetSceneData::Q
 ///////////////////////////////////////////////////////////
 
-CGetSceneData::Q::Q(const int& session_id)
-: m_session_id( const_cast<int&>(session_id) )
+CGetSceneData::Q::Q(const int& session_id, const int& scene_uid)
+: m_session_id ( const_cast<int&> ( session_id ) )
+, m_scene_uid  ( const_cast<int&> ( scene_uid  ) )
 {}
 
-CGetSceneData::Q::Q(int *p_session_id)
+CGetSceneData::Q::Q(int *p_session_id, int *p_scene_uid )
 : m_session_id( *p_session_id )
+, m_scene_uid ( *p_scene_uid  )
 {}
 
 int CGetSceneData::Q::write(CArchive& ar)
 { 
   ASSERT( ar.IsStoring() );
   ar << m_session_id;
+  ar << m_scene_uid;
   return 0; 
 }
 
@@ -246,6 +249,7 @@ int CGetSceneData::Q::read(CArchive& ar)
 { 
   ASSERT( ar.IsLoading() );
   ar >> m_session_id;
+  ar >> m_scene_uid;
   return 0;
 }
 
@@ -253,45 +257,56 @@ int CGetSceneData::Q::read(CArchive& ar)
 // CGetSceneData::A
 ///////////////////////////////////////////////////////////
 
-CGetSceneData::A::A(  const int& session_id, const int& scene_uid
+CGetSceneData::A::A(  const int& session_id, const BOOL& scene_changed
                       , const CEnvironment& scene )
- : m_session_id ( const_cast<int&>          ( session_id ) )
- , m_scene_uid  ( const_cast<int&>          ( scene_uid  ) )
- , m_scene      ( const_cast<CEnvironment&> ( scene      ) ) 
+ : m_session_id    ( const_cast<int&>          ( session_id    ) )
+ , m_scene_changed ( const_cast<int&>          ( scene_changed ) )
+ , m_scene         ( const_cast<CEnvironment&> ( scene         ) ) 
 {}
 
 
-CGetSceneData::A::A( int *p_session_id, int* p_scene_uid
+CGetSceneData::A::A( int *p_session_id, BOOL* p_scene_changed
                       , CEnvironment* p_scene )
- : m_session_id ( *p_session_id ) 
- , m_scene_uid  ( *p_scene_uid  ) 
- , m_scene      ( *p_scene      ) 
+ : m_session_id    ( *p_session_id    ) 
+ , m_scene_changed ( *p_scene_changed ) 
+ , m_scene         ( *p_scene         ) 
 {}
 
+
+//m_scene_changed == TRUE means that scene with requested UID can't be sent
+//so the m_scene shouldn't be not written 
 int CGetSceneData::A::write(CArchive& ar)
 {
   ASSERT( ar.IsStoring() );
- 
-  ar << m_session_id;
-  ar << m_scene_uid;
+  int ret = 0;
 
-  ASSERT( m_scene.IsValid() );
-  int ret;
-  ret = m_scene.write( ar );
-  ASSERT( !ret );
+  ar << m_session_id;
+  ar << m_scene_changed;
+  if (!m_scene_changed){
+    ASSERT( m_scene.IsValid() );
+    ret = m_scene.write( ar );
+    ASSERT( !ret );
+  }
   
   return ret;
 }
 
+//m_scene_changed == TRUE means that scene with requested UID can't be sent
+//so the m_scene shouldn't be not read
 int CGetSceneData::A::read(CArchive& ar)
 {
   ASSERT( ar.IsLoading() );
   
   ar >> m_session_id;
-  ar >> m_scene_uid;
-  if ( !m_scene.read( ar ) || !m_scene.IsValid() ){
-    ASSERT( 0 );
-    return LOADING_ERROR_RETURN;
+  ar >> m_scene_changed;
+
+  if ( !m_scene_changed ){
+    int ret = m_scene.read( ar );
+
+    if ( ret || !m_scene.IsValid() ){
+      ASSERT( 0 );
+      return LOADING_ERROR_RETURN;
+    }
   }
   
   return 0;

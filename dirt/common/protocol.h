@@ -21,7 +21,7 @@
 // Protocol version
 
 //#define PROTOCOL_VERSION 1
-#define PROTOCOL_VERSION 2
+#define PROTOCOL_VERSION   2
 
 
 ///////////////////////////////////////////////////////////
@@ -161,9 +161,10 @@ struct CGetSceneData {
   struct Q : public QA  
   {
     int& m_session_id;
+    int& m_scene_uid;
     
-    Q(const int& session_id);
-    Q(int *p_session_id);
+    Q(const int& session_id, const int& scene_uid);
+    Q(int *p_session_id, int *p_sscene_uid);
     int write(CArchive& ar);
     int read(CArchive& ar);    
   };
@@ -171,15 +172,16 @@ struct CGetSceneData {
   struct A : public QA  
   {
     int& m_session_id;
-    int& m_scene_uid;
+    BOOL& m_scene_changed; //nonzero means that scene with requested UID can't be sent
+                           //so the m_scene is not written or read
     CEnvironment& m_scene;
     
     A(  const int& session_id
-       , const int& scene_uid
+       , const BOOL& m_scene_changed
        , const CEnvironment& scene       
      );
     A(int *p_session_id
-       , int* p_scene_uid
+       , BOOL* p_scene_changed
        , CEnvironment* p_scene
      );
     int write(CArchive& ar);

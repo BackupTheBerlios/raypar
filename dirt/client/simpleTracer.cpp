@@ -86,15 +86,6 @@ void SimpleTracer::processLights( const Medium &curMed, const CEnvironment &scen
   };
 };
 
-void CRenderer::RenderPixel( const CEnvironment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color)
-{
-  ASSERT((x>=0) && (y>=0));
-  
-  Ray ray;
-  camera.PixelRay(x,y,ray);
-  tracer.trace( medium, ray, scene, color, true);
-};
-
 void SimpleTracer::VisibleColor( const CVector &LightColor, const CVector &MaterialColor, CVector &resultColor)
 {
   //allow color components to be graeter than 1
@@ -240,4 +231,17 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
   }
   else
     GetBackgroundColor( resultColor );
+};
+
+
+///////////////////////////////////////////////////////////
+//  RenderPixel
+
+void RenderPixel( const CEnvironment &scene, const Medium &medium, const CCamera &camera, const Tracer &tracer, int x, int y, CVector &color)
+{
+  ASSERT((x>=0) && (y>=0));
+  
+  Ray ray;
+  camera.PixelRay(x,y,ray);
+  tracer.trace( medium, ray, scene, color, true);
 };

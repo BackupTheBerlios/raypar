@@ -51,7 +51,7 @@ void ErrorMessageWithBox(LPCSTR error_text);
 
 
 //  Builds error message for the provided error code.
-CString GetErrorMessageByErrorCode(DWORD errorCode);
+CString GetErrorMessageByErrorCode(DWORD errorCode = GetLastError());
 
 
 

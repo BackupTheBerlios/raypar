@@ -127,7 +127,7 @@ void ErrorMessageWithBox(LPCSTR error_text)
 //  Adds error messagge to log provided error code.
 //  Describes the error for some "most popular" error codes
 //
-CString GetErrorMessageByErrorCode(DWORD errorCode)
+CString GetErrorMessageByErrorCode(DWORD errorCode /* = GetLastError()*/)
 {
   CString err_msg;
   LPSTR buf = err_msg.GetBufferSetLength(MAX_MESSAGE_LEN);

@@ -32,14 +32,52 @@ static char THIS_FILE[] = __FILE__;
 int CSolidArray::write(CArchive& ar) const
 {
   ASSERT( ar.IsStoring() );
+  ASSERT( IsValid() );
 
+  ar << GetSize();
+
+  for(int i=0; i<GetSize(); i++ ){  
+    CSolid* p_solid = GetAt(i);
+    ASSERT( p_solid->IsValid() );
+    int ret = p_solid->write( ar );
+
+    ASSERT( !ret );
+    if( ret )
+      return STORING_ERROR_RETURN; //error occured    
+  }
+  
   return 0;
-
 }
 
 int CSolidArray::read(CArchive& ar)
 {
   ASSERT( ar.IsLoading() );
+  Empty();
+
+  int num;
+  ar >> num;
+
+  ASSERT( num >= 0 );
+  if ( num < 0 )
+    return LOADING_ERROR_RETURN;
+
+  for(int i=0; i<num; i++){
+    CSolid* p_solid = CSolid::readObject( ar );
+    
+    if( !p_solid || !p_solid->IsValid() ){
+      ASSERT( 0 );     
+      delete p_solid;
+        //note - we don't destroy the objects we've already noramally loaded
+      return LOADING_ERROR_RETURN; // error - invalid data arrived
+                    
+    }
+    Add( p_solid );
+  }
+
+  if ( !IsValid() ){
+    ASSERT( 0 );
+    return LOADING_ERROR_RETURN;
+  }
 
   return 0;
 }

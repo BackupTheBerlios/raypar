@@ -21,6 +21,9 @@
 /////////////////////////////////////////////////////////////////////////////
 // CClientDlg dialog
 
+class CEnvironment;
+class CCamera;
+
 class CClientDlg : public CDialog
 {
 // Construction
@@ -49,6 +52,8 @@ public:
 // Implementation
 protected:
 	HICON m_hIcon;  
+
+  void RenderImage(CEnvironment& scene, CCamera& camera);
 
 	// Generated message map functions
 	//{{AFX_MSG(CClientDlg)
