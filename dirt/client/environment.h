@@ -156,9 +156,21 @@ protected:
 class	CSolid
 {
 protected:
-  double m_smoothness, m_reflectionCoefficient;
+
+  //m_smoothness is the cosine exponent in the lights computation expression
+  //see SimpleTracer::processLights for usage
+  double m_smoothness;
+
+  //the colors of reflected and refracted rays are added to the point color
+  //with the weights of m_reflectionCoefficient and (1 - m_reflectionCoefficient)
+  //respectively
+  double m_reflectionCoefficient;
   CVector m_color;
-  Medium medium;  
+
+  //outer medium. used in refracted rays computation for flat objects
+  Medium medium;
+
+  //refracted rays are computed iff this is true
   bool m_isTransparent;
   
 public:
@@ -221,7 +233,7 @@ public:
 
   //smoothness is the exponent of the cosine of
   //angle between normale direction and light direction
-  //in computing the lighting. The more id the smoothness
+  //in computing the lighting. The more is the smoothness
   //the more focused spot is left by a light source
   //see SimpleTracer::ProcessLights for usage
   virtual double GetSmoothness(void) const

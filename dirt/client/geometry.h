@@ -50,6 +50,9 @@
 // REVISION by Tonic, on 01/29/2004
 // Comments: Modified CPlane, CTriangle constructors to support transparency
 //*********************************************************
+// REVISION by Tonic, on 01/29/2004
+// Comments: Comments on class members added
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -74,6 +77,7 @@
 
 class CSphere : public CSolid
 {
+  //center of the sphere
   CVector m_position;
   double  m_radius;
   Medium  m_innerMedium;
@@ -204,7 +208,12 @@ protected:
 class CTriangle : public CSolid
 {
 private:
+  //the vertices of the triangle
+  //and the normale to the plane containing the triangle
   CVector m_a, m_b, m_c, m_normal;
+
+  //distance - D parameter in the plane equation
+  // (x,normale) + D = 0
   double m_distance;
     
 public:
@@ -232,7 +241,10 @@ protected:
 class CCylinder : public CSolid
 {
 private:
+  //m_length is the distance between the top and bottom circles
   double m_length;
+
+  //the radius of the circles
   double m_radius;
 
   //base is the center of the "bottom" circle
@@ -240,8 +252,14 @@ private:
   //"upper" circle
   CVector m_base;
   CVector m_direction;
+
+  //the medium inside and outside the cylinder
+  //used in refraction computation
   Medium m_innerMedium;
   Medium m_outerMedium;
+
+  //these are the planes containing the bottom and top
+  //circles respectively. Used to ease the intersections computation
   CPlane m_bottom;
   CPlane m_top;
 public:
