@@ -43,24 +43,29 @@ int CSceneList::GetSceneCount( void ) const
 
 void CSceneList::Empty(void)
 {
-  EmptyCPtrArray( m_scenes );
-  EmptyCPtrArray( m_cameras );
+  EmptySceneArray();
+  
+  for( int i = 0; i < m_counter; i++){
+    delete (CCamera*)m_cameras[i];
+  }
+  m_cameras.RemoveAll();
+
   m_counter = 0;
 };
 
-void CSceneList::EmptyCPtrArray( const CPtrArray &array )
+void CSceneList::EmptySceneArray()
 {
   for( int i = 0; i < m_counter; i++)
   {
-    void *current, *temp;
+    CEnvironment *current, *temp;
     bool encountered = false;
 
-    current = array.GetAt(i);
+    current = (CEnvironment*)m_scenes.GetAt(i);
     //check the pointers with indexes less than ours
     //maybe we have encountered the same pointer before
     for( int j = 0; j < i; j++)
     {
-      temp = array.GetAt(j);
+      temp = (CEnvironment*)m_scenes.GetAt(j);
       if( temp == current )
       {
         encountered = true;
@@ -68,7 +73,10 @@ void CSceneList::EmptyCPtrArray( const CPtrArray &array )
       };
     };
 
-    if( !encountered )
+    if( !encountered ){
+      current->Empty();
       delete current;
-  };
-};
+    }      
+  }
+  m_scenes.RemoveAll();
+}

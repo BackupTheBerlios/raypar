@@ -114,6 +114,11 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
   m_client_thread = StartClientThread( &m_thread_params ); //start client thread
 };
 
+CClientDlg::~CClientDlg()
+{
+  delete m_line_data;
+}
+
 void CClientDlg::DoDataExchange(CDataExchange* pDX)
 {
   CDialog::DoDataExchange(pDX);
@@ -551,16 +556,16 @@ void CClientDlg::SwitchToRelaxedMode()
 void CClientDlg::SetupTimer()
 {
   ASSERT( m_connect_period > 0 );
-  int ret = SetTimer(reconnect_timer_event_id, m_connect_period*1000, 0);
+  int ret = SetTimer(reconnect_timer_event_id, m_connect_period*1000, 0);  
   ASSERT( ret );
 }
 
 void CClientDlg::OnTimer(UINT nIDEvent) 
 {
-  if ( nIDEvent == reconnect_timer_event_id ){
+  if ( nIDEvent == reconnect_timer_event_id ){    
     ASSERT( m_bWorking ); //timer message can be received only in this mode
     KillTimer( reconnect_timer_event_id );
-    _DoRepeatedCommunications();
+    _DoRepeatedCommunications();    
   }
 	
 	CDialog::OnTimer(nIDEvent);

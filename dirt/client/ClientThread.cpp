@@ -65,7 +65,7 @@ UINT ClientThreadFunction(void* param)
       ASSERT( line_number >=0 && line_number < imgHeight );
 
       CSimpleTracerSettings settings;
-      settings.m_defaultDepth = 5;
+      settings.m_defaultDepth = 10;
       settings.m_shadeA = 0.08;
       settings.m_shadeB = 0.08;
       settings.m_shadeC = 0.08;
@@ -100,6 +100,7 @@ UINT ClientThreadFunction(void* param)
       if(!cp->bShouldStop){ //main thread said us to stop, so we 
                         //probably haven't finished the image line
         ::PostMessage(hwnd_main, WM_CLIENT_LINE_RENDERED, 0, 0 );
+        
       }
     }
   }

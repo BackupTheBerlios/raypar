@@ -13,7 +13,7 @@
 
 #include "stdafx.h"
 #include "SceneArray.h"
-#include "client/environment.h" //temporally include from there
+#include "client/environment.h" 
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

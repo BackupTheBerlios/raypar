@@ -47,6 +47,7 @@ class CClientDlg : public CDialog
 // Construction
 public:
 	CClientDlg(CWnd* pParent = NULL);	// standard constructor
+  ~CClientDlg();
 
   bool m_bWannaClose;
 

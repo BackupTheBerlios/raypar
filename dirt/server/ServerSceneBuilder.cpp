@@ -28,7 +28,9 @@ CServerSceneBuilder::CServerSceneBuilder()
 }
 
 CServerSceneBuilder::~CServerSceneBuilder()
-{}
+{
+  Empty();
+}
 
 void CServerSceneBuilder::Init(void)
 {

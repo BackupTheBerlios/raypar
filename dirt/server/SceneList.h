@@ -30,8 +30,8 @@ public:
   int  GetSceneCount( void ) const;
   void Empty(void);
 
-private:
-  void EmptyCPtrArray( const CPtrArray &array );
+protected:
+  void EmptySceneArray();
 };
 
 #endif // SERVER_SCENELIST_H_INCLUDED

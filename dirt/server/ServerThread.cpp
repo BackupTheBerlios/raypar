@@ -20,7 +20,7 @@
 #include "common/protocol.h"
 #include "srvcmd.h"
 #include "common/protocol.h"
-#include "client/geometry.h"   //?K? temp
+#include "client/geometry.h"
 #include "server.h"
 #include "mainfrm.h"
 
@@ -310,6 +310,7 @@ CServerControl::CServerControl()
 , m_last_session_id( 0 )
 , m_scene( 0 )
 , m_p_frame( 0 )
+, m_camera( 0 )
 , m_can_read_scene_event(FALSE, TRUE) //manual reset event
 , m_can_modify_scene_event(TRUE, TRUE) //initially signalled, manual reset event
 , m_b_server_should_stop(0)
@@ -322,7 +323,7 @@ CServerControl::~CServerControl()
   m_lines.Free();
 }
 
-
+ 
 //  Creates socket and starts listening
 //  returns 0 if successful
 int CServerControl::StartServer(CWnd* p_frame, int portNum
@@ -335,6 +336,9 @@ int CServerControl::StartServer(CWnd* p_frame, int portNum
   
   m_p_frame = p_frame;
   m_scene = p_scene;
+  if (m_camera)
+    delete m_camera;  
+
   m_camera = p_camera;
 
   m_b_server_should_stop = false;
@@ -415,10 +419,6 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
   CSingleLock lines_lock(&m_lines_change_cs, TRUE);
                                           //we lock the access to the lines info
 
-  p_camera_info->m_camera_pos = m_camera->GetEyePoint();
-  p_camera_info->m_camera_y_axis = m_camera->GetTopDir();
-  p_camera_info->m_camera_z_axis = m_camera->GetViewDir();
-  
   *p_scene_id = m_scene->GetSceneUID(); 
   ASSERT( *p_scene_id > 0);//zero or negative scene id means that 
                            //the scene wasn't loaded
@@ -428,6 +428,18 @@ int CServerControl::FillSceneParameters( int* p_scene_id,
   p_image_lines_info->m_line_number = m_lines.GetLine2Render();//may be negative
                         //negative means that the image was completed
                         //and there is no line to render.
+
+  if (m_lines.IsCompleted() ){ //we must not use camera info!
+    //what we'll put heer is unimportant
+    p_camera_info->m_camera_pos = CVector(1,0,0);
+    p_camera_info->m_camera_y_axis = CVector(0,1,0);
+    p_camera_info->m_camera_z_axis = CVector(0,0,1);
+  }else{
+    p_camera_info->m_camera_pos = m_camera->GetEyePoint();
+    p_camera_info->m_camera_y_axis = m_camera->GetTopDir();
+    p_camera_info->m_camera_z_axis = m_camera->GetViewDir();
+  }
+
   return 0;
 }
 
@@ -598,7 +610,7 @@ UINT ServerThreadFunction( void* param )
             int ret = CmdGetSceneData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
             if ( ERROR_MUST_TERMINATE == ret )
                 bEnd = true;          
-            bEnd = true; //KIRILL: temporarily 
+            bEnd = true;
             break;
           }
         case CMD_SEND_LINE_DATA:

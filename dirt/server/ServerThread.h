@@ -18,7 +18,7 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-#include "client/environment.h" //?K? !!
+#include "client/environment.h" 
 
 struct CImageLinesInfo;
 struct CCameraInfo;
