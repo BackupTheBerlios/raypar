@@ -200,8 +200,7 @@ public:
     m_smoothness = smoothness;
   };
  
-  virtual int IsValid(void) const // Will be =0
-  { return 1; }  //temporally
+  virtual int IsValid(void) const;
 }; 
 
 ///////////////////////////////////////////////////////////

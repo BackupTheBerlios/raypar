@@ -41,6 +41,9 @@
 // Comments: Color support went to CSphere, CColorSphere eliminated
 // IsValid added to CTriangle, CSphere, CCylinder
 //*********************************************************
+// REVISION by Tonic, on 1/26/2004
+// Comments: Added getters to CPlane
+//*********************************************************
 // REVISION by Vader, on 1/26/2004 
 // Comments: IsValid() added for CBox and CPlane
 //*********************************************************
@@ -119,6 +122,12 @@ public:
   
   void SetPosition( const CVector &n, double D);
   void SetPosition(double a, double b, double c, double d);
+  
+  void getNormale( CVector &normale ) const
+  { normale = m_n; };
+
+  void getDistance( double &distance ) const
+  { distance = m_D; };
 
   void SetColor( const CVector &color );
   virtual void GetColor( const Ray &falling, CVector &color) const;
@@ -212,8 +221,7 @@ public:
   //all the validation is done in the constructor
   //no setters
   //so the triangle is always valid
-  virtual int  IsValid(void) const
-  {return 1;};
+  virtual int  IsValid(void) const;
 
 protected:
   //plane equation is (m_normal,x) = m_distance
@@ -237,10 +245,6 @@ public:
   virtual void Reflect( const Ray &falling, Ray &reflected) const;
   virtual void Refract( const Ray &falling, Ray &refracted, Medium &refractedMedium) const;
 
-  //all the validation is done in the constructor
-  //no setters
-  //so the cylinder is always valid
-  virtual int  IsValid(void) const
-  {return 1;};
+  virtual int  IsValid(void) const;
 };
 #endif //CLIENT_GEOMETRY_H_INCLUDED

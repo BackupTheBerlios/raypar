@@ -45,6 +45,9 @@
 // Comments: I've modified checking of pointers
 // in Environment::Add(CLight*) and Environment::Add(CSolid*) 
 //*********************************************************
+// REVISION by KIRILL, on 1/26/2004
+// Comments: CSolid::IsValid added
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -132,6 +135,16 @@ void CSolid::GetColor( const Ray &falling, CVector &color) const
   color.x = color.y = color.z = 1;
 };
 
+int CSolid::IsValid(void) const
+{
+  if( leq(m_smoothness,0) )
+    return 0;
+  
+  if ( leq(m_reflectionCoefficient,0) || (m_reflectionCoefficient > 1.0))
+    return 0;
+  
+  return 1;
+};
 ///////////////////////////////////////////////////////////
 // CLight     - model of an abstract light source
 ///////////////////////////////////////////////////////////
@@ -157,7 +170,7 @@ CLight::CLight( double r, double g, double b, double x, double y, double z)
 int CLight::IsValid() const
 {
   if ( !m_color.IsNormalized() ) return 0;
-
+  
   return 1;
 }
 
@@ -197,7 +210,7 @@ int CLight::read (CArchive& ar)
 {
   ar >> m_position;
   ar >> m_color;
-
+  
   if (!IsValid()){
     ASSERT( 0 );
     return 1;
@@ -229,16 +242,16 @@ void Environment::Add ( CLight *light )
   int i;
   int lightsCount = m_lights.GetSize();
   
-  #ifdef _DEBUG
+#ifdef _DEBUG
   //check if this element is already present
   //if it holds, do not add repeatedly, just return
   for( i = 0; i < lightsCount; i++ )
     if( m_lights[i] == light )
       ASSERT(0);
-  #endif//_DEBUG
+#endif//_DEBUG
     
-  //actually add light source to environment
-  m_lights.Add(light);
+    //actually add light source to environment
+    m_lights.Add(light);
 };
 
 void Environment::Add ( CSolid *solid )
@@ -248,24 +261,24 @@ void Environment::Add ( CSolid *solid )
   int i;
   int solidsCount = m_solids.GetSize();
   
-
-  #ifdef _DEBUG
+  
+#ifdef _DEBUG
   //check if this element is already present
   //if it holds, do not add repeatedly, just return
   for( i = 0; i < solidsCount; i++ )
     if( m_solids[i] == solid )
       ASSERT(0);
-  #endif//_DEBUG
+#endif//_DEBUG
     
-  //actually add element to environment
-  m_solids.Add(solid);
+    //actually add element to environment
+    m_solids.Add(solid);
 };
 
 
 void  Environment::SetAmbientColor( const CVector &AmbientColor )
 {
   ASSERT( AmbientColor.IsNormalized() );  
-
+  
   m_AmbientColor = AmbientColor;
 };
 
@@ -294,7 +307,7 @@ CSolid * Environment::Intersect (  const Ray &ray, double &t ) const
   
   //for every object
   for ( int i = 0; i < solidsCount; i++ )
-    {
+  {
     //find intersection
     if ( m_solids.GetAt(i) -> Intersect ( ray, t ) != 0 )
     {
@@ -306,7 +319,7 @@ CSolid * Environment::Intersect (  const Ray &ray, double &t ) const
         closestObj  = m_solids.GetAt(i);
       }
     };
-    };
+  };
   
   t = closestDist;
   return closestObj;
@@ -323,12 +336,12 @@ int Environment::IsValid(void) const
 int Environment::write(CArchive& ar) const
 {
   ASSERT( IsValid() );
-
+  
   ar << m_AmbientColor;
   if ( !m_lights.write( ar ) ){
     return STORING_ERROR_RETURN;
   }
-
+  
   return 0;
 }
 
@@ -336,14 +349,14 @@ int Environment::read (CArchive& ar)
 {
   m_lights.Empty();
   m_solids.Empty();
-
+  
   ar >> m_AmbientColor;
-
+  
   if ( !m_lights.read( ar ) || m_lights.IsValid() ){
     m_lights.Empty();
     return LOADING_ERROR_RETURN;
   }
-
+  
   return 0;
 }
 
@@ -365,7 +378,7 @@ CCamera::CCamera( const CVector &eyePoint, const CVector &viewDir,
   double lengthProduct = viewDir.Length() * topDir.Length();
   double scalarProduct = fabs( viewDir * topDir );
   ASSERT( scalarProduct < lengthProduct - VECTOR_EQUAL_EPS );  // ?K? Are you sure ???
-                                            // ?K? Maybe you mean "+ VECTOR_EQUALS_EPSILON"?
+  // ?K? Maybe you mean "+ VECTOR_EQUALS_EPSILON"?
   
   m_width = width;
   m_height = height;
@@ -432,14 +445,14 @@ void CCamera::Pitch( double angle )
 
 void CCamera::SetVerticalAngle(double angle)
 {
-    ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
-    m_verticalAngle = angle;
+  ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
+  m_verticalAngle = angle;
 };
 
 void CCamera::SetHorizontalAngle(double angle)
 {
-    ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
-    m_horizontalAngle = angle;
+  ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
+  m_horizontalAngle = angle;
 };
 
 void CCamera::SetHeight(int height)

@@ -299,6 +299,51 @@ CCylinder::CCylinder( Ray &axis, double length, double radius,
   m_isTransparent = isTransparent;
 };
 
+int CCylinder::IsValid(void) const
+{
+  if( !CSolid::IsValid() )
+    return 0;
+  
+  if( (m_length < VECTOR_EQUAL_EPS) || (m_length > INFINITY))
+    return 0;
+
+  if( (m_radius < VECTOR_EQUAL_EPS) || (m_radius > INFINITY))
+    return 0;
+
+  if ( !geq(m_innerMedium.Betta,0) )
+    return 0;
+
+  if ( !geq(m_innerMedium.nRefr,0) )
+    return 0;
+
+  if ( !geq(m_outerMedium.Betta,0) )
+    return 0;
+
+  if ( !geq(m_outerMedium.nRefr,0) )
+    return 0;
+
+  CVector normale;
+  m_bottom.getNormale( normale );
+  if( !leq((normale - m_direction).Length(),0) )
+    return 0;
+
+  m_top.getNormale( normale );
+  if( !leq((normale - m_direction).Length(),0) )
+    return 0;
+
+  double bottomDistance, topDistance;
+  m_bottom.getDistance( bottomDistance );
+  m_top.getDistance( topDistance );
+
+  if( !leq(fabs(m_direction*m_base + bottomDistance), 0) )
+    return 0;
+
+  if( !leq(fabs(bottomDistance - topDistance - m_length),0) )
+    return 0;
+
+  return 1;
+};
+
 ///////////////////////////////////////////////////////////
 //  CSphere
 ///////////////////////////////////////////////////////////
@@ -549,9 +594,25 @@ void CSphere::Refract( const Ray &falling, Ray &refracted, Medium &refractedMedi
 
 int  CSphere::IsValid(void) const
 {
-  if( m_color.IsNormalized() && (m_radius > VECTOR_EQUAL_EPS) && (m_radius < INFINITY) )
-    return 1;
-  else return 0;
+  if( !CSolid::IsValid() )
+    return 0;
+
+  if( !m_color.IsNormalized() || !(m_radius > VECTOR_EQUAL_EPS) || !(m_radius < INFINITY) )
+    return 0;
+
+    if ( !geq(m_innerMedium.Betta,0) )
+    return 0;
+
+  if ( !geq(m_innerMedium.nRefr,0) )
+    return 0;
+
+  if ( !geq(m_outerMedium.Betta,0) )
+    return 0;
+
+  if ( !geq(m_outerMedium.nRefr,0) )
+    return 0;
+
+  return 1;
 };
 
 ///////////////////////////////////////////////////////////////////
@@ -1182,4 +1243,26 @@ void CTriangle::Reflect( const Ray &falling, Ray &reflected ) const
     double normalProjection = vector*m_normal;
     reflected.setDirection( -normalProjection*m_normal + 2*(vector - normalProjection*m_normal ));
   };
+};
+
+int CTriangle::IsValid(void) const
+{
+  if( !CSolid::IsValid() )
+    return 0;
+
+  if ( !m_color.IsNormalized() )
+    return 0;
+
+  CVector testNormale = (m_b - m_a)^(m_c - m_a);
+  if(testNormale.Length() < VECTOR_EQUAL_EPS)
+    return 0;
+
+  testNormale.Normalize();
+  if ( (testNormale - m_normal).Length() > VECTOR_EQUAL_EPS)
+    return 0;
+
+  if( fabs( m_a*m_normal - m_distance ) > VECTOR_EQUAL_EPS)
+    return 0;
+
+  return 1;
 };
