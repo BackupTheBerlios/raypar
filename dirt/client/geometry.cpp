@@ -554,14 +554,9 @@ CBox::CBox(const CVector &position, const CVector &e0
 
 void CBox::InitNormals()
 {
-  // edges should be orthogonal to each other, but nonzero
-  ASSERT( (m_e[0].Length() > VECTOR_EQUAL_EPS)
-    && (m_e[1].Length() > VECTOR_EQUAL_EPS)
-    && (m_e[2].Length() > VECTOR_EQUAL_EPS) );
-  ASSERT( (fabs(m_e[0]*m_e[1]) < EPSILON)
-    && (fabs(m_e[1]*m_e[2]) < EPSILON) 
-    && (fabs(m_e[2]*m_e[0]) < EPSILON) );  
-  
+  //this function works correctly only if m_e[i] are orthogonal but
+  //no ASSERT is needed, because this fact is checked on the creation step
+
   m_n[0] = m_e[0] ^ m_e[1];
   m_n[0].Normalize();
   m_d1[0] = - (m_position * m_n[0]);
@@ -816,9 +811,7 @@ int CBox::IsValid(void) const
   if( !CSolid::IsValid() )
     return 0;
   
-  
-  
-  
+    
   // edges should be orthogonal to each other, but nonzero
   if( (m_e[0].Length() < VECTOR_EQUAL_EPS) 
     || (m_e[1].Length() < VECTOR_EQUAL_EPS) 
