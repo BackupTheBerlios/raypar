@@ -60,6 +60,9 @@
 // REVISION by Vader, on 1/29/2004
 // Comments: Default read and write methods for CSolid added
 //*********************************************************
+// REVISION by Tonic, on 2/1/2004
+// Comments: Added new getters, IsValid() and read/write to CCamera
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -213,12 +216,12 @@ int CSolid::WriteThisClassId(CArchive& ar) const
   ar << (int)id;
   return 0; //no error
 }
- 
+
 //helper function - returns ObjectID by object pointer
 int CSolid::GetObjectID(const CSolid* obj)
 {
   ASSERT( obj );
-
+  
   if ( dynamic_cast<const CSphere*>(obj) ) return Sphere;
   if ( dynamic_cast<const CPlane*>(obj) ) return Plane;
   if ( dynamic_cast<const CBox*>(obj) ) return Box;
@@ -233,16 +236,16 @@ int CSolid::GetObjectID(const CSolid* obj)
 CSolid* CSolid::NewObjectByID(int id)
 {
   ASSERT( id > _None && id <_Last );
-
+  
   switch (id) {
-    case Sphere:   return new CSphere;
-    case Plane:    return new CPlane;
-    case Box:      return new CBox;
-    case Triangle: return new CTriangle;
-    case Cylinder: return new CCylinder;
-    default: ASSERT(0); //unknown id
+  case Sphere:   return new CSphere;
+  case Plane:    return new CPlane;
+  case Box:      return new CBox;
+  case Triangle: return new CTriangle;
+  case Cylinder: return new CCylinder;
+  default: ASSERT(0); //unknown id
   }
-
+  
   return 0;
 }
 
@@ -253,12 +256,12 @@ CSolid* CSolid::readObject( CArchive& ar )
 {
   int obj_id; 
   ar >> obj_id; //first we read object id
-
+  
   ASSERT( obj_id > _None && obj_id < _Last );
-
+  
   CSolid* solid = NewObjectByID( obj_id ); //second we create object of appropriate type
   ASSERT( solid );
-
+  
   if (solid){
     
     int ret1 = solid->CSolid::read(ar); //third (a) we read common object data
@@ -274,12 +277,12 @@ CSolid* CSolid::readObject( CArchive& ar )
 int CSolid::write(CArchive& ar) const
 {
   ASSERT( CSolid::IsValid() );
-
+  
   ar << m_color;
   ar << m_reflectionCoefficient;
   ar << m_smoothness;
   ar << medium;
-
+  
   return 0;
 }
 
@@ -289,7 +292,7 @@ int CSolid::read(CArchive& ar)
   ar >> m_reflectionCoefficient;
   ar >> m_smoothness;
   ar >> medium;
-
+  
   if ( !CSolid::IsValid() ){
     ASSERT( 0 );
     return ERROR_WRONG_DATA;
@@ -368,7 +371,7 @@ int CLight::read (CArchive& ar)
     ASSERT( 0 );
     return 1;
   }
-
+  
   return 0;
 }
 
@@ -516,17 +519,17 @@ int CEnvironment::read (CArchive& ar)
     m_lights.Empty();
     return LOADING_ERROR_RETURN;
   }
-
+  
   ret = m_solids.read( ar );
   if ( ret || !m_solids.IsValid() ){
     m_solids.Empty();
     return LOADING_ERROR_RETURN;
   }
-
+  
   ASSERT( IsValid() );
-
+  
   Message("[Environment::read] We have %d solids and %d lights."
-        , m_solids.GetSize(), m_lights.GetSize() );
+    , m_solids.GetSize(), m_lights.GetSize() );
   
   return 0;
 }
@@ -559,9 +562,6 @@ CCamera::CCamera( const CVector &eyePoint, const CVector &viewDir,
 void CCamera::Init(const CVector &eyePoint, const CVector &viewDir 
                    , const CVector &topDir, int width, int height )
 {
-  //Check that width and height are both positive
-  ASSERT( width > 0 && height >0);
-  
   //check that view direction and top direction are not parallel
   double lengthProduct = viewDir.Length() * topDir.Length();
   double scalarProduct = fabs( viewDir * topDir );
@@ -585,6 +585,7 @@ void CCamera::Init(const CVector &eyePoint, const CVector &viewDir
   m_topDir.Normalize();
   
   UpdateHorizontalDir();
+  ASSERT( IsValid() );
 }
 
 void CCamera::Move(double length)
@@ -731,8 +732,123 @@ void CCamera::UpdateHorizontalDir(void)
   //compute the vector product [viewDir x topDir]
   //?K?:  Why don't we use vector product form CVector here?
   
-  m_horDir.x = m_viewDir.y*m_topDir.z - m_viewDir.z*m_topDir.y;
-  m_horDir.y = -(m_viewDir.x*m_topDir.z - m_viewDir.z*m_topDir.x);
-  m_horDir.z = m_viewDir.x*m_topDir.y - m_viewDir.y*m_topDir.x;
+  m_horDir = m_viewDir^m_topDir;
   m_horDir.Normalize();
+};
+
+const CVector& CCamera::GetEyePoint( void ) const
+{
+  return m_eyePoint;
+};
+
+const CVector& CCamera::GetViewDir( void ) const
+{
+  return m_viewDir;
+};
+
+const CVector& CCamera::GetTopDir( void ) const
+{
+  return m_topDir;
+};
+
+const CVector& CCamera::GetHorDir( void ) const
+{
+  return m_horDir;
+};
+
+int CCamera::GetWidth( void ) const
+{
+  return m_width;
+};
+
+int CCamera::GetHeight( void ) const
+{
+  return m_height;
+};
+
+double CCamera::GetHorizontalAngle( void ) const
+{
+  return m_horizontalAngle;
+};
+
+double CCamera::GetVerticalAngle( void ) const
+{
+  return m_verticalAngle;
+};
+
+int CCamera::IsValid(void) const
+{
+  //checking directions normalization
+  if(  !leq(fabs(m_topDir.Length() - 1),0) )
+    return 0;
+  if(  !leq(fabs(m_horDir.Length() - 1),0) )
+    return 0;
+  if(  !leq(fabs(m_viewDir.Length() - 1),0) )
+    return 0;
+  
+  //checking resolution correctness
+  //both components must be positive
+  if( m_width <= 0 )
+    return 0;
+  if( m_height <= 0 )
+    return 0;
+  
+  //checking view angles correctness
+  //they should not be too narrow
+  if( m_horizontalAngle < m_minViewAngle )
+    return 0;
+  if( m_verticalAngle < m_minViewAngle )
+    return 0;
+  //or too wide
+  if( m_horizontalAngle < m_maxViewAngle )
+    return 0;
+  if( m_verticalAngle < m_maxViewAngle )
+    return 0;
+  
+  //finally check if the directions are correct
+  if( !leq((m_horDir - m_viewDir^m_topDir).Length(), 0) )
+    return 0;
+  
+  //everything seems to be ok
+  return 1;
+};
+
+int CCamera::write(CArchive& ar) const
+{
+  ASSERT( IsValid() );
+  
+  ar << m_eyePoint;
+  ar << m_viewDir;
+  ar << m_topDir;
+  ar << m_horDir;
+  ar << m_width;
+  ar << m_height;
+  ar << m_horizontalAngle;
+  ar << m_verticalAngle;
+  ar << m_minViewAngle;
+  ar << m_maxViewAngle;
+  
+  return 0;
+};
+
+int CCamera::read(CArchive& ar)
+{
+  ar >> m_eyePoint;
+  ar >> m_viewDir;
+  ar >> m_topDir;
+  ar >> m_horDir;
+  ar >> m_width;
+  ar >> m_height;
+  ar >> m_horizontalAngle;
+  ar >> m_verticalAngle;
+  ar >> m_minViewAngle;
+  ar >> m_maxViewAngle;
+  
+  if ( !IsValid() )
+  {
+    ASSERT( 0 );
+    return ERROR_WRONG_DATA;
+  };
+
+  return 0;
 };

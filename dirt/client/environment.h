@@ -91,6 +91,9 @@
 // REVISION by Vader, on 1/29/2004
 // Comments: Default read and write methods for CSolid added
 //*********************************************************
+// REVISION by Tonic, on 2/1/2004
+// Comments: Added new getters, IsValid() and read/write to CCamera
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //*********************************************************
@@ -370,20 +373,20 @@ protected:
   //view direction and top direction do not have to
   //be orthogonal. They just have not to be parallel
   //orthogonalization occurs in constructor
-  CVector m_eyePoint;
-  CVector m_viewDir;
-  CVector m_topDir;
-  CVector m_horDir;
+    CVector m_eyePoint;
+    CVector m_viewDir;
+    CVector m_topDir;
+    CVector m_horDir;
   
-  //rendered picture resolution
-  int m_width;
-  int m_height;
+    //rendered picture resolution
+    int m_width;
+    int m_height;
   
-  //view angles  
-  double m_horizontalAngle;  // ?K? Comments???
-  double m_verticalAngle;
-  double m_minViewAngle;
-  double m_maxViewAngle;
+    //view angles  
+    double m_horizontalAngle;  // ?K? Comments???
+    double m_verticalAngle;
+    double m_minViewAngle;
+    double m_maxViewAngle;
   
 public:
   CCamera();
@@ -434,12 +437,26 @@ public:
   virtual void GetHorizontalAngle(double &horizontalAngle) const;
   virtual void GetVerticalAngle(double &verticalAngle) const;
   
+  const CVector& GetEyePoint( void ) const;
+  const CVector& GetViewDir( void ) const;
+  const CVector& GetTopDir( void ) const;
+  const CVector& GetHorDir( void ) const;
+  int GetWidth( void ) const;
+  int GetHeight( void ) const;
+  double GetHorizontalAngle( void ) const;
+  double GetVerticalAngle( void ) const;
+
   //setters for picture size and view angles
   virtual void SetWidth(int width);
   virtual void SetHeight(int height);
   virtual void SetHorizontalAngle(double horizontalAngle);
   virtual void SetVerticalAngle(double verticalAngle);
+
+  int IsValid(void) const;
   
+  int write(CArchive& ar) const;
+  int read (CArchive& ar);
+
 protected:
   //called when view direction
   //or top direction are updated
