@@ -116,16 +116,19 @@ int ClientInfoExchange(int rendereded_line_number, COLORREF* line_data
   
   if( line_number <0 )
     return CIE_SERVER_WAIT; //we should wait for a while
-  
 
-  BOOL b_scene_changed = FALSE;
-  ret = DoGetSceneData(arIn, arOut, session_id, scene_uid, &b_scene_changed, &scene);
+  if ( scene_uid != scene.GetSceneUID() ){
+    //we should download scene from the server
+    BOOL b_scene_changed = FALSE;
+    ret = DoGetSceneData(arIn, arOut, session_id, scene_uid, &b_scene_changed, &scene);
+    if (ret)  
+      return ret; //error occured, terminating connection.
 
-  if (ret)  
-    return ret; //error occured, terminating connection.
+    ASSERT( !b_scene_changed );
+    if ( b_scene_changed )
+      return CIE_COMMUNICATION_ERROR;    
+  }
 
-  ASSERT( !b_scene_changed );
- 
   return CIE_NORMAL_RENDER_RETURN; //0
 }
 

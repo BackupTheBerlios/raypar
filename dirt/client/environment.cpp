@@ -156,9 +156,6 @@ void Ray::setOrigin( const CVector &origin)
 ///////////////////////////////////////////////////////////
 
 
-// ?K? What is the purpose for this method to live?
-// ?K? Maybe it must be killed and become =0 ?
-
 void CSolid::GetColor( const Ray &falling, CVector &color) const 
 {
   //do not check whether there is even a ray
@@ -175,10 +172,10 @@ int CSolid::IsValid(void) const
   if ( !geq(medium.nRefr,0) )
     return 0;
   
-  if( leq(m_smoothness,0) )
+  if( !geq(m_smoothness,0) )
     return 0;
   
-  if ( leq(m_reflectionCoefficient,0) || (m_reflectionCoefficient > 1.0))
+  if ( !geq(m_reflectionCoefficient,0) || (m_reflectionCoefficient > 1.0))
     return 0;
   
   if( !m_color.IsNormalized() )

@@ -14,6 +14,10 @@
 #define IDC_EDIT_SERVER_PORT            1004
 #define IDC_BUTTON_START                1005
 #define IDC_BUTTON_TEST                 1006
+#define IDC_EDIT_PERIOD                 1007
+#define IDC_CHECK_STANDALONE            1008
+#define IDC_STATIC_TRY_TEXT             1009
+#define IDC_STATIC_SECONDS_TEXT         1010
 
 // Next default values for new objects
 // 
@@ -21,7 +25,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        137
 #define _APS_NEXT_COMMAND_VALUE         32772
-#define _APS_NEXT_CONTROL_VALUE         1007
+#define _APS_NEXT_CONTROL_VALUE         1011
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

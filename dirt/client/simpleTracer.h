@@ -69,7 +69,9 @@ public:
   //will produce
   static void VisibleColor( const CVector &LightColor, const CVector &MaterialColor, CVector &resultColor);
   
-  SimpleTracer(int defaultDepth = 5, double shadeA = 0.1, double shadeB = 0.1, double shadeC = 0.1, double shadeRoD = 1, double shadeRoReflected = 1, double shadeRoRefracted = 1)
+  SimpleTracer(int defaultDepth = 5, double shadeA = 0.1, double shadeB = 0.1
+              , double shadeC = 0.1, double shadeRoD = 1
+              , double shadeRoReflected = 1, double shadeRoRefracted = 1)
     : m_backgroundColor(0,0,0)
   {
     ASSERT( defaultDepth > 0);

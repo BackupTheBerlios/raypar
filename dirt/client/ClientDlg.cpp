@@ -37,6 +37,8 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+//timer event id for reconnection timer
+const int reconnect_timer_event_id = 17;
 
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
@@ -92,23 +94,33 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
   //{{AFX_DATA_INIT(CClientDlg)
   m_edit_addr = _T("127.0.0.1");
   m_edit_port = 8700;
-  //}}AFX_DATA_INIT
+	m_connect_period = 5;
+	//}}AFX_DATA_INIT
   // Note that LoadIcon does not require a subsequent DestroyIcon in Win32
   m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
   m_bWannaClose = false;
   m_line_to_render = -1; //negative means that nothing was rendered yet
   m_line_data = 0;
+  m_b_standalone = TRUE;
+  m_bWorking = false;
+
+  m_thread_params.bShouldExit = false;
+  m_client_thread = StartClientThread( &m_thread_params ); //start client thread
 };
 
 void CClientDlg::DoDataExchange(CDataExchange* pDX)
 {
   CDialog::DoDataExchange(pDX);
   //{{AFX_DATA_MAP(CClientDlg)
+	DDX_Control(pDX, IDC_CHECK_STANDALONE, m_standalone_check);
   DDX_Text(pDX, IDC_EDIT_SERVER_ADDR, m_edit_addr);
   DDV_MaxChars(pDX, m_edit_addr, 512);
   DDX_Text(pDX, IDC_EDIT_SERVER_PORT, m_edit_port);
   DDV_MinMaxInt(pDX, m_edit_port, 1, 65535);
-  //}}AFX_DATA_MAP
+	DDX_Text(pDX, IDC_EDIT_PERIOD, m_connect_period);
+  if ( m_b_standalone )
+	  DDV_MinMaxInt(pDX, m_connect_period, 1, 3600);
+	//}}AFX_DATA_MAP
 };
 
 BEGIN_MESSAGE_MAP(CClientDlg, CDialog)
@@ -117,11 +129,12 @@ BEGIN_MESSAGE_MAP(CClientDlg, CDialog)
   ON_WM_DESTROY()
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
-  //ON_BN_CLICKED(IDC_BUTTON_TEST, OnButtonTest)
   ON_BN_CLICKED(IDC_BUTTON_START, OnButtonStart)
+	ON_WM_TIMER()
   ON_WM_KEYDOWN()
   ON_MESSAGE( WM_CLIENT_LINE_RENDERED, OnLineRendered )
-  //}}AFX_MSG_MAP
+	ON_BN_CLICKED(IDC_CHECK_STANDALONE, OnCheckStandalone)
+	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -158,6 +171,10 @@ BOOL CClientDlg::OnInitDialog()
   //m_log_box to the dialog item
   ASSERT( ret ); //Check whether we've attached successfully or not
 
+  m_b_standalone = TRUE; //we should sinchronize the values of this variable 
+                        //with m_standalone_check.
+  m_standalone_check.SetCheck( m_b_standalone );
+
   return TRUE;  // return TRUE  unless you set the focus to a control
 };
 
@@ -177,6 +194,9 @@ void CClientDlg::OnSysCommand(UINT nID, LPARAM lParam)
 
 void CClientDlg::OnDestroy()
 {
+  m_thread_params.bShouldExit = true; //notidy the client thread that it 
+  m_thread_params.process_params_event.PulseEvent(); //
+
   m_log_box.Detach();
   WinHelp(0L, HELP_QUIT);
   CDialog::OnDestroy();
@@ -231,6 +251,7 @@ BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam)
   else
     return CDialog::OnCommand(wParam, lParam);
 };
+
 
 //void CClientDlg::OnButtonTest() 
 //{
@@ -314,43 +335,68 @@ BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam)
 //};
 
 
+//this is Start or Stop buton really
 void CClientDlg::OnButtonStart() 
 {
-  if ( !UpdateData() )   //invalid input data entered
-    return;
+  if( m_bWorking ){ //shoulld stop
+    m_thread_params.bShouldStop = true; //this will cause the client thread to
+                                          //stop rendering
+    KillTimer( reconnect_timer_event_id );
+    SwitchToRelaxedMode();
+  } else { //should start
+    if ( !UpdateData() )   //invalid input data entered
+      return;
 
-  DoCommunications();
-};
+    SwitchToWorkingMode();
+    _DoRepeatedCommunications(); 
+  }
+}
 
-void CClientDlg::RenderImageLine()
-{
-  Message("RenderImageLine");
+
+void CClientDlg::StartRenderImageThread()
+{  
   ASSERT( m_line_to_render >=0 );
   ASSERT( m_scene.IsValid() );
+  ASSERT( m_client_thread != NULL );
 
-  SClientThreadParam *cp = new SClientThreadParam; //this memory will be freed
-                                              //by the client thread
-  cp->camera = &m_camera;
-  cp->scene = &m_scene;  
-  cp->line_number = m_line_to_render;
-  cp->hwnd_main = *this;
+  m_thread_params.params_cs.Lock(); //we should prevent the client thread 
+                     //from reading params when we modify they
 
+  //fill in client thread info structure
+  m_thread_params.camera = &m_camera;
+  m_thread_params.scene = &m_scene;  
+  m_thread_params.line_number = m_line_to_render;
+  m_thread_params.hwnd_main = *this;
+  m_thread_params.bShouldExit = false;
+  m_thread_params.bShouldStop = false;
+
+
+  //allocate enough memory for image line
   int width;
   m_camera.GetWidth( width );
   ASSERT( width>=0 );
+  ASSERT( m_line_data == 0 );
   m_line_data = new COLORREF[width];
-  cp->data = m_line_data;
+  m_thread_params.data = m_line_data;
 
-  CWinThread* thr = StartClientThread(cp);
-  ASSERT( thr );
+  m_thread_params.params_cs.Unlock(); //we allow the client thread to read the params
+
+  m_thread_params.process_params_event.SetEvent(); //allow client
+                      //thread to process params and render the next line
+    
 }
+
 
 //Client thread use WM_CLIENT_LINE_RENDERED message to inform main thread that 
 //new line was rendered and client thread finished its work
 LRESULT CClientDlg::OnLineRendered(WPARAM wParam, LPARAM lParam)
 {
-  Message("OnLineRendered");
-  DoCommunications();
+  if( m_bWorking ){ //we are interested in this message only 
+                    //if we haven't neen stoped, ie we are in work mode
+    Message("Line rendered (line_num = %d)", m_line_to_render );  
+    _DoRepeatedCommunications();
+  }
+  
   return 1; //this means that we've processed the message
 }
 
@@ -364,12 +410,18 @@ void CClientDlg::DoCommunications(void)
 
     if (!res){      
       CString err_text = GetErrorMessageByErrorCode();
-      ErrorMessageWithBox( err_text );
+      if (m_b_standalone) 
+        ErrorMessage("%s", err_text);
+      else
+        ErrorMessageWithBox( err_text );
     }else{
       res = socket.Connect(m_edit_addr, m_edit_port);
       if (!res){        
         CString err_text = GetErrorMessageByErrorCode();
-        ErrorMessageWithBox( err_text );
+        if (m_b_standalone) 
+          ErrorMessage("%s", err_text);
+        else
+          ErrorMessageWithBox( err_text );
       }else{           
         int new_line_to_render;
         int ret = ClientInfoExchange(m_line_to_render, m_line_data
@@ -381,12 +433,11 @@ void CClientDlg::DoCommunications(void)
         m_line_to_render = new_line_to_render;
           
         socket.Close();
-        if ( CIE_NORMAL_RENDER_RETURN != ret )
-          ErrorMessage("Error %d!", ret);
-        else{
-          if( m_line_to_render >=0 )
-            RenderImageLine();
-        }
+        if ( ret == CIE_NORMAL_RENDER_RETURN ){
+          ASSERT( m_line_to_render >=0 );
+          StartRenderImageThread();
+        }else
+          ResetAllSceneData();       
       }
     }
   }
@@ -400,4 +451,114 @@ void CClientDlg::DoCommunications(void)
     ErrorMessageFromException(pEx, TRUE);
   }
   END_CATCH_ALL
+}
+
+void CClientDlg::ResetAllSceneData(void)
+{
+  m_scene.Empty();  
+  m_line_to_render = -1;//nothing was rendered
+  if (m_line_data){
+    delete m_line_data;
+    m_line_data = 0;
+  }  
+}
+
+void CClientDlg::SwitchToWorkingMode()
+{
+  m_bWorking = true;
+
+  CWnd* wnd;
+  wnd = GetDlgItem( IDC_EDIT_SERVER_ADDR ); 
+  ASSERT( wnd );
+  wnd->EnableWindow(FALSE); //disable server address edit
+
+  wnd = GetDlgItem( IDC_EDIT_SERVER_PORT ); 
+  ASSERT( wnd );
+  wnd->EnableWindow(FALSE); //disable server port edit
+
+  wnd = GetDlgItem( IDC_EDIT_PERIOD ); 
+  ASSERT( wnd );
+  wnd->EnableWindow(FALSE); //disable edit period
+
+  m_standalone_check.EnableWindow(FALSE);
+
+  wnd = GetDlgItem( IDC_BUTTON_START ); 
+  ASSERT( wnd );
+  wnd->SetWindowText( "Stop" ); //Set text of "Start" button to "Stop"
+}
+
+void CClientDlg::SwitchToRelaxedMode()
+{
+  m_bWorking = false;
+
+  CWnd* wnd;
+  wnd = GetDlgItem( IDC_EDIT_SERVER_ADDR ); 
+  ASSERT( wnd );
+  wnd->EnableWindow(); //enable server address edit
+
+  wnd = GetDlgItem( IDC_EDIT_SERVER_PORT ); 
+  ASSERT( wnd );
+  wnd->EnableWindow(); //enable server port edit
+
+  wnd = GetDlgItem( IDC_EDIT_PERIOD ); 
+  ASSERT( wnd );
+  wnd->EnableWindow(); //enable edit period
+
+  m_standalone_check.EnableWindow();
+  UpdateOnCheckStandAlone();
+
+  wnd = GetDlgItem( IDC_BUTTON_START ); 
+  ASSERT( wnd );
+  wnd->SetWindowText( "Start" ); //Set text of "Stop" button to "Start"
+}
+
+void CClientDlg::SetupTimer()
+{
+  ASSERT( m_connect_period > 0 );
+  int ret = SetTimer(reconnect_timer_event_id, m_connect_period*1000, 0);
+  ASSERT( ret );
+}
+
+void CClientDlg::OnTimer(UINT nIDEvent) 
+{
+  if ( nIDEvent == reconnect_timer_event_id ){
+    ASSERT( m_bWorking ); //timer message can be received only in this mode
+    KillTimer( reconnect_timer_event_id );
+    _DoRepeatedCommunications();
+  }
+	
+	CDialog::OnTimer(nIDEvent);
+}
+
+void CClientDlg::_DoRepeatedCommunications()
+{
+  DoCommunications();
+  if( m_line_to_render <0 ){//means that we don't have work now
+    if ( m_b_standalone )
+      SetupTimer(); //we'l reconnect in m_connect_period seconds
+    else
+      SwitchToRelaxedMode();//we'll stop our work and wait for user commands
+  } 
+}
+
+void CClientDlg::OnCheckStandalone() 
+{
+  UpdateOnCheckStandAlone();
+}
+
+void CClientDlg::UpdateOnCheckStandAlone()
+{
+  m_b_standalone = m_standalone_check.GetCheck();
+
+  CWnd* wnd_edit_period = GetDlgItem( IDC_EDIT_PERIOD ); 
+  CWnd* wnd_try_text = GetDlgItem( IDC_STATIC_TRY_TEXT ); 
+  CWnd* wnd_seconds_text = GetDlgItem( IDC_STATIC_SECONDS_TEXT ); 
+
+  ASSERT( wnd_edit_period );
+  ASSERT( wnd_try_text );
+  ASSERT( wnd_seconds_text );
+
+  wnd_edit_period->EnableWindow( m_b_standalone );
+  wnd_try_text->EnableWindow( m_b_standalone );
+  wnd_seconds_text->EnableWindow( m_b_standalone );  
 }

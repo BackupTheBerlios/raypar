@@ -20,6 +20,7 @@
 #include "simpletracer.h"
 #include "environment.h"
 #include "geometry.h"
+#include "ClientThread.h"
 
 //Client thread use this message to inform main thread that 
 //line was rendered and the client thread finished its work
@@ -43,8 +44,10 @@ public:
 // Dialog Data
 	//{{AFX_DATA(CClientDlg)
 	enum { IDD = IDD_CLIENT_DIALOG };
+	CButton	m_standalone_check;
 	CString	m_edit_addr;
 	int		m_edit_port;
+	int		m_connect_period;
 	//}}AFX_DATA
 
 	// ClassWizard generated virtual function overrides
@@ -55,19 +58,27 @@ public:
 	//}}AFX_VIRTUAL
 
 public:
+	void UpdateOnCheckStandAlone();
   CLogBox m_log_box;
 
 // Implementation
 protected:
 	HICON m_hIcon;  
 
-  CEnvironment m_scene;
-  CCamera   m_camera;
-  int m_line_to_render;
-  COLORREF * m_line_data;
+  CEnvironment m_scene; //current scene
+  CCamera   m_camera;   //carrent camera informarion
+  int m_line_to_render; //number of the line which is currently rendered
+                        //negative number means thatr no line is rendered
+  COLORREF * m_line_data; //image line is stroed here
+  bool m_bWorking; //this meeans that we are computing a line or 
+                   //waiting for timer in order to reconnect
 
-  //renders line of image
-  void StartRenderThread(CEnvironment& scene, CCamera& camera, int line_number);
+  CWinThread* m_client_thread; //pointer to the client 
+                            //thread which renders image line
+
+  SClientThreadParam m_thread_params;
+
+  BOOL m_b_standalone; //stores value of m_standalone_check.GetCheck()
 
   //is called when new line was rendered and client thread terminates 
   LRESULT OnLineRendered(WPARAM wParam, LPARAM lParam);
@@ -75,8 +86,22 @@ protected:
   //does all information exchange with server
   void DoCommunications(void);
 
-  //starts client rendering process
-  void RenderImageLine(void);
+  //starts client rendering process which renders line of image
+  void StartRenderImageThread(void);
+
+  //Reset all scene data, used when connection was suddenly broken and so on
+  void ResetAllSceneData(void);
+
+	void _DoRepeatedCommunications();//does commincations, starts computing process 
+                    //or setups timer for reconnection if requiered
+
+	void SetupTimer();   //setups timer to send an event for reconnection
+
+	void SwitchToRelaxedMode(); //switches to relaxed mode when now computing 
+                        //and no connections are done. user may change client properties
+             
+	void SwitchToWorkingMode(); //switches to working mode in which all computing 
+                              //and connections are done.
 
 	// Generated message map functions
 	//{{AFX_MSG(CClientDlg)
@@ -85,8 +110,9 @@ protected:
 	afx_msg void OnDestroy();
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
-	afx_msg void OnButtonTest();
 	afx_msg void OnButtonStart();
+	afx_msg void OnTimer(UINT nIDEvent);
+	afx_msg void OnCheckStandalone();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
