@@ -939,7 +939,7 @@ int CTriangle::Intersect( const Ray &ray, double &distance) const
   double denominator = ab.Length()*ab.Length()*ac.Length()*ac.Length() - (ab*ac)*(ab*ac);
   double abProj = ((ab*a_ip)*ac.Length()*ac.Length() - (ac*a_ip)*(ac*ab))/denominator;
   double acProj = ((ac*a_ip)*ab.Length()*ab.Length() - (ab*a_ip)*(ac*ab))/denominator;
-  if( (abProj < 0) || (acProj < 0) || (abProj + acProj > 1)) //?K? EPSILON!!!
+  if( (abProj < 0) || (acProj < 0) || (abProj + acProj > 1))
     return 0;
   
   //there is an intersection, modify the distance and return 1
@@ -975,7 +975,7 @@ int CTriangle::planeIntersect( const Ray &ray, double &distance ) const
   
   //the intersection is too far
   //or on the negative side of the ray
-  if((rayDistance > distance) || (rayDistance < 0))  //?K? EPSILON !!!
+  if((rayDistance > distance) || leq(rayDistance,0)) 
     return 0;
   
   distance = rayDistance;

@@ -565,17 +565,16 @@ void CCamera::Init(const CVector &eyePoint, const CVector &viewDir
   //check that view direction and top direction are not parallel
   double lengthProduct = viewDir.Length() * topDir.Length();
   double scalarProduct = fabs( viewDir * topDir );
-  ASSERT( scalarProduct < lengthProduct - VECTOR_EQUAL_EPS );  // ?K? Are you sure ???
-  // ?K? Maybe you mean "+ VECTOR_EQUALS_EPSILON"?
+  ASSERT( scalarProduct < lengthProduct - VECTOR_EQUAL_EPS );
   
   m_width = width;
   m_height = height;
   m_eyePoint = eyePoint;
   m_viewDir = viewDir;
   m_topDir = topDir;
-  m_minViewAngle = 0.1;  // ?K? Why? 
-  m_maxViewAngle = 3.0;  // ?K? Why?
-  m_verticalAngle = m_horizontalAngle = 1.57; // ?K? Why? 
+  m_minViewAngle = 0.1;
+  m_maxViewAngle = 3.0;  // ~ Pi - m_minViewAngle
+  m_verticalAngle = m_horizontalAngle = 1.57; // PI/2
   
   m_viewDir.Normalize();
   m_topDir.Normalize();
@@ -730,8 +729,6 @@ void CCamera::PixelRay(int x, int y, Ray &ray) const
 void CCamera::UpdateHorizontalDir(void)
 {
   //compute the vector product [viewDir x topDir]
-  //?K?:  Why don't we use vector product form CVector here?
-  
   m_horDir = m_viewDir^m_topDir;
   m_horDir.Normalize();
 };

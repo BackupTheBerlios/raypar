@@ -258,7 +258,7 @@ public:
   virtual int IsValid(void) const;
 
   //stores/loads object from/to  'ar'
-  virtual int write(CArchive& ar) const;  //= 0; ?K? KIRILL: temporarily
+  virtual int write(CArchive& ar) const;
 
   //reads object from archive. First it reads object type and than 
   //it creates the objects and reads it data. Returns pointer to the object
@@ -281,7 +281,7 @@ protected:
   int WriteThisClassId(CArchive& ar) const;
 
   //this method can be called only by CSolid::readObject
-  virtual int read(CArchive& ar);  //will be = 0; ?K? KIRILL: temporarily
+  virtual int read(CArchive& ar);
 
   //helper function - returns ObjectID by object pointer
   static int GetObjectID(const CSolid* obj);
@@ -383,9 +383,11 @@ protected:
     int m_height;
   
     //view angles  
-    double m_horizontalAngle;  // ?K? Comments???
-    double m_verticalAngle;
-    double m_minViewAngle;
+    double m_horizontalAngle;  //Horizontal viewing angle
+    double m_verticalAngle; //Vertcal viewing angle
+
+	//view angles delimiters
+	double m_minViewAngle;
     double m_maxViewAngle;
   
 public:
