@@ -42,6 +42,13 @@
 // REVISION by Tonic, on 01/16/2004
 // Comments: Added Ray::GetPoint
 //*********************************************************
+// REVISION by Vader, on 01/18/2004
+// Comments: Light and Solid classes changed into CLight and CSolid
+// Added ligths and solids storage classes CLightArray and CSolidArray
+// (based on CPtrArray collection) instead of usual arrays of fixed length
+// in Environment class  m_solidsCount and m_lightsCount are not
+// necessary now, use CPtrArray.GetSize() instead.
+//*********************************************************
 
 
 #if !defined(CLIENT_ENVIRONMENT_H_INCLUDED)
@@ -49,10 +56,6 @@
 
 #include "common/vector.h"
 
-//define maximal number of elements in the environment
-//using static memory allocation
-#define	MAX_LIGHTS	10
-#define	MAX_SOLIDS	100
 
 //geometry-related parameters
 #define	INFINITY	30000 //maximal distance
@@ -62,6 +65,7 @@ struct	Medium				// main properties of the medium
 	double	nRefr;			// refraction coefficient
 	double	Betta;			// attenuation coefficient
 }; 
+
 
 class	Ray
 {
@@ -100,7 +104,7 @@ public:
 
 
 //interface for a geometric object
-class	Solid
+class	CSolid
 {
 public:
 
@@ -115,7 +119,7 @@ public:
 	virtual void GetColor( Ray &falling, CVector &color);
 }; 
 
-class	Light			// model of an abstract light source
+class	CLight			// model of an abstract light source
 {
 private:
 	//RGB brightness, each component in [0;1]
@@ -123,9 +127,9 @@ private:
 	CVector m_position;	
 public:
 	
-	Light(); //default constructor initialized to white
-	Light(double r, double g, double b, double x, double y, double z);
-	Light( CVector &color,  CVector &position);
+	CLight(); //default constructor initialized to white
+	CLight(double r, double g, double b, double x, double y, double z);
+	CLight( CVector &color,  CVector &position);
 
 	void getPosition(CVector &position) ;
 	void setPosition( CVector &position);
@@ -133,32 +137,50 @@ public:
 	void setColor( CVector &color);
 };
 
+
+//storage class for all geometrical objects (based on CArray collection)
+class CSolidArray : public CPtrArray{
+public:
+  CSolid* GetAt( int nIndex ) const {return (CSolid*) CPtrArray::GetAt(nIndex); }
+  CSolid* operator[](int nIndex) const { return GetAt(nIndex); }
+  int Add( CSolid* solid )  { return CPtrArray::Add( solid ); }
+};
+
+//storage class for all lights (based on CArray collection)
+class CLightArray : public CPtrArray{
+public:
+  CLight* GetAt( int nIndex ) const {return (CLight*) CPtrArray::GetAt(nIndex); }
+  CLight* operator[](int nIndex) const { return GetAt(nIndex); }
+  int Add( CLight* light )  { return CPtrArray::Add( light ); }
+};
+
+
 class	Environment
 {
 private:
-	Light	*m_lights[MAX_LIGHTS];
-	Solid	*m_solids[MAX_SOLIDS];
-	int		m_lightsCount;
-	int		m_solidsCount;
+	CLightArray m_lights;
+	CSolidArray	m_solids;
+	//int		m_lightsCount;
+	//int		m_solidsCount;
 	CVector	m_AmbientColor;
 	
 public:
 	
-	Environment (); //initialize counters to zeros
+	Environment (); //initialize CLightArray and CSolidArray params
 	~Environment (){};	//do nothing as contained objects may be reused
 	
-	void	Add ( Light *light );
-	void	Add ( Solid *solid );
+	void	Add ( CLight *light );
+	void	Add ( CSolid *solid );
 	void	SetAmbientColor(  CVector &AmbientColor );
 	void	GetAmbientColor( CVector &AmbientColor ) ;
 
 	int		getLightsCount(void) 
-	{ return m_lightsCount; };
+	{ return m_lights.GetSize(); };
 
-	void getLightByNumber(int number, Light &light) ;
+	void getLightByNumber(int number, CLight &light) ;
 	
 	//returns first intersected object and distance from ray origin point
-	Solid *	Intersect (  Ray &ray, double &t ) ;
+	CSolid *	Intersect (  Ray &ray, double &t ) ;
 };
 
 //class fully responsible for transformation

@@ -56,7 +56,7 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, doubl
 {
 	//the function is called only by our class member, 
 	//so there is no need to check pointers once again
-	Solid	*nearestObject;
+	CSolid	*nearestObject;
 	
 	double	  t = INFINITY;
 	CVector	  Color;
@@ -100,7 +100,7 @@ void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, doubl
 		//for all light sources
 		for( int i = 0; i < scene.getLightsCount() ; i++)
 		{
-			Light light;
+			CLight light;
 			CVector lightPosition, lightDirection;
 			
 			scene.getLightByNumber( i, light );

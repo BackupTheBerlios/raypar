@@ -31,7 +31,7 @@
 
 #include "environment.h"
 
-class CSphere : public Solid
+class CSphere : public CSolid
 {
 	CVector m_position;
 	double m_radius;
@@ -63,7 +63,7 @@ class CColorSphere : public CSphere
 		void SetColor( CVector &color );
 	};
 
-class CPlane : public Solid
+class CPlane : public CSolid
 {
 	CVector m_n;    // Plane is defined by equation
 	double m_D;	  // (n,r) + D = 0;   |n| = 1 !!!
@@ -82,7 +82,7 @@ public:
 	virtual void Reflect( Ray &falling, Ray &reflected) ;
 };
 
-class CTriangle : public Solid
+class CTriangle : public CSolid
 	{
 	private:
 		CVector m_a, m_b, m_c, m_color, m_normal;

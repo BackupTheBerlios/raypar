@@ -232,10 +232,10 @@ void CClientDlg::OnButtonTest()
   CColorSphere    solidObject2(sphereCenter2, 2,white);
   CVector            a(-1, -2, 3), b(1,-2,3), c(0,1,3);
   CTriangle        solidObject3(a,b,c, CVector(1,1,1));
-  Light            lightSource( 1.0, 1.0, 1.0, 1, 0, 2.5);
-  Light            lightSource2( 1.0, 0, 0, 1, 1, 2);
-  Light            lightSource3( 0, 1.0, 0, 1, -1, 2);
-  Light            lightSource4( 0, 0, 1.0, 1, 0, 2);
+  CLight            lightSource( 1.0, 1.0, 1.0, 1, 0, 2.5);
+  CLight            lightSource2( 1.0, 0, 0, 1, 1, 2);
+  CLight            lightSource3( 0, 1.0, 0, 1, -1, 2);
+  CLight            lightSource4( 0, 0, 1.0, 1, 0, 2);
   CVector            origin(0,0,0), zAxis(0,0,1), yAxis(0,1,0);
   CCamera            camera( origin, zAxis, yAxis, imgWidth,imgHeight );
   

@@ -222,7 +222,7 @@ void CCamera::UpdateHorizontalDir(void)
 	m_horDir.Normalize();
 	};
 
-void Solid::GetColor( Ray &falling, CVector &color)
+void CSolid::GetColor( Ray &falling, CVector &color)
 	{
 	//do not check whether there is even a ray
 	//just return white
@@ -246,7 +246,7 @@ void	Environment::GetAmbientColor( CVector &AmbientColor )
 	AmbientColor = m_AmbientColor;
 	}
 
-Light::Light( double r, double g, double b, double x, double y, double z)
+CLight::CLight( double r, double g, double b, double x, double y, double z)
 	{
 	ASSERT( 0.0 <= r && r <= 1.0);
 	ASSERT( 0.0 <= g && g <= 1.0);
@@ -261,22 +261,22 @@ Light::Light( double r, double g, double b, double x, double y, double z)
 
 	};
 
-void Light::getPosition(CVector &position)
+void CLight::getPosition(CVector &position)
 	{
 	position = m_position;
 	};
 
-void Light::setPosition( CVector &position)
+void CLight::setPosition( CVector &position)
 	{
 	m_position = position;
 	};
 
-void Light::getColor(CVector &color)
+void CLight::getColor(CVector &color)
 	{
 	color = m_color;
 	};
 
-void Light::setColor( CVector &color)
+void CLight::setColor( CVector &color)
 	{
 	ASSERT( (color.x >= 0) && (color.x <= 1) );
 	ASSERT( (color.y >= 0) && (color.y <= 1) );
@@ -285,12 +285,12 @@ void Light::setColor( CVector &color)
 	m_color = color;
 	}
 
-void Environment::getLightByNumber(int number, Light &light)
+void Environment::getLightByNumber(int number, CLight &light)
 	{
 	//there is a light source with such a number
-	ASSERT( (number >= 0) && (number < m_lightsCount) );
+	ASSERT( (number >= 0) && (number < m_lights.GetSize()) );
 
-	light = *(m_lights[number]);
+	light = *(m_lights.GetAt(number));
 	}
 
 
@@ -335,25 +335,26 @@ Ray::Ray(  CVector &origin,  CVector &direction )
 	};
 
 //determines the closest intersected object and distance
-Solid * Environment::Intersect (  Ray &ray, double &t )
+CSolid * Environment::Intersect (  Ray &ray, double &t )
 	{
-	Solid*	closestObj = NULL;
+	CSolid*	closestObj = NULL;
 	//do not allow intersections with objects
 	//farther than t away
 	double	closestDist = t;
+    int solidsCount = m_solids.GetSize();
 
 	//for every object
-	for ( int i = 0; i < m_solidsCount; i++ )
+	for ( int i = 0; i < solidsCount; i++ )
 		{
 		//find intersection
-		if ( m_solids [i] -> Intersect ( ray, t ) != 0 )
+		if ( m_solids.GetAt(i) -> Intersect ( ray, t ) != 0 )
 			{
 			//check distance
 			if ( t < closestDist )
 				{
 				//update if closer
 				closestDist = t;
-				closestObj  = m_solids [i];
+				closestObj  = m_solids.GetAt(i);
 				}
 			};
 		};
@@ -364,65 +365,57 @@ Solid * Environment::Intersect (  Ray &ray, double &t )
 
 
 Environment::Environment( )
-	{
-	m_lightsCount = m_solidsCount = 0;
+{
+	m_solids.SetSize(10,5);
+    m_lights.SetSize(10,5);
 	m_AmbientColor.x = m_AmbientColor.y = m_AmbientColor.z = 0.2;
-	};
+};
 
-void Environment::Add ( Light *light )
+void Environment::Add ( CLight *light )
 	{
 	ASSERT( light != NULL );
 
 	int i;
-
-	//check if the maximum number of elements was reached
-	//if it holds, return
-	if( m_lightsCount == MAX_LIGHTS )
-		return;
+    int lightsCount = m_lights.GetSize();
+    
 
 	//check if this element is already present
 	//if it holds, do not add repeatedly, just return
-	for( i = 0; i < m_lightsCount; i++ )
+	for( i = 0; i < lightsCount; i++ )
 		{
-		if( m_lights[i] == light )
+		if( m_lights.GetAt(i) == light )
 			return;
 		}
 
 	//actually add light source to environment
-	m_lights[m_lightsCount] = light;
-	m_lightsCount++;
+	m_lights.Add(light);
 	};
 
-void Environment::Add ( Solid *solid )
+void Environment::Add ( CSolid *solid )
 	{
 	ASSERT( solid != NULL );
 
 	int i;
-
-	//check if the maximum number of elements was reached
-	//if it holds, return
-	if( m_solidsCount == MAX_SOLIDS )
-		return;
-
+    int solidsCount = m_solids.GetSize();
+	
 	//check if this element is already present
 	//if it holds, do not add repeatedly, just return
-	for( i = 0; i < m_solidsCount; i++ )
+	for( i = 0; i < solidsCount; i++ )
 		{
-		if( m_solids[i] == solid )
+		if( m_solids.GetAt(i) == solid )
 			return;
 		}
 
 	//actually add element to environment
-	m_solids[m_solidsCount] = solid;
-	m_solidsCount++;
+	m_solids.Add(solid);
 	};
 
-Light::Light()
+CLight::CLight()
 	{
 	m_color.x = m_color.y = m_color.z = 1.0;
 	};
 
-Light::Light(  CVector &color,  CVector &position )
+CLight::CLight(  CVector &color,  CVector &position )
 	{
 	ASSERT( (color.x >= 0) && (color.x <= 1) );
 	ASSERT( (color.y >= 0) && (color.y <= 1) );
