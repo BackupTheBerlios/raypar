@@ -28,11 +28,16 @@
 // REVISION by Tonic, on 01/19/2004
 // Comments: Added transparency support for CSphere
 //*********************************************************
+// REVISION by Vader, on 01/23/2004
+// Comments: Added CBox class (supports refraction)
+//*********************************************************
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
 
 #include "environment.h"
+
+#define EPSILON (1E-9)
 
 class CSphere : public CSolid
 {
@@ -67,18 +72,20 @@ public:
   virtual void Refract( Ray &falling, Ray &refracted, Medium &refractedMedium);
 };
 
+
 class CColorSphere : public CSphere
 {
 private:
 		CVector m_color;
     
 public:
-  CColorSphere();
-		CColorSphere(CVector &position, double radius, CVector &color);
+    CColorSphere();
+	CColorSphere(CVector &position, double radius, CVector &color);
     CColorSphere(CVector &position, double radius);
     virtual void GetColor( Ray &falling, CVector &color);
     void SetColor( CVector &color );
 };
+
 
 class CPlane : public CSolid
 {
@@ -97,6 +104,46 @@ public:
   
   virtual int Intersect(  Ray &ray, double &distance) ;
   virtual void Reflect( Ray &falling, Ray &reflected) ;
+};
+
+
+class CBox : public CSolid
+{
+private:
+    CVector m_position;  //the first corner
+    CVector m_e[3]; //3 main edges, that form orthogonal basis
+    CVector m_n[3]; //normals to sides, sides are (r, m_n)+ m_di = 0;
+    double m_d1[3],m_d2[3]; //distances in plane equation m_d1[i] < m_d2[i];
+    double m_reflectionCoefficient;
+    bool m_isTransparent;
+    Medium m_innerMedium, m_outerMedium;
+
+    void InitNormals();
+   
+public:
+    CBox();
+    //e1,e2,e3 should be orthogonal to each other (but not necessarily equal)
+    CBox(CVector &position, CVector &e1, CVector &e2, CVector &e3, double Betta = 0.0, double nRefr = 1.0 , bool isTransparent = false, double outerBetta = 0.0, double outerRefr = 1.0, double reflectionCoefficient = 1.0);
+
+    void SetPosition(CVector &position);
+    void SetOrientation(CVector &e1, CVector &e2, CVector &e3);
+
+    virtual double GetReflectionCoefficient(void)
+    {
+        return m_reflectionCoefficient;
+    };
+    virtual bool IsTransparent(void)
+    {
+        return m_isTransparent;
+    };
+
+    int IsInside(CVector &vector);   //checks whether point lies inside box
+    virtual int Intersect(  Ray &ray, double &distance); //returns 1 if ray intersects side with normal m_d[0];
+                                                         //returns 2 if ray intersects side with normal m_d[1];
+                                                         //returns 3 if ray intersects side with normal m_d[2];
+                                                         //returns 0 if there is no intersection
+    virtual void Reflect( Ray &falling, Ray &reflected) ;
+    virtual void Refract( Ray &falling, Ray &refracted, Medium &refractedMedium);        
 };
 
 

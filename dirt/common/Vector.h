@@ -31,10 +31,16 @@
 // Comments: double comparison functions slightly modified
 //
 //*********************************************************
+// REVISION by Vader on 1/23/2004
+// Comments: vector multiplication added
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
 //*********************************************************
+
+
 
 #if !defined(AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_)
 #define AFX_VECTOR_H__4212329F_586D_46D6_B1EB_423C5FAE9069__INCLUDED_
@@ -101,6 +107,10 @@ public:
   //scalar multiplication
   double operator* ( const  CVector& v )
   {	return v.x*x + v.y*y + v.z*z; }
+
+  //vector multiplication
+  CVector operator^ ( const  CVector& v )
+  {	return CVector(v.z*y - v.y*z, v.x*z - v.z*x, v.y*x - v.x*y); }
   
   //*************
   //operator =
