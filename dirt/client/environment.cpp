@@ -32,9 +32,195 @@
 // Changed interfaces to get parameters as references
 // instead of pointers
 //*********************************************************
+// REVISION by Tonic, on 01/16/2004
+// Comments: CCamera class added
+//*********************************************************
+// REVISION by Tonic, on 01/16/2004
+// Comments: Added Ray::getPoint
+//*********************************************************
 
 #include "stdafx.h"
 #include "environment.h"
+
+
+void Ray::getPoint( double distance, CVector &point)
+	{
+	point = m_origin + distance*m_direction;
+	};
+
+CCamera::CCamera( CVector &eyePoint, CVector &viewDir, CVector &topDir, int width, int height )
+	{
+	//Check that width and height are both positive
+	ASSERT( width > 0 && height >0);
+
+	//check that view direction and top direction are not parallel
+	double lengthProduct = viewDir.Length() * topDir.Length();
+	double scalarProduct = fabs( viewDir * topDir );
+	ASSERT( scalarProduct < lengthProduct - VECTOR_EQUAL_EPS );
+
+	m_width = width;
+	m_height = height;
+	m_eyePoint = eyePoint;
+	m_viewDir = viewDir;
+	m_topDir = topDir;
+	m_minViewAngle = 0.1;
+	m_maxViewAngle = 3.0;
+	m_verticalAngle = m_horizontalAngle = 1.57;
+
+	m_viewDir.Normalize();
+	m_topDir.Normalize();
+
+	//now make top direction orthogonal to the viewing direction
+	m_topDir = m_topDir - m_viewDir * (( m_viewDir * m_topDir ) / m_topDir.Length());
+	m_topDir.Normalize();
+
+	UpdateHorizontalDir();
+	};
+
+void CCamera::Move(double length)
+	{
+	m_eyePoint += m_viewDir*length;
+	};
+
+void CCamera::Shift(double length)
+	{
+	m_eyePoint += m_horDir*length;
+	};
+
+void CCamera::Yaw(double angle)
+	{
+	//view direction == y
+	//hor direction == x
+	//y_new = y*cos - x*sin
+	//x_new = x*cos + y*sin
+
+	double sinus = sin( angle);
+	double cosinus = cos( angle );
+	CVector viewDir = (m_viewDir * cosinus) - (m_horDir * sinus);
+	CVector horDir  = (m_horDir * cosinus) + (m_viewDir * sinus);
+	m_viewDir = viewDir;
+	m_horDir = horDir;
+	m_viewDir.Normalize();
+	m_horDir.Normalize();
+	};
+
+void CCamera::Pitch( double angle )
+	{
+	//view direction == x
+	//top direction == y
+	//y_new = y*cos - x*sin
+	//x_new = x*cos + y*sin
+
+	double sinus = sin( angle);
+	double cosinus = cos( angle );
+	CVector topDir = (m_topDir * cosinus) - (m_viewDir * sinus);
+	CVector viewDir  = (m_viewDir * cosinus) + (m_topDir * sinus);
+	m_viewDir = viewDir;
+	m_topDir = topDir;
+	m_viewDir.Normalize();
+	m_topDir.Normalize();
+	};
+
+void CCamera::SetVerticalAngle(double angle)
+	{
+		ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
+		m_verticalAngle = angle;
+	};
+
+void CCamera::SetHorizontalAngle(double angle)
+	{
+		ASSERT( (m_minViewAngle < angle) && (angle < m_maxViewAngle));
+		m_horizontalAngle = angle;
+	};
+
+void CCamera::SetHeight(int height)
+	{
+	ASSERT( height > 0 );
+	m_height = height;
+	};
+
+void CCamera::SetWidth(int width)
+	{
+	ASSERT( width > 0 );
+	m_width = width;
+	};
+
+void CCamera::GetVerticalAngle(double &verticalAngle)
+	{
+	verticalAngle = m_verticalAngle;
+	};
+
+void CCamera::GetEyePoint( CVector &eyePoint )
+	{
+	eyePoint = m_eyePoint;
+	};
+
+void CCamera::GetViewDir( CVector &viewDir )
+	{
+	viewDir = m_viewDir;
+	};
+
+void CCamera::GetTopDir( CVector &topDir )
+	{
+	topDir = m_topDir;
+	};
+
+void CCamera::GetWidth(int &width)
+	{
+	width = m_width;
+	};
+
+void CCamera::GetHeight(int &height)
+	{
+	height = m_height;
+	};
+
+void CCamera::GetHorizontalAngle(double &horizontalAngle)
+	{
+	horizontalAngle = m_horizontalAngle;
+	};
+
+void CCamera::PixelRay(int x, int y, Ray &ray)
+	{
+	//check whether the pixel is actually
+	//within picture bounds
+	ASSERT( (x >= 0) && (x < m_width) );
+	ASSERT( (y >= 0) && (y < m_height) );
+
+	double sinus = sin( m_horizontalAngle/2 );
+	double cosinus = cos( m_horizontalAngle/2 );
+
+	//getting the rotation of view direction
+	//around the top to horAngle/2
+	//this is the left boundary
+	CVector bound = cosinus*m_viewDir - sinus*m_horDir;
+	
+	//take into account only x offset
+	CVector horizontalNewPoint = bound + ( (bound*m_viewDir)*m_viewDir - bound )*((double)2)*((double) x)/((double) m_width);
+	horizontalNewPoint /= (bound*m_viewDir);
+	
+	//getting the rotation of view direction
+	//around the hor to verAngle/2
+	//this is the top boundary
+	sinus = sin( m_verticalAngle/2 );
+	cosinus = cos( m_verticalAngle/2 );
+	bound = cosinus*m_viewDir + sinus*m_topDir;
+	CVector verticalNewPoint = bound + ( (bound*m_viewDir)*m_viewDir - bound )*((double)2)*((double) y)/((double) m_height);
+	verticalNewPoint /= (bound*m_viewDir);
+
+	ray.setOrigin( m_eyePoint );
+	ray.setDirection( verticalNewPoint + horizontalNewPoint - m_viewDir);
+	};
+
+void CCamera::UpdateHorizontalDir(void)
+	{
+	//compute the dot product [viewDir x topDir]
+	
+	m_horDir.x = m_viewDir.y*m_topDir.z - m_viewDir.z*m_topDir.y;
+	m_horDir.y = -(m_viewDir.x*m_topDir.z - m_viewDir.z*m_topDir.x);
+	m_horDir.z = m_viewDir.x*m_topDir.y - m_viewDir.y*m_topDir.x;
+	m_horDir.Normalize();
+	};
 
 void Solid::GetColor( Ray &falling, CVector &color)
 	{

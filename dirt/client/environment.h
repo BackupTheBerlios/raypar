@@ -36,6 +36,12 @@
 // Changed interfaces to get parameters as references
 // instead of pointers
 //*********************************************************
+// REVISION by Tonic, on 01/16/2004
+// Comments: CCamera class added
+//*********************************************************
+// REVISION by Tonic, on 01/16/2004
+// Comments: Added Ray::GetPoint
+//*********************************************************
 
 
 #if !defined(CLIENT_ENVIRONMENT_H_INCLUDED)
@@ -83,6 +89,10 @@ public:
 	void getOrigin(CVector &origin) ;
 	void getDirection(CVector &direction) ;
 	
+	//return point distance away from origin
+	//i.e. origin + distance*direction
+	void getPoint(double distance, CVector &point);
+
 	void setOrigin( CVector &origin);
 	void setDirection( CVector &direction);
 	
@@ -151,4 +161,73 @@ public:
 	Solid *	Intersect (  Ray &ray, double &t ) ;
 };
 
+//class fully responsible for transformation
+//between pixel coordinates of the picture
+//to traced rays
+class CCamera
+	{
+	private:
+		//view direction and top direction do not have to
+		//be orthogonal. They just have not to be parallel
+		//orthogonalization occurs in constructor
+		CVector m_eyePoint, m_viewDir, m_topDir, m_horDir;
+
+		//rendered picture resolution
+		int m_width, m_height;
+
+		//view angles
+		double m_horizontalAngle, m_verticalAngle, m_minViewAngle, m_maxViewAngle;
+
+		//called when wiew direction
+		//or top direction are updated
+		void UpdateHorizontalDir(void);
+	public:
+		CCamera( CVector &eyePoint, CVector &viewDir, CVector &topDir, int width, int height );
+		
+		//move along the viewing direction
+		//distance can be both positive and negative
+		//positive distance corresponds to moving forward
+		virtual void Move(double length);
+
+		//move along the horizontal direction
+		//positive distance corresponds to shifting right
+		//i.e. [viewDir x topDir] <- vector product
+		virtual void Shift(double length);
+		
+		//rotating around the vertical axis
+		//positive angle corresponds to rotating left
+		virtual void Yaw(double angle);
+		
+		//rotating around the horizontal axis
+		//positive angle corresponds to rotating up
+		virtual void Pitch(double angle);
+
+		//compute the ray originating from view point
+		//and passing through a given pixel
+		//!!! IMPORTANT !!!!
+		//!!! pixel coordinates are (0,0) in the top-left corner
+		//as usual with bitmaps
+		//pixel (x,y) axes are directed (right, down)
+		//BUT camera has its x and y axis directed
+		//(right,up) as usual in geometry
+		//so those who call this method should NOT convert
+		//pixel coordinates in any way
+		virtual void PixelRay(int x, int y, Ray &ray);
+
+		//getters for everything
+		virtual void GetEyePoint( CVector &eyePoint );
+		virtual void GetViewDir( CVector &viewDir );
+		virtual void GetTopDir( CVector &topDir );
+		virtual void GetWidth(int &width);
+		virtual void GetHeight(int &height);
+		virtual void GetHorizontalAngle(double &horizontalAngle);
+		virtual void GetVerticalAngle(double &verticalAngle);
+
+		//setters for picture size and view angles
+		virtual void SetWidth(int width);
+		virtual void SetHeight(int height);
+		virtual void SetHorizontalAngle(double horizontalAngle);
+		virtual void SetVerticalAngle(double verticalAngle);
+
+	};
 #endif // CLIENT_ENVIRONMENT_H_INCLUDED

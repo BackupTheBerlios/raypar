@@ -19,17 +19,174 @@
 // Comments: Names changed according to standart naming conventions
 //
 //*********************************************************
-// REVISION by ..., on ...
-// Comments: ...
-//
+// REVISION by Tonic, on 01/16/2004
+// Comments: CColorSphere class - one-colour sphere
+//*********************************************************
+// REVISION by Tonic, on 01/17/2004
+// Comments: Added CTriangle class
 //*********************************************************
 
 #include "stdafx.h"
 #include "geometry.h"
 
+/*CTriangle::CTriangle(CVector &a, CVector &b, CVector &c) : CTriangle(a,b,c,CVector(1,1,1))
+	{};*/
+
+CTriangle::CTriangle(CVector &a, CVector &b, CVector &c, CVector &color)
+	{
+	//check whether color components are correct
+	ASSERT( 0 <= color.x && color.x <= 1 );
+	ASSERT( 0 <= color.y && color.y <= 1 );
+	ASSERT( 0 <= color.z && color.z <= 1 );
+
+	//compute two sides dot product
+	//if it is really a triangle, it wil be nonzero
+	CVector ab, ac;
+	ab = b - a;
+	ac = c - a;
+	m_normal.x = ab.y*ac.z - ab.z*ac.y;
+	m_normal.y = -(ab.x*ac.z - ab.z*ac.x);
+	m_normal.z = ab.x*ac.y - ab.y*ac.x;
+	double len = m_normal.Length();
+	ASSERT( len > VECTOR_EQUAL_EPS );
+
+	//checks were passed, init private members
+	m_normal.Normalize();
+	m_distance = a*m_normal;
+	m_a = a;
+	m_b = b;
+	m_c = c;
+	m_color = color;
+	};
+
+void CTriangle::GetColor( Ray &falling, CVector &color)
+	{
+	//do not check the intersection has place (otherwise in most cases we
+	//will repeat the computaion already done
+	//as every point of the sphere has the same color), just return it
+	
+	color = m_color;
+	}
+
+int CTriangle::Intersect( Ray &ray, double &distance)
+	{
+	//checking intersection with the containing plane
+	double rayDistance = distance;
+	if( !planeIntersect(ray, rayDistance))
+		return 0;
+
+	CVector intersectionPoint;
+	ray.getPoint( rayDistance, intersectionPoint );
+
+	CVector ab = m_b - m_a;
+	CVector ac = m_c - m_a;
+	CVector a_ip = intersectionPoint - m_a;
+	//decompose a_intersectionPoint
+	//using the basis (ab, ac)
+	double denominator = ab.Length()*ab.Length()*ac.Length()*ac.Length() - (ab*ac)*(ab*ac);
+	double abProj = ((ab*a_ip)*ac.Length()*ac.Length() - (ac*a_ip)*(ac*ab))/denominator;
+	double acProj = ((ac*a_ip)*ab.Length()*ab.Length() - (ab*a_ip)*(ac*ab))/denominator;
+
+	if( (abProj < 0) || (acProj < 0) || (abProj + acProj > 1))
+		return 0;
+
+	//there is an intersection, modify the distance and return 1
+	distance = rayDistance;
+	return 1;
+	};
+
+int CTriangle::planeIntersect( Ray &ray, double &distance )
+	{
+	CVector origin, direction;
+	
+	ray.getOrigin(origin);
+	ray.getDirection(direction);
+
+	double originDistance = origin*m_normal;
+
+	//the origin is in our plane
+	//the triangle is not visible anyway so
+	//no intersection
+	if( fabs( originDistance - m_distance ) < VECTOR_EQUAL_EPS )
+		return 0;
+	
+	double specificDistance = direction*m_normal;
+	
+	//ray direction parallel to the plane
+	//no intersection
+	if( fabs(specificDistance) < VECTOR_EQUAL_EPS )
+		return 0;
+
+    //distance along the ray to the point where
+	//the ray and plane intersect
+	double rayDistance = (m_distance - originDistance)/specificDistance;
+
+	//the intersection is too far
+	//or on the negative side of the ray
+	if((rayDistance > distance) || (rayDistance < 0))
+		return 0;
+
+	distance = rayDistance;
+	return 1;
+	}
+
+void CTriangle::Reflect( Ray &falling, Ray &reflected )
+	{
+	//this function is assumed to be called after
+	//the check of intersection is done. So do not
+	//repeat it, just return a ray reflected from the
+	//containing plane
+	double distance = INFINITY;
+
+	//get the distance to the intersection
+	if( !planeIntersect(falling, distance) )
+		{
+		//no intersection -> no reflection
+		reflected = falling;
+		}
+	else
+		{
+		CVector vector;
+		falling.getPoint( distance, vector );
+		reflected.setOrigin( vector );
+		falling.getDirection( vector );
+		double normalProjection = vector*m_normal;
+		reflected.setDirection( -normalProjection*m_normal + 2*(vector - normalProjection*m_normal ));
+		};
+	}
+CColorSphere::CColorSphere()
+	{
+	//set color to white
+	m_color.x = m_color.y = m_color.z = 1;
+	};
+
+CColorSphere::CColorSphere(CVector &position, double radius) : CSphere(position, radius)
+	{
+	//set color to white
+	m_color.x = m_color.y = m_color.z = 1;
+	};
+
+CColorSphere::CColorSphere(CVector &position, double radius, CVector &color) : CSphere(position, radius)
+	{
+	//check parameter value
+	ASSERT( 0 <= color.x && color.x <= 1);
+	ASSERT( 0 <= color.y && color.y <= 1);
+	ASSERT( 0 <= color.z && color.z <= 1);
+
+	//set color according to parameter
+	m_color = color;
+	};
+
+void CColorSphere::GetColor( Ray &falling, CVector &color)
+	{
+	//do not check the intersection has place (otherwise in most cases we
+	//will repeat the computaion already done
+	//as every point of the sphere has the same color), just return it
+	
+	color = m_color;
+	};
 
 ////////////////////////////// Sphere methods //////////////////////////////
-
 CSphere::CSphere()
 {  
     m_position.x = 0;

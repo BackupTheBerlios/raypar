@@ -19,10 +19,15 @@
 // REVISION by VADER, on 01/15/2004
 // Comments: Names changed according to standart naming conventions
 //*********************************************************
+// REVISION by Tonic, on 01/16/2004
+// Comments: CColorSphere class - one-colour sphere
+//*********************************************************
+// REVISION by Tonic, on 01/17/2004
+// Comments: Added CTriangle class
+//*********************************************************
 
 #if !defined(CLIENT_GEOMETRY_H_INCLUDED)
 #define CLIENT_GEOMETRY_H_INCLUDED
-
 
 #include "environment.h"
 
@@ -45,7 +50,18 @@ public:
 	virtual void Reflect( Ray &falling, Ray &reflected) ;
 };
 
+class CColorSphere : public CSphere
+	{
+	private:
+		CVector m_color;
 
+	public:
+        CColorSphere();
+		CColorSphere(CVector &position, double radius, CVector &color);
+		CColorSphere(CVector &position, double radius);
+		virtual void GetColor( Ray &falling, CVector &color);
+		void SetColor( CVector &color );
+	};
 
 class CPlane : public Solid
 {
@@ -65,5 +81,26 @@ public:
 	virtual int Intersect(  Ray &ray, double &distance) ;
 	virtual void Reflect( Ray &falling, Ray &reflected) ;
 };
+
+class CTriangle : public Solid
+	{
+	private:
+		CVector m_a, m_b, m_c, m_color, m_normal;
+		double m_distance;
+
+		//plane equation is (m_normal,x) = m_distance
+
+		int planeIntersect( Ray &ray, double &distance);
+	
+	public:
+        CTriangle(CVector &a, CVector &b, CVector &c, CVector &color);
+		//white by default
+		//CTriangle(CVector &a, CVector &b, CVector &c);
+
+		virtual void GetColor( Ray &falling, CVector &color);
+		virtual int Intersect(  Ray &ray, double &distance);
+		virtual void Reflect( Ray &falling, Ray &reflected);
+
+	};
 
 #endif //CLIENT_GEOMETRY_H_INCLUDED

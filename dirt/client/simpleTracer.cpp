@@ -14,9 +14,21 @@
 // Changed interfaces to get parameters as references
 // instead of pointers
 //*********************************************************
+// REVISION by Tonic, on 1/17/2004
+// Comments: Added CRenderer class containing pixel color computing routine
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
+
+void CRenderer::RenderPixel( Environment &scene, Medium &medium, CCamera &camera, Tracer &tracer, int x, int y, CVector &color)
+	{
+	ASSERT((x>=0) && (y>=0));
+
+	Ray ray;
+	camera.PixelRay(x,y,ray);
+	tracer.trace( medium, ray, scene, 1.0, color );
+	};
 
 void SimpleTracer::VisibleColor( CVector &LightColor,  CVector &MaterialColor, CVector &resultColor)
 	{

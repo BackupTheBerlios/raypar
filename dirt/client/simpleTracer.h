@@ -1,4 +1,4 @@
-//****************************************
+
 //** simpleTracer.h **
 // Created By: Tonic
 // On: 01/10/2004
@@ -14,6 +14,9 @@
 // material color
 // Changed interfaces to get parameters as references
 // instead of pointers
+//*********************************************************
+// REVISION by Tonic, on 1/17/2004
+// Comments: Added CRenderer class containing pixel color computing routine
 //*********************************************************
 
 #if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
@@ -51,5 +54,13 @@ private:
 	// color = color(light sources) + shadeRoR * color(trace(reflected ray))
 	double shadeRoR;
 };
+
+//class to contain pixel color computing routine
+//which takes scene, camera, tracer and pixel coords as parameters
+class CRenderer
+	{
+	public:
+		static void RenderPixel( Environment &scene, Medium &medium, CCamera &camera, Tracer &tracer, int x, int y, CVector &color);
+	};
 
 #endif //CLIENT_SIMPLETRACER_H_INCLUDED

@@ -226,62 +226,54 @@ void CClientDlg::OnButtonTest()
 	COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
 
 	Environment		scene;
-	SimpleTracer	testedTracer;
-  
-  CVector			sphereCenter(0,0,-5), sphereCenter2(1,0,-5);
-	CSphere			solidObject(sphereCenter, 2);
-	CSphere			solidObject2(sphereCenter2, 2);
-	Light			lightSource( 1.0, 1.0, 1.0, 0, 0, -2);
-	Light			lightSource2( 1.0, 0, 0, 1, 1, -2);
-	Light			lightSource3( 0, 1.0, 0, 1, -1, -2);
-	Light			lightSource4( 0, 0, 1.0, 1, 0, -2);
-
-	CVector			planePoint;
-	CVector			origin(0,0,0);
+	  
+    CVector			sphereCenter(0,0,5), sphereCenter2(1,0,5), red(1,0,0), green(0,1,0), white(1,1,1);
+	CColorSphere	solidObject(sphereCenter, 2,white);
+	CColorSphere	solidObject2(sphereCenter2, 2,white);
+	CVector			a(-1, -2, 3), b(1,-2,3), c(0,1,3);
+	CTriangle		solidObject3(a,b,c, CVector(1,1,1));
+	Light			lightSource( 1.0, 1.0, 1.0, 1, 0, 2.5);
+	Light			lightSource2( 1.0, 0, 0, 1, 1, 2);
+	Light			lightSource3( 0, 1.0, 0, 1, -1, 2);
+	Light			lightSource4( 0, 0, 1.0, 1, 0, 2);
+	CVector			origin(0,0,0), zAxis(0,0,1), yAxis(0,1,0);
+	CCamera			camera( origin, zAxis, yAxis, imgWidth,imgHeight );
+	
+	Ray				rayToTrace(CVector(0,0,0), CVector(0,0,1));
 	SimpleTracer	tracer;
 	CVector			color;
 	Medium			medium;
-	//CImage			image;
-	//image.Create( imgWidth, imgHeight, 24, 0);
 
-	medium.Betta = 0;
+
+	medium.Betta = 0.001;
 	medium.nRefr = 1;
-
-	planePoint.z = -1;
-//	planePoint.x = 0;
-//	planePoint.y = 0;
-	
+	camera.Shift(-1);
 	scene.Add( &solidObject );
 	scene.Add( &solidObject2 );
+	scene.Add( &solidObject3 );
 	scene.Add( &lightSource );
 	scene.Add( &lightSource2 );
 	scene.Add( &lightSource3 );
 	scene.Add( &lightSource4 );
 	
-//	Ray ray( &origin, &planePoint );
-//	tracer.trace( &medium, &ray, &scene, 1, &color);		
-//	return;
+	tracer.trace(medium, rayToTrace, scene, 1.0, color);
 	for( int i = 0; i < imgWidth; i ++)
 		for (int j = 0; j < imgHeight; j++)
 		{
-			planePoint.x = ((double) i)/imgWidth - 0.5;
-			planePoint.y = ((double) j)/imgHeight - 0.5;
-	
-			Ray ray( origin, planePoint );
-			tracer.trace( medium, ray, scene, 1, color);
-	//		image.SetPixelRGB( i, imgHeight - j - 1, (char) (color.x*255.0), (char) (color.y*255.0), (char) (color.z*255.0));
 			
-      BYTE c_red = BYTE (color.x*255.0);
+		CRenderer::RenderPixel( scene, medium, camera, tracer, i,j,color);
+			
+		    BYTE c_red = (char) (color.x*255.0);
 			BYTE c_green = (char) (color.y*255.0);
 			BYTE c_blue = (char) (color.z*255.0);
 			
-      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
+			img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
 		};
     
-  CTestDialog test_dlg( imgWidth, imgHeight, img);
-  test_dlg.DoModal();
+	CTestDialog test_dlg( imgWidth, imgHeight, img);
+	test_dlg.DoModal();
 
-	delete[] img;
+    delete[] img;
 
 }
 
