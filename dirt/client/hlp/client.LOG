@@ -2,9 +2,27 @@ Microsoft (R) Help Compiler
 HCRTF 4.03.0002
 Copyright (c) Microsoft Corp 1990 - 1995. All rights reserved.
 client.hpj
-    HC3059: Warning: topic #2 of c:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+    HC1003: Note: topic #1 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	A paragraph marker is formatted as a hidden character.
+    HC1003: Note: topic #1 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	A paragraph marker is formatted as a hidden character.
+    HC1003: Note: topic #1 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	A paragraph marker is formatted as a hidden character.
+    HC3059: Warning: topic #3 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
 	A hotspot was specified without a macro or Topic ID.
-    HC1012: Note: topic #4 of c:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+    HC1012: Note: topic #5 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	Table cell borders are not supported.
+    HC1012: Note: topic #10 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	Table cell borders are not supported.
+    HC1012: Note: topic #11 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	Table cell borders are not supported.
+    HC1012: Note: topic #12 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	Table cell borders are not supported.
+    HC1012: Note: topic #14 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	Table cell borders are not supported.
+    HC1012: Note: topic #15 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
+	Table cell borders are not supported.
+    HC1012: Note: topic #17 of C:\Kostya\projects\dirt\client\hlp\.\afxcore.rtf : 
 	Table cell borders are not supported.
     HC1010: Note: 
 	The following mapped Topic IDs were not used in any topic:
@@ -219,13 +237,14 @@ client.hpj
 	HIDD_CLIENT_DIALOG
 	AFX_HIDP_DAO_COLUMNUNAVAILABLE
 	AFX_HIDD_REPLACE
-8	Topics
-11	Jumps
-6	Keywords
-0	Bitmaps
+18	Topics
+23	Jumps
+14	Keywords
+4	Bitmaps
 
 
-Created c:\Kostya\projects\dirt\client\hlp\client.HLP, 8,797 bytes
-Hall+Zeck compression decreased help file by 760 bytes.
-Compile time: 0 minutes, 0 seconds
-2 notes, 1 warning
+Created C:\Kostya\projects\dirt\client\hlp\client.HLP, 62,818 bytes
+Bitmaps: 50,908 bytes
+Hall+Zeck compression decreased help file by 2,737 bytes.
+Compile time: 0 minutes, 1 second
+11 notes, 1 warning
