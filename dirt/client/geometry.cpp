@@ -93,8 +93,8 @@ CSphere::CSphere()
 {  }
 
 CSphere::CSphere( const CVector &position, double radius, const CVector &color, double Betta, double nRefr, 
-                 bool isTransparent, double outerBetta, double outerRefr, double reflectionCoefficient, double smoothness)
-                 : CSolid(reflectionCoefficient, smoothness, isTransparent)
+                  double outerBetta, double outerRefr, double reflectionCoefficient, double smoothness)
+                 : CSolid(reflectionCoefficient, smoothness)
 {
   SetColor( color );
   SetReflectionCoefficient(reflectionCoefficient);
@@ -371,8 +371,8 @@ CPlane::CPlane()
 
 CPlane::CPlane( const CVector &n, double D, const CVector color,
                double reflectionCoefficient, double smoothness, 
-               bool isTransparent, double Betta, double nRefr)
-               : CSolid( reflectionCoefficient, smoothness, isTransparent, Betta, nRefr)
+               double Betta, double nRefr)
+               : CSolid( reflectionCoefficient, smoothness, Betta, nRefr)
 {
   m_n = n;
   m_D = D;
@@ -387,8 +387,8 @@ CPlane::CPlane( const CVector &n, double D, const CVector color,
 
 CPlane::CPlane(double a, double b, double c, double d, const CVector color,
                double reflectionCoefficient, double smoothness, 
-               bool isTransparent, double Betta, double nRefr)
-               : CSolid( reflectionCoefficient, smoothness, isTransparent, Betta, nRefr )
+               double Betta, double nRefr)
+               : CSolid( reflectionCoefficient, smoothness, Betta, nRefr )
 {
   m_n = CVector (a, b, c);
   m_D = d;
@@ -532,9 +532,9 @@ m_position(0,0,0)
 CBox::CBox(const CVector &position, const CVector &e0
            , const CVector &e1, const CVector &e2, const CVector &color
            , double Betta, double nRefr
-           , bool isTransparent, double outerBetta
+           , double outerBetta
            , double outerRefr, double reflectionCoefficient, double smoothness)
-           : CSolid( reflectionCoefficient, smoothness, isTransparent)
+           : CSolid( reflectionCoefficient, smoothness)
 {
   m_position = position;
   m_e[0] = e0;
@@ -904,9 +904,9 @@ CTriangle::CTriangle(const CVector &a, const CVector &b,
                      const CVector &c, const CVector &color,
                      double reflectionCoefficient, 
                      double smoothness, 
-                     bool isTransparent, double Betta, double nRefr) 
+                     double Betta, double nRefr) 
 
-: CSolid(reflectionCoefficient, smoothness, isTransparent, Betta, nRefr)
+: CSolid(reflectionCoefficient, smoothness, Betta, nRefr)
 {
   //compute two sides dot product
   //if it is really a triangle, it wil be nonzero
@@ -1075,8 +1075,8 @@ CCylinder::CCylinder()
 CCylinder::CCylinder( CVector &base, CVector &direction, double length, double radius, const CVector &color,
                      double reflectionCoefficient, 
                      double smoothness, 
-                     bool isTransparent, double Betta, double nRefr,
-                     double outerBetta, double outerRefr) : CSolid(reflectionCoefficient, smoothness, isTransparent)
+                     double Betta, double nRefr,
+                     double outerBetta, double outerRefr) : CSolid(reflectionCoefficient, smoothness)
 {
   m_base = base;
   m_direction = direction;

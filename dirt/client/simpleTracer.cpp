@@ -168,7 +168,7 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
       resultColor += color*reflectionCoefficient*m_shadeRoReflected;
       
       //now process the refracted ray
-      if( nearestObject->IsTransparent() )
+      if( nearestObject->GetReflectionCoefficient() > 1 - VECTOR_EQUAL_EPS ) //solid is opaque
       {
         Ray refracted;
         bool newOutside;

@@ -93,7 +93,7 @@ public:
   CSphere();
   CSphere( const CVector &position
             , double radius, const CVector &color, double Betta = 0.0
-            , double nRefr = 1.0 , bool isTransparent = false 
+            , double nRefr = 1.0  
             , double outerBetta = 0.0, double outerRefr = 1.0
             , double reflectionCoefficient = 1.0
             , double smoothness = 1.0);
@@ -129,10 +129,10 @@ public:
   CPlane();
   CPlane( const CVector &n, double D, const CVector color,
                double reflectionCoefficient = 1.0, double smoothness = 1.0, 
-               bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0);
+               double Betta = 0.0, double nRefr = 1.0);
   CPlane(double a, double b, double c, double d, const CVector color,
                double reflectionCoefficient = 1.0, double smoothness = 1.0, 
-               bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0); // for   ax + by + cz + d = 0
+               double Betta = 0.0, double nRefr = 1.0); // for   ax + by + cz + d = 0
   
   void SetPosition( const CVector &n, double D);
   void SetPosition(double a, double b, double c, double d);
@@ -151,7 +151,7 @@ public:
   //1) non zero normale m_n and distance m_D should be defined
   //2) color and m_reflectionCoefficient (0<=..<=1) should be defined
   //3) material parameters are not necessary, as the object is flat
-  //   meanwhile m_isTransparent should be false
+  //   meanwhile n_reflection should be > 1-EPSILON
   virtual int IsValid(void) const;
 
   //stores object to  'ar'
@@ -180,7 +180,7 @@ public:
   CBox(const CVector &position, const CVector &e0
     , const CVector &e1, const CVector &e2, const CVector &color = CVector(0,0,0)
     , double Betta = 0.0, double nRefr = 1.0 
-    , bool isTransparent = false, double outerBetta = 0.0
+    , double outerBetta = 0.0
     , double outerRefr = 1.0, double reflectionCoefficient = 1.0, double smoothness = 0.0);
 
   void SetPosition(const CVector &position);
@@ -235,7 +235,7 @@ public:
   CTriangle();
   CTriangle(const CVector &a, const CVector &b
             , const CVector &c, const CVector &color, double reflectionCoefficient = 1.0, double smoothness = 1.0, 
-               bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0);
+               double Betta = 0.0, double nRefr = 1.0);
   
   virtual int  Intersect( const Ray &ray, double &distance) const;
   virtual void Reflect  ( const Ray &falling, Ray &reflected) const;
@@ -287,7 +287,7 @@ public:
   CCylinder();
   CCylinder( CVector &base, CVector &direction, double length, double radius
              , const CVector &color, double reflectionCoefficient = 1.0
-             , double smoothness = 1.0, bool isTransparent = false
+             , double smoothness = 1.0
              , double Betta = 0.0, double nRefr = 1.0 , double outerBetta = 0.0
              , double outerRefr = 1.0 );
   virtual int Intersect( const Ray &ray, double &distance) const;

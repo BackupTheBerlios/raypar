@@ -174,18 +174,15 @@ protected:
   //outer medium. used in refracted rays computation for flat objects
   Medium medium;
 
-  //refracted rays are computed iff this is true
-  bool m_isTransparent;
   
 public:
 
   CSolid( double reflectionCoefficient = 1.0, double smoothness = 1.0
-          , bool isTransparent = false, double Betta = 0.0, double nRefr = 1.0 ) 
+          , double Betta = 0.0, double nRefr = 1.0 ) 
   : m_color(0,0,0)
   {
     m_reflectionCoefficient =  reflectionCoefficient;
     m_smoothness = smoothness;
-    m_isTransparent = isTransparent;
     medium.Betta = Betta;
     medium.nRefr = nRefr;
   
@@ -216,10 +213,7 @@ public:
   //which is a default value
   //if we change this, we should redefine
   //Refract and GetInnerMedium functions
-  virtual bool IsTransparent(void) const
-  {
-    return m_isTransparent;
-  };
+
   
   virtual double GetReflectionCoefficient(void) const
   {

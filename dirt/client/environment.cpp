@@ -279,9 +279,6 @@ int CSolid::write(CArchive& ar) const
   ASSERT( CSolid::IsValid() );
 
   ar << m_color;
-  //do not write bool to archive
-  int transp = (bool)m_isTransparent;
-  ar << transp;
   ar << m_reflectionCoefficient;
   ar << m_smoothness;
   ar << medium;
@@ -292,10 +289,6 @@ int CSolid::write(CArchive& ar) const
 int CSolid::read(CArchive& ar)
 {
   ar >> m_color;
-  //do not read bool from archive
-  int transp;
-  ar >> transp;  
-  m_isTransparent = ( transp!=0 );
   ar >> m_reflectionCoefficient;
   ar >> m_smoothness;
   ar >> medium;
