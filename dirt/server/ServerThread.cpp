@@ -12,17 +12,19 @@
 
 
 #include "stdafx.h"
-#include "server.h"
 #include "ServerThread.h"
 #include "common/protocol.h"
 #include "srvcmd.h"
-
+#include "common/utils.h"
+#include "common/protocol.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+#include "server.h"
 
 //Such return means that an error occured in function
 #define ERROR_RETURN 1
@@ -34,13 +36,162 @@ static char THIS_FILE[] = __FILE__;
 //  SServerThreadParam
 //
 
-struct SServerThreadParam{
+struct SServerThreadParam{  
   SOCKET h_socket;
+  CServerControl* p_srv_ctrl;
 };
 
 
 ///////////////////////////////////////////////////////////
-//  CServerSocket
+//  CLinesController  - supports lines distribution among clients
+//
+
+CLinesController::CLinesController()
+: m_line_width(0)
+, m_lines_count(0)
+, m_search_step(0)
+, m_bCompleted(0)
+, m_lines_info(0)
+{}
+
+CLinesController::~CLinesController()
+{
+  delete[] m_lines_info; //we have to free allocated memory
+}
+
+//[Re]Initializes th object
+// search step is used in GetNeaxtLine2Render algorithm
+void CLinesController::Init( int lines_count, int line_width, int search_step /*= 7*/ )
+{
+  ASSERT( lines_count > 0 );
+  ASSERT( line_width > 0 );
+  ASSERT( search_step > 0 );
+
+  delete [] m_lines_info;
+
+  m_lines_count = lines_count;
+  m_line_width = line_width;
+  m_search_step = search_step;
+  m_bCompleted = false;
+
+  if (m_search_step > m_lines_count)
+    m_search_step = 1;
+
+  m_lines_info = new CLineItem[m_lines_count] ;
+  for(int i=0; i<m_lines_count; i++ )
+    m_lines_info->AllocateData( m_line_width );
+}
+
+//Gives next line to render to client
+//Negative if the image was alredy finished
+int  CLinesController::GetLine2Render(void)
+{  
+  if (m_bCompleted)
+    return -1; //image finished
+
+  ASSERT( m_lines_info );
+  ASSERT( m_search_step <= m_lines_count );
+
+  int search_step = m_search_step;
+
+  int start = rand() % search_step;
+  int line_num;
+
+  //First we are trying to find nongiven line itereating with decreasing step
+  //If we have found nothing 
+
+  bool bFound=false, bEverythingGiven = false;
+  for ( int i=start; !bFound && !bEverythingGiven; ){        
+    if (! m_lines_info[i].m_bGiven ){
+      m_lines_info[i].m_bGiven = true;
+      m_lines_info[i].m_timestamp_given = GetTickCount();
+      bFound = true;
+      line_num = i;
+    }else{
+      int ni = i + search_step;
+      if ( ni >= m_lines_count ){
+        ni %= m_lines_count;
+        search_step--;
+        if ( 0==search_step )
+          bEverythingGiven = true;
+        if ( 1==m_search_step )
+          ni = 0; //we must be careful not to jump over 0
+      }
+      i = ni;
+    }
+  }
+
+  if (bFound){
+    ASSERT( 0 <= line_num && line_num < m_lines_count );
+    return line_num;
+  }
+
+  DWORD min_timestamp_given = 0;
+  line_num = -1;
+
+  //All lines were already given and we search the one which was given the first 
+  //out of those which were not rendered yet.
+  for( i=0; i<m_lines_count; i++ ){
+    CLineItem& li = m_lines_info[i];
+    
+    ASSERT( li.m_bGiven ); // We have alredy checked that 
+                                        //all lines were given away at lease once!
+    if ( !li.m_bReceived &&
+       ( line_num < 0 || li.m_timestamp_given < min_timestamp_given) ){
+        min_timestamp_given = li.m_timestamp_given;
+        line_num = i;
+      }
+  }
+
+  if (line_num < 0){    
+    ASSERT( 0 ); //all lines completed!
+    m_bCompleted = true;
+    return -1; //negative - no lines to render
+  }
+  
+  ASSERT( line_num >=0 && line_num < m_lines_count );
+  return line_num;
+}
+
+//Stores image line information
+//Nonzero if the image is completed
+int CLinesController::LineWasRendered(int line_num, COLORREF* line_data)
+{
+  ASSERT( line_num >= 0 && line_num < m_lines_count ); 
+  ASSERT( AfxIsValidAddress(line_data, sizeof(COLORREF)*m_line_width ) );
+  ASSERT( m_lines_info );
+
+  CLineItem& li = m_lines_info[line_num];  
+  
+  if ( li.m_bReceived )   
+    return m_bCompleted; //we have already received this line do nothing changed.
+  
+  // We store line_data and modify LineItem
+  ASSERT( AfxIsValidAddress(li.m_data, sizeof(COLORREF)*m_line_width ) );
+  memcpy( li.m_data, line_data, sizeof(COLORREF)*m_line_width );
+  li.m_bReceived = true;
+  
+  //Now we check whether we have finished the picture or no;
+  bool bFoundNotReceived = false;
+  //we start from the end. It seems to be more efficient
+  for(int i=m_lines_count; i>=0 && bFoundNotReceived; i--)
+    if (! m_lines_info[i].m_bReceived )
+      bFoundNotReceived = true;
+
+
+  if (bFoundNotReceived)
+    return 0; //we haven't finished the image yet
+  
+  //image was finished
+  m_bCompleted = true; 
+  return 1;  
+}
+
+
+
+
+///////////////////////////////////////////////////////////
+//  CServerSocket    - server socket class
 //
 
 CServerSocket::CServerSocket(CServerControl& srv_ctrl)
@@ -55,9 +206,9 @@ void CServerSocket::OnAccept(int errorCode)
     ErrorMessage( "Error accepting client connection: '%s'", (LPCSTR) err_str );    
   }else{
     m_srv_ctrl.AcceptClient();
-
   }
 }
+
 
 
 ///////////////////////////////////////////////////////////
@@ -96,9 +247,10 @@ void CServerControl::AcceptClient()
   m_srv_sock.Accept( cl_sock );
   SServerThreadParam* sp = new SServerThreadParam; //this memory will have been 
                                                   // freed by the thread
-  
+   
   sp->h_socket = cl_sock;
   cl_sock.Detach(); 
+  sp->p_srv_ctrl = this;
 
   CWinThread* srv_thr = StartServerThread( sp );
   if ( !srv_thr ){
@@ -107,24 +259,54 @@ void CServerControl::AcceptClient()
   }
 }
 
+//Generates unique session id
+int CServerControl::GetNewSessionId(void)
+{
+  CCriticalSectionLock csl;
+  return ++m_last_session_id;
+}
+
+//this functions can be called from different threads!
+//Fills required scene parameters
+//Zero if successful
+int CServerControl::FillSceneParameters( int* p_scene_id,
+                         CImageLinesInfo* p_image_lines_info,
+                         CCameraInfo*  p_camera_info )
+{
+  ASSERT( p_scene_id );
+  ASSERT( p_image_lines_info );
+  ASSERT( p_camera_info );
+
+  CSingleLock lines_lock( &m_change_lines_mutex, TRUE );
+
+  *p_scene_id = 0;
+  
+  p_camera_info->m_camera_pos = CVector(0,0,0);
+  p_camera_info->m_camera_y_axis = CVector(0,1,0);
+  p_camera_info->m_camera_z_axis = CVector(0,0,1);
+
+  p_image_lines_info->m_image_height = m_lines.GetHeight();
+  p_image_lines_info->m_image_width = m_lines.GetWidth();
+
+  return 0;
+}
+
 ///////////////////////////////////////////////////////////
 //  ServerThreadFunction
 //
-
-static CEvent server_thread_stop_event;
 
 UINT ServerThreadFunction( void* param )
 {  
   SServerThreadParam * sp = (SServerThreadParam*) param;
   ASSERT( AfxIsValidAddress(param, sizeof (SServerThreadParam ) ) );
-  //server_thread_stop_event.ResetEvent();
 
   SOCKET _socket = sp->h_socket;
+  CServerControl* p_srv_ctrl = sp->p_srv_ctrl;
+  ASSERT( p_srv_ctrl );
   delete sp; //we must free thread parameters in this thread!
 
   CSocket cl_sock;
   int ret = cl_sock.Attach( _socket );
-  
 
   if (!ret){
     ASSERT( 0 );
@@ -143,13 +325,17 @@ UINT ServerThreadFunction( void* param )
     return ERROR_RETURN;
   }
 
-  Message("Client connected: '%s:%d'", (LPCSTR)sock_name, sock_port);
+  #define MAX_CLIENT_NAME_LEN  64
+  char client_name[MAX_CLIENT_NAME_LEN]; //this name is used to identify the client in logs
+  sprintf(client_name, "%s:%d", (LPCSTR)sock_name, sock_port);
+
+  Message("CL[%s] Client connected", client_name);
 
   CSocketFile sock_file( &cl_sock );
   CArchive arIn( &sock_file, CArchive::load );
   CArchive arOut( &sock_file, CArchive::store );
 
-  int last_session_id = 1; //let it be here for a while
+  int current_session_id = p_srv_ctrl->GetNewSessionId(); 
 
   bool bEnd = false;
   while (!bEnd) {
@@ -157,23 +343,33 @@ UINT ServerThreadFunction( void* param )
     arIn >> cmd_id;
 
     switch(cmd_id){
-      case CMD_CONNECTION_INIT: CmdConnectionInit(arIn, arOut, last_session_id); break; 
-      case CMD_GET_FRAME_DATA:  break;
+      case CMD_CONNECTION_INIT: 
+        {
+          int ret = CmdConnectionInit(arIn, arOut, client_name, current_session_id); 
+          if ( ERROR_MUST_TERMINATE == ret )
+            bEnd = true;
+          break; 
+        }
+      case CMD_GET_FRAME_DATA:
+        {
+          int ret = CmdGetFrameData(arIn, arOut, client_name, current_session_id, p_srv_ctrl);
+          if ( ERROR_MUST_TERMINATE == ret )
+            bEnd = true;
+          break;
+        }
       case CMD_GET_SCENE_DATA:  break;
-      default:{      
+      default:{
           ASSERT(0);
-          ErrorMessage( "Unknown command received from client ['']! Terminating connection" );
+          ErrorMessage( "CL[%s] Unknown command received from client! Terminating connection", client_name );
           bEnd = true;
         }
     }
   }
 
-
   cl_sock.Close();
   
   return 0;
 }
-
 
 
 CWinThread* StartServerThread( void * param )
@@ -182,7 +378,7 @@ CWinThread* StartServerThread( void * param )
 }
 
 void StopServerThread()
-{  
-  server_thread_stop_event.ResetEvent();
+{
+  //?K?
 }
 
