@@ -4,8 +4,13 @@
 // On :10/27/2003 01:45:08
 // Comments: implementation of the CMainFrame class
 //
+//*********************************************************
+// REVISION by KIRILL, on 1/17/2004 05:21:37
+// Comments: OnUserAddLogMessage was added in order to ssupport 
+// multithreaded logging.
+//
 //****************************************
-// REVISION by: ..., on: ...
+// REVISION by ..., on ...
 // Comments: ...
 //***********************************
 
@@ -20,6 +25,8 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
@@ -37,12 +44,13 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)
 	ON_COMMAND(ID_OPEN_CAMERA, OnOpenCamera)
 	ON_WM_DESTROY()
+  ON_MESSAGE( WM_USER_ADD_LOG_MSG, OnUserAddLogMessage )
 	//}}AFX_MSG_MAP
 	// Global help commands
 	ON_COMMAND(ID_HELP_FINDER, CFrameWnd::OnHelpFinder)
 	ON_COMMAND(ID_HELP, CFrameWnd::OnHelp)
 	ON_COMMAND(ID_CONTEXT_HELP, CFrameWnd::OnContextHelp)
-	ON_COMMAND(ID_DEFAULT_HELP, CFrameWnd::OnHelpFinder)
+	ON_COMMAND(ID_DEFAULT_HELP, CFrameWnd::OnHelpFinder)  
 END_MESSAGE_MAP()
 
 static UINT indicators[] =
@@ -167,7 +175,7 @@ void CMainFrame::OnViewLogwindow()
 void CMainFrame::OnViewOptions() 
 {
 	// TODO: Add your command handler code here
-	ErrorMessageWithBox("There is no realization yet");
+	ErrorMessage("There is no realization yet");
   
 }
 
@@ -176,7 +184,7 @@ void CMainFrame::OnRun()
   // TODO: Add your command handler code here
 	//ErrorMessageWithBox("There is no realization yet");
 
-  
+  m_srv_ctrl.StartServer( 8700 );
 
 }
 
@@ -198,5 +206,35 @@ void CMainFrame::OnDestroy()
 {
 	CFrameWnd::OnDestroy();
   m_log_box.Detach();	
+}
+
+
+//this is used to handle WM_USER_ADD_LOG_MESSAGE which can be sent 
+//by ServerLogMessage(.). Receives messages sent by
+//ServerLogMessage(.) and adds the information to the list box. 
+//This function will ALWAYS be called in the main thread.
+//Params:
+// WPARAM = MAKEWPARAM( USER_ADD_LOG_MSG_CODE, <meassage type> )
+// LPARAM = pointer to the message text
+//
 	
+LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
+{
+  ASSERT( AfxIsValidString((char*)lParam) );
+  ASSERT( LOWORD(wParam) == USER_ADD_LOG_MSG_CODE );  //Unknown caller??? 
+                                                    //Calling conventions were broken
+  int ret = 0;
+
+  int msg_type = HIWORD(wParam);
+  if ( LOWORD(wParam) == USER_ADD_LOG_MSG_CODE ){  
+    switch (msg_type) {
+      case LOG_MSG_ERROR:   m_log_box.AddError((char*)lParam); break;
+      case LOG_MSG_NORMAL:  m_log_box.AddMessage((char*)lParam); break;
+      default: ASSERT(0); //unknown type!
+    };
+         
+    // delete (char*)lParam; //we have to clean the memory
+    ret = 1; //this means that we've processed message
+  }
+  return ret; 
 }

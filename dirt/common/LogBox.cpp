@@ -20,11 +20,6 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-///////////////////////////////////
-//Types of messages (values must be > 0! ) 
-#define LOG_MSG_ERROR  1
-#define LOG_MSG_NORMAL 2
-
 /////////////////////////////////////////////////////////////////////////////
 // CLogBox
 
@@ -75,7 +70,7 @@ HWND CLogBox::Detach()
 //////////////////////////////////////////////////////////////////
 // AddError and AddMessage methods set item's data member to 
 // LOG_MSG_ERROR and LOG_MSG_NORMAL  respectively to let drawing 
-//algorithm know what it draws.
+// algorithm know what it draws.
 //
 
 //Adds line 'text' and sets up item's data member.
@@ -91,13 +86,14 @@ void CLogBox::_AddLine( LPCSTR text, int msg_type )
   
   int id = AddString( text );
   ASSERT( id>=0 );    
-  SetItemData( id, msg_type );
+  SetItemData( id, msg_type );  
 }
 
 
 //adds error message text
 void CLogBox::AddError( LPCSTR text )
 {
+  ASSERT( AfxIsValidString(text) );
   _AddLine( text, LOG_MSG_ERROR );
 }
 
@@ -105,6 +101,7 @@ void CLogBox::AddError( LPCSTR text )
 //adds error message text
 void CLogBox::AddMessage( LPCSTR text )
 {
+  ASSERT( AfxIsValidString(text) );
   _AddLine( text, LOG_MSG_NORMAL );
 }
   
@@ -112,7 +109,7 @@ void CLogBox::AddMessage( LPCSTR text )
 
 
 BEGIN_MESSAGE_MAP(CLogBox, CListBox)
-	//{{AFX_MSG_MAP(CLogBox)
+	//{{AFX_MSG_MAP(CLogBox)  
 		// NOTE - the ClassWizard will add and remove mapping macros here.
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
@@ -124,6 +121,7 @@ const int c_vertical_margin = 1; //vertical item box margin
 const int c_left_margin = 2; //left item box margin
 
 
+//this is standard windows callback for ownerdraw item size determination
 void CLogBox::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct) 
 {
   ASSERT(lpMeasureItemStruct->CtlType == ODT_LISTBOX);  
@@ -140,6 +138,7 @@ void CLogBox::MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct)
   lpMeasureItemStruct->itemHeight = sz.cy + 2*c_vertical_margin; 
 }
 
+//this is standard windows callback for ownerdraw item drawing
 void CLogBox::DrawItem(LPDRAWITEMSTRUCT lp_draw) 
 {
   ASSERT(lp_draw->CtlType == ODT_LISTBOX);
@@ -155,7 +154,6 @@ void CLogBox::DrawItem(LPDRAWITEMSTRUCT lp_draw)
 
   int msg_type = GetItemData( lp_draw->itemID );
   ASSERT( msg_type== LOG_MSG_NORMAL || msg_type == LOG_MSG_ERROR ); 
-  
 
   CDC dc;
   dc.Attach(lp_draw->hDC);
@@ -168,6 +166,11 @@ void CLogBox::DrawItem(LPDRAWITEMSTRUCT lp_draw)
   //setup colors    
   COLORREF bkg_color  = ( msg_type == LOG_MSG_ERROR ) ? m_err_bkg_color : m_msg_bkg_color;
   COLORREF text_color = ( msg_type == LOG_MSG_ERROR ) ? m_err_text_color : m_msg_text_color;
+
+  /////////
+  if (!msg_type) bkg_color = 0;
+
+  ////////
 
   dc.SetBkColor( bkg_color );
   dc.SetTextColor( text_color );

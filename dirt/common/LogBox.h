@@ -21,6 +21,15 @@
 /////////////////////////////////////////////////////////////////////////////
 // CLogBox window
 
+
+///////////////////////////////////
+//Types of messages (values must be > 0! ) 
+#define LOG_MSG_NORMAL 1
+#define LOG_MSG_ERROR  2
+
+
+
+
 class CLogBox : protected CListBox
 {
 // Construction
@@ -35,8 +44,13 @@ public:
   //Detaches CLogBox object from a window
   HWND Detach();
 
+
+  //This functions are now thread safe, i.e. you cann call
+  //them from any thread
   void AddError( LPCSTR text ); //adds error message text
   void AddMessage( LPCSTR text ); //adds normal message text
+
+
   int GetCount() { return CListBox::GetCount(); }
 
   void SetErrBkgColor ( COLORREF color ) { m_err_bkg_color = color; }
@@ -52,7 +66,7 @@ public:
   COLORREF GetMsgTextColor() const { return m_msg_text_color; }
   COLORREF GetFocusFrameColor() const { return m_focus_frame_color; }
   int      GetMaxMessageCount() const { return m_max_message_count; }
- 
+
 protected:
   COLORREF m_err_bkg_color;
   COLORREF m_err_text_color;
@@ -63,7 +77,8 @@ protected:
   int m_max_message_count;
 
   void _AddLine( LPCSTR text, int msg_type );//Adds line 'text' and sets up msg_type.
-         //Removes excess lines in the beginnig of the log list.
+                             //Removes excess lines in the beginnig of the log list.
+
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -71,6 +86,7 @@ protected:
 	public:
 	virtual void MeasureItem(LPMEASUREITEMSTRUCT lpMeasureItemStruct);
 	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+  afx_msg LRESULT OnUserAddLogMessage(WPARAM wParam, LPARAM lParam);    
 	//}}AFX_VIRTUAL
 
 // Implementation

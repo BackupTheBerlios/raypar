@@ -1,17 +1,22 @@
-//****************************************
+//*********************************************************
 //** SERVER.cpp **
 // Created By: KIRILL
 // On :10/27/2003 01:50:43
 // Comments: Defines the class behaviors for the application.
 //
-//***********************************
+//*********************************************************
 // REVISION by KIRILL, on 11/2/2003 01:01:39
 // Comments: I've added the description of ServerLogMessage
 //           Look at msg.h for details
-//***********************************
+//*********************************************************
+// REVISION by KIRILL, on 1/17/2004 04:55:31
+// Comments: OnUserAddLogMessage added and ServerLogMessage 
+//    modified in order to support multithreading
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
-//***********************************
+//*********************************************************
 
 
 #include "stdafx.h"
@@ -25,6 +30,8 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+CMainFrame* p_mainFrame = 0; //this is used for logs
 
 /////////////////////////////////////////////////////////////////////////////
 // CSERVERApp
@@ -86,6 +93,7 @@ BOOL CSERVERApp::InitInstance()
 
 	CMainFrame* pFrame = new CMainFrame;
 	m_pMainWnd = pFrame;
+  p_mainFrame = pFrame;
 
 	// create and load the frame with its resources
 
@@ -167,18 +175,19 @@ void CSERVERApp::OnAppAbout()
 // CSERVERApp message handlers
 
 
-void ServerLogMessage( LPCSTR text, MessageType type )
+void ServerLogMessage( LPCSTR text, MessageType msg_type )
 {  
-  CWnd* p_wnd = AfxGetMainWnd();
-  CMainFrame* p_frm = (CMainFrame*) p_wnd; //Main window is CClientDlg
+  ASSERT( AfxIsValidString(text) );
+  ASSERT( msg_type== LOG_MSG_NORMAL || msg_type == LOG_MSG_ERROR ); 
 
-  {
-    CCriticalSectionLock msg_lock;    
+//  int slen = strlen(text); 
+//  char* msg_copy = new char[slen+1]; //this memory must be freed by the message receiver
+//  strncpy(msg_copy, text, slen+1); //carefully copy text
+//  msg_copy[slen+1]=0;
 
-    switch ( type ){
-      case msgNORMAL: p_frm->m_log_box.AddMessage( text ); break;
-      case msgERROR : p_frm->m_log_box.AddError( text ); break;
-      default: ASSERT( 0 ); //Unknown MessageType!
-    }    
-  }
+  CWinApp* theApp = AfxGetApp(); //theApp is the main thread of the application
+  
+  int ret = ::SendMessage( theApp->m_pMainWnd->m_hWnd, WM_USER_ADD_LOG_MSG
+                 , MAKEWPARAM( USER_ADD_LOG_MSG_CODE, msg_type )
+                   , (LPARAM) text );
 }

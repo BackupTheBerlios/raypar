@@ -41,6 +41,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CLogWnd message handlers
 
+
 void CLogWnd::OnSize(UINT nType, int cx, int cy) 
 {
 	CDialog::OnSize(nType, cx, cy);
@@ -66,3 +67,4 @@ void CLogWnd::OnSysCommand( UINT nID, LPARAM lParam )
   else
     CDialog::OnSysCommand(nID, lParam);
 }
+

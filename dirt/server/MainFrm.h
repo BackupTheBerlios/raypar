@@ -1,13 +1,19 @@
-//****************************************
+//*********************************************************
 //** MainFrm.h **
 // Created By: KIRILL
 // On :10/27/2003 01:48:23
 // Comments: interface of the CMainFrame class
 //
-//***********************************
+//*********************************************************
+// REVISION by KIRILL, on 1/17/2004 05:20:28
+// Comments: OnUserAddLogMessage was added in order to ssupport 
+// multithreaded logging.
+// Be carefull: we use (WM_USER+1) message
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
-//***********************************
+//*********************************************************
 
 
 #if !defined(AFX_MAINFRM_H__B8910706_2A05_45E7_A593_113FBD547D75__INCLUDED_)
@@ -20,6 +26,13 @@
 #include "ChildView.h"
 #include "LogWnd.h"
 #include "COMMON/LogBox.h"
+#include "ServerThread.h"
+
+//We use this windows message and user code  in order to send 
+//information to the main thread. 
+#define WM_USER_ADD_LOG_MSG  ( WM_USER+1 )
+#define USER_ADD_LOG_MSG_CODE  0x23fb
+
 
 class CMainFrame : public CFrameWnd
 {
@@ -31,6 +44,8 @@ protected:
 
 // Attributes
 public:
+  CLogBox     m_log_box;
+  CServerControl m_srv_ctrl;
 
 // Operations
 public:
@@ -50,8 +65,6 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
-  CLogBox     m_log_box;
-
 protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
@@ -60,6 +73,9 @@ protected:  // control bar embedded members
 
 // Generated message map functions
 protected:
+  //this is used to handle WM_USER_ADD_LOG_MESSAGE which can be sent 
+  //by ServerLogMessage(.)
+	LRESULT OnUserAddLogMessage(WPARAM wParam, LPARAM lParam);
 	//{{AFX_MSG(CMainFrame)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
 	afx_msg void OnSetFocus(CWnd *pOldWnd);

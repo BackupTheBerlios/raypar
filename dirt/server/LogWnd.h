@@ -16,6 +16,8 @@ class CLogWnd : public CDialog
 public:
 	CLogWnd(CWnd* pParent = NULL);   // standard constructor
 
+  HWND GetLogBoxHWND(void) const;
+
 // Dialog Data
 	//{{AFX_DATA(CLogWnd)
 	enum { IDD = IDD_DIALOG_LOG };
@@ -25,7 +27,7 @@ public:
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CLogWnd)
-	public:
+	public:	
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	//}}AFX_VIRTUAL
