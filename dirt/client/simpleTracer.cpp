@@ -143,8 +143,8 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
     //this normalPos is used in the following loop!!
     //do not change it!
     reflected.getOrigin( normalPos );
-    normal.setOrigin( normalPos );
-    //    Message("%.2f %.2f", normalPos.x, normalPos.z);
+    //normal.setOrigin( normalPos);
+    //Message("%.2f %.2f", normalPos.x, normalPos.z);
     
     //normal direction = reflected direction - falling direction
     //we need to normalize the direction vectors to get correct normal direction
@@ -157,12 +157,15 @@ void SimpleTracer::strace( const Medium &curMed, const Ray &ray,
     normalDir = reflectedDir - fallingDir;
     normalDir.Normalize();
     normal.setDirection( normalDir);
+    normal.setOrigin( normalPos + VECTOR_EQUAL_EPS*normalDir);
     
     //compute lights even if we are inside
     CVector lightColor;
     processLights( curMed, scene, normal, lightColor, smoothness );
     resultColor += lightColor*reflectionCoefficient;
     
+    normal.setOrigin( normalPos);
+
     if(depth > 0)
     {
       CVector color(0,0,0), newOrigin;
