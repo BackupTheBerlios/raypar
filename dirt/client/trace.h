@@ -9,6 +9,10 @@
 // Comments: Added checking of previous includes of this file. 
 // Multiple includes do not cause "type redefined" errors anymore
 //*********************************************************
+// REVISION by Tonic, on 01/15/2004
+// Comments: Changed interface to get parameters as references
+// instead of pointers
+//*********************************************************
 
 #if !defined(CLIENT_TRACE_H_INCLUDED)
 #define CLIENT_TRACE_H_INCLUDED
@@ -22,7 +26,7 @@ class Tracer
 public:
 	//pure virtual function, needs to be redefined in all descendants.
 	//the last argument is the pointer to object, in which the result is written
-	virtual void trace(Medium *curMed, Ray *ray, Environment *scene, double weight, CVector *resultColor)=0;
+	virtual void trace( Medium &curMed,  Ray &ray,  Environment &scene, double weight, CVector &resultColor)=0;
 };
 
 #endif //CLIENT_TRACE_H_INCLUDED

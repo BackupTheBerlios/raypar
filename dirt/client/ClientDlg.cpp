@@ -230,7 +230,7 @@ void CClientDlg::OnButtonTest()
 	SimpleTracer	testedTracer;
 
 	CVector			sphereCenter(0,0,5);
-	Solid			* solidObject = new CSphere(&sphereCenter, 1);
+	Solid			* solidObject = new CSphere(sphereCenter, 1);
 	Light			* lightSource = new Light( 1.0, 1.0, 1.0, 500, 500 ,500);
 	CVector			planePoint;
 	CVector			origin(0,0,0);
@@ -253,8 +253,8 @@ void CClientDlg::OnButtonTest()
 			planePoint.x = ((double) i)/imgWidth/2 - 1.0;  
 			planePoint.y = ((double) j)/imgHeight/2 - 1.0;
 
-			Ray ray( &origin, &planePoint );
-			tracer->trace( &medium, &ray, &scene, 1, &color);
+			Ray ray( origin, planePoint );
+			tracer->trace( medium, ray, scene, 1, color);
 			
       //It's time to create global EPS :)))
 			#define EPS (1E-7)      

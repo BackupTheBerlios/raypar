@@ -9,6 +9,12 @@
 // Comments: Added checking of previous includes of this file. 
 // Multiple includes do not cause "type redefined" errors anymore
 //*********************************************************
+// REVISION by Tonic, on 01/15/2004
+// Comments: Added SimpleTracer::VisibleColor to combine light colr with
+// material color
+// Changed interfaces to get parameters as references
+// instead of pointers
+//*********************************************************
 
 #if !defined(CLIENT_SIMPLETRACER_H_INCLUDED)
 #define CLIENT_SIMPLETRACER_H_INCLUDED
@@ -19,7 +25,11 @@
 class SimpleTracer : public Tracer
 {
 public:
-	virtual void trace(Medium *curMed, Ray *ray, Environment *scene, double weight, CVector *resultColor);
+	virtual void trace( Medium &curMed,  Ray &ray,  Environment &scene, double weight, CVector &resultColor);
+
+	//determines what visible color will the combination of material color and falling light color
+	//will produce
+	static void VisibleColor(  CVector &LightColor,  CVector &MaterialColor, CVector &ResultColor );
 
 	SimpleTracer(void)
 	{
@@ -28,7 +38,7 @@ public:
 	};
 private:
 	//added maximum recursion depth to the parameter list
-	void strace(Medium *curMed, Ray *ray, Environment *scene, double weight,  CVector *resultColor, int depth);
+	void strace( Medium &curMed,  Ray &ray,  Environment &scene, double weight, CVector &resultColor, int depth);
 	
 	//maximum recursion depth
 	int defaultDepth;

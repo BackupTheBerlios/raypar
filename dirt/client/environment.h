@@ -31,6 +31,12 @@
 // Comments: Added checking of previous includes of this file. 
 // Multiple includes do not cause "type redefined" errors anymore
 //*********************************************************
+// REVISION by Tonic, on 01/15/2004
+// Comments: Added Environment::AmbientLight, refactoring of class members names
+// Changed interfaces to get parameters as references
+// instead of pointers
+//*********************************************************
+
 
 #if !defined(CLIENT_ENVIRONMENT_H_INCLUDED)
 #define CLIENT_ENVIRONMENT_H_INCLUDED
@@ -55,30 +61,30 @@ class	Ray
 {
 private:
 	//this id esentially a point
-	CVector	origin;
+	CVector	m_origin;
 	// direction must be normalized
-	CVector	direction;
+	CVector	m_direction;
 	
 public:
 	
-	Ray ( CVector *origin, CVector *direction );
+	Ray (  CVector &origin,  CVector &direction );
 	Ray(void)
 	{	
-		origin.x = 0;
-		origin.y = 0;
-		origin.z = 0;
-		direction.x = 1;
-		direction.y= 1;
-		direction.z= 1;
+		m_origin.x = 0;
+		m_origin.y = 0;
+		m_origin.z = 0;
+		m_direction.x = 1;
+		m_direction.y= 1;
+		m_direction.z= 1;
 	}
 
 	//in getters one must provide a pointer to the place
 	//where a copy of a private member will be written
-	void getOrigin(CVector *origin);
-	void getDirection(CVector *direction);
+	void getOrigin(CVector &origin) ;
+	void getDirection(CVector &direction) ;
 	
-	void setOrigin(CVector *origin);
-	void setDirection(CVector *direction);
+	void setOrigin( CVector &origin);
+	void setDirection( CVector &direction);
 	
 };
 
@@ -87,35 +93,44 @@ public:
 class	Solid
 {
 public:
-	virtual int Intersect( Ray *ray, double *distance)=0;
-	virtual void Reflect(Ray *falling, Ray *reflected)=0;
+
+	virtual int Intersect(  Ray &ray, double &distance)=0;
+	virtual void Reflect( Ray &falling, Ray &reflected)=0;
+	
+	//returns the color of the point, in which given ray
+	//intersects the solid
+	//by default (in this class) always returns white
+	//can be redefined returning to check whether there is actually
+	//an intersection, to support colored and textured objects
+	virtual void GetColor( Ray &falling, CVector &color);
 }; 
 
 class	Light			// model of an abstract light source
 {
+private:
 	//RGB brightness, each component in [0;1]
-	CVector color;
-	CVector position;	
+	CVector m_color;
+	CVector m_position;	
 public:
 	
 	Light(); //default constructor initialized to white
 	Light(double r, double g, double b, double x, double y, double z);
-	Light(CVector *color, CVector *position);
+	Light( CVector &color,  CVector &position);
 
-	void getPosition(CVector *position);
-	void setPosition(CVector *position);
-	void getColor(CVector *color);
-	void setColor(CVector *color);
+	void getPosition(CVector &position) ;
+	void setPosition( CVector &position);
+	void getColor(CVector &color) ;
+	void setColor( CVector &color);
 };
 
 class	Environment
 {
 private:
-	Light	*lights[MAX_LIGHTS];
-	Solid	*solids[MAX_SOLIDS];
-	int		lightsCount;
-	int		solidsCount;
-	
+	Light	*m_lights[MAX_LIGHTS];
+	Solid	*m_solids[MAX_SOLIDS];
+	int		m_lightsCount;
+	int		m_solidsCount;
+	CVector	m_AmbientColor;
 	
 public:
 	
@@ -124,14 +139,16 @@ public:
 	
 	void	Add ( Light *light );
 	void	Add ( Solid *solid );
+	void	SetAmbientColor(  CVector &AmbientColor );
+	void	GetAmbientColor( CVector &AmbientColor ) ;
 
-	int		getLightsCount(void)
-	{ return lightsCount; };
+	int		getLightsCount(void) 
+	{ return m_lightsCount; };
 
-	void getLightByNumber(int number, Light *light);
+	void getLightByNumber(int number, Light &light) ;
 	
 	//returns first intersected object and distance from ray origin point
-	Solid *	Intersect ( Ray *ray, double *t );
+	Solid *	Intersect (  Ray &ray, double &t ) ;
 };
 
 #endif // CLIENT_ENVIRONMENT_H_INCLUDED

@@ -10,6 +10,11 @@
 //  with ASSERT(.) corrected
 //
 //*********************************************************
+// REVISION by Tonic, on 1/15/2004
+// Comments: Changed reflect -> Reflect
+// Changed interfaces to get parameters as references
+// instead of pointers
+//*********************************************************
 // REVISION by VADER, on 1/15/2004
 // Comments: Names changed according to standart naming conventions
 //
@@ -34,23 +39,22 @@ CSphere::CSphere()
 	//radius2 = 1;
 }
 
-CSphere::CSphere(CVector *position, double radius)
+CSphere::CSphere( CVector &position, double radius)
 {
-	ASSERT( position != NULL);
 	ASSERT( radius > 0);
 		
 	// = is overridden operator for CVector, makes components the same
-	m_position = *position;
+
+	m_position = position;
 	m_radius = radius;
 	//radius2=radius*radius;
 };
 
-void CSphere::SetPosition(CVector *position)
+void CSphere::SetPosition( CVector &position)
 {
-	ASSERT( position != NULL);
-	
+
 	// = is overridden operator for CVector, makes components the same
-	m_position = *position;
+	m_position = position;
 };
 
 void CSphere::SetRadius(double radius)
@@ -61,12 +65,12 @@ void CSphere::SetRadius(double radius)
 	//radius2 = radius*radius;
 };
 
-int CSphere::Intersect(Ray *ray, double *distance)
+int CSphere::Intersect(  Ray &ray, double &distance) 
 {
 	CVector origin, direction;
 	
-	ray->getOrigin(&origin); 
-	ray->getDirection(&direction);
+	ray.getOrigin(origin); 
+	ray.getDirection(direction);
 
 	CVector l = m_position - origin; //vector from ray origin to center of Sphere
 	double l2 = l * l;
@@ -86,32 +90,34 @@ int CSphere::Intersect(Ray *ray, double *distance)
 	}
 	else
 	{
-		*distance = proection - sqrt(condition);
+		distance = proection - sqrt(condition);
 		return 1;
 	}
 };
 
-void CSphere::Reflect(Ray *falling, Ray *reflected)
+void CSphere::Reflect( Ray &falling, Ray &reflected)
 {
 	double distance;
 	CVector fallingOrigin,fallingDirection;
 	CVector reflectedOrigin,reflectedDirection;
 
-  
-    int ret = Intersect(falling, &distance); //gets the distance
+  // 	ASSERT (Intersect(falling, &distance)); This does NOTHING in RELEASE version.
+  //                                          Intersect() is NOT called.
+
+  int ret = Intersect(falling, distance); //gets the distance
 	ASSERT (ret); 
 	
-	falling->getOrigin(&fallingOrigin);
-	falling->getDirection(&fallingDirection);
+	falling.getOrigin(fallingOrigin);
+	falling.getDirection(fallingDirection);
 
 	reflectedOrigin = fallingOrigin + distance * fallingDirection;
-	reflected->setOrigin(&reflectedOrigin);
+	reflected.setOrigin(reflectedOrigin);
 
 	CVector normal = (reflectedOrigin - m_position)/m_radius;
 
 	//newDirection = oldDirection + delta( in the derection of normal to the surface)
 	reflectedDirection = fallingDirection - 2*(normal * fallingDirection)*normal;
-	reflected->setDirection(&reflectedDirection);
+	reflected.setDirection(reflectedDirection);
 };
 
 
@@ -127,11 +133,9 @@ CPlane::CPlane()
 };
 
 
-CPlane::CPlane(CVector *n, double D)
+CPlane::CPlane( CVector &n, double D)
 {
-	ASSERT (n != NULL);
-
-	m_n = *n;
+	m_n = n;
 	m_n.Normalize();
 	m_D = D;	
 };
@@ -147,10 +151,9 @@ CPlane::CPlane(double a, double b, double c, double d)
 	m_D = d/length;
 };
 	
-void CPlane::SetPosition(CVector *n, double D)
+void CPlane::SetPosition(CVector &n, double D)
 {
-	ASSERT (n != NULL);
-	m_n = *n;
+	m_n = n;
 	m_D = D;
 };
 
@@ -165,12 +168,12 @@ void CPlane::SetPosition(double a, double b, double c, double d)
 	m_D = d/length;
 };
 
-int CPlane::Intersects(Ray *ray, double *distance)
+int CPlane::Intersect( Ray &ray, double &distance)
 {
 	CVector origin, direction;
 	
-	ray->getOrigin(&origin);
-	ray->getDirection(&direction);
+	ray.getOrigin(origin);
+	ray.getDirection(direction);
 
 	double scalar = m_n * direction;
 	double t;
@@ -191,29 +194,30 @@ int CPlane::Intersects(Ray *ray, double *distance)
 		}
 		else
 		{
-			*distance = t;
+			distance = t;
 			return 1;
 		}
 	}
 };
 
-void CPlane::Reflect(Ray *falling, Ray *reflected)
+void CPlane::Reflect(Ray &falling, Ray &reflected)
 {
 	double distance;
 	CVector fallingOrigin,fallingDirection;
 	CVector reflectedOrigin,reflectedDirection;
 
-	int ret = Intersect(falling, &distance); //gets the distance
+	int ret = Intersect(falling, distance); //gets the distance
 	ASSERT (ret); 
   
-    falling->getOrigin(&fallingOrigin);
-	falling->getDirection(&fallingDirection);
+
+  falling.getOrigin(fallingOrigin);
+	falling.getDirection(fallingDirection);
 
 	reflectedOrigin = fallingOrigin + distance * fallingDirection;
-	reflected->setOrigin(&reflectedOrigin);
+	reflected.setOrigin(reflectedOrigin);
 
 	//newDirection = oldDirection + delta( in the derection of normal to the surface)
 	reflectedDirection = fallingDirection - 2 * (m_n * fallingDirection) * m_n;
-	reflected->setDirection(&reflectedDirection);
+	reflected.setDirection(reflectedDirection);
 };
 

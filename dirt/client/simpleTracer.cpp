@@ -8,21 +8,39 @@
 // REVISION by Tonic, on 1/15/2004
 // Comments: bugfix in SipleTracer::strace
 //*********************************************************
+// REVISION by Tonic, on 01/14/2004
+// Comments: Added SimpleTracer::VisibleColor to combine light colr with
+// material color
+// Changed interfaces to get parameters as references
+// instead of pointers
+//*********************************************************
 
 #include "stdafx.h"
 #include "simpleTracer.h"
 
-void SimpleTracer::trace(Medium *curMed, Ray *ray, Environment *scene, double weight, CVector *resultColor)
-{
-	ASSERT(curMed != NULL);
-	ASSERT(ray != NULL);
-	ASSERT(scene != NULL);
-	ASSERT(resultColor != NULL);
+void SimpleTracer::VisibleColor( CVector &LightColor,  CVector &MaterialColor, CVector &resultColor)
+	{
+	//allow color components to be graeter than 1
+	//normalization occures after this function
+	ASSERT( 0 <= LightColor.x);
+	ASSERT( 0 <= LightColor.y);
+	ASSERT( 0 <= LightColor.z);
+	ASSERT( 0 <= MaterialColor.x && MaterialColor.x <= 1.0);
+	ASSERT( 0 <= MaterialColor.y && MaterialColor.y <= 1.0);
+	ASSERT( 0 <= MaterialColor.z && MaterialColor.z <= 1.0);
 	
+	//the result color is just componentwise product of LightColor and MaterialColor
+	resultColor.x = LightColor.x*MaterialColor.x;
+	resultColor.y = LightColor.y*MaterialColor.y;
+	resultColor.z = LightColor.z*MaterialColor.z;
+	}
+
+void SimpleTracer::trace( Medium &curMed,  Ray &ray,  Environment &scene, double weight, CVector &resultColor)
+{
 	strace(curMed, ray, scene, weight, resultColor, defaultDepth);
 }
 
-void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double weight, CVector *resultColor, int depth)
+void SimpleTracer::strace( Medium &curMed,  Ray &ray,  Environment &scene, double weight, CVector &resultColor, int depth)
 {
 	//the function is called only by our class member, 
 	//so there is no need to check pointers once again
@@ -31,12 +49,12 @@ void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double w
 	double	  t = INFINITY;
 	CVector	  Color;
 	
-	resultColor->x = 0;
-	resultColor->y = 0;
-	resultColor->z = 0;
+	resultColor.x = 0;
+	resultColor.y = 0;
+	resultColor.z = 0;
 	
 	
-	nearestObject = scene->Intersect(ray, &t);
+	nearestObject = scene.Intersect(ray, t);
 	if ( nearestObject != NULL )	// ray hit some object
 	{
 		//now we
@@ -47,35 +65,34 @@ void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double w
 		Ray reflectedRay, normal;
 		CVector fallingDir, reflectedDir, normalDir, normalPos;
 		//first compute the reflected ray direction
-		nearestObject->Reflect( ray, &reflectedRay );
-		
+		nearestObject->Reflect( ray, reflectedRay );
 		
 		//origin of normal is that of reflected ray
 		//this normalPos is used in the following loop!!
 		//do not change it!
-		reflectedRay.getOrigin( &normalPos );
-		normal.setOrigin( &normalPos );
+		reflectedRay.getOrigin( normalPos );
+		normal.setOrigin( normalPos );
 		
 		//normal direction = reflected direction - falling direction
 		//we need to normalize the direction vectors to get correct normal direction
-		ray->getDirection( &fallingDir );
-		reflectedRay.getDirection( &reflectedDir );
+		ray.getDirection( fallingDir );
+		reflectedRay.getDirection( reflectedDir );
 		fallingDir.Normalize();
 		reflectedDir.Normalize();
 		//this normalDir is used in the following loop!!
 		//do not change it!
 		normalDir = reflectedDir - fallingDir;
 		normalDir.Normalize();
-		normal.setDirection( &normalDir);
+		normal.setDirection( normalDir);
 		
 		//for all light sources
-		for( int i = 0; i < scene->getLightsCount() ; i++)
+		for( int i = 0; i < scene.getLightsCount() ; i++)
 		{
 			Light light;
 			CVector lightPosition, lightDirection;
 			
-			scene->getLightByNumber( i, &light );
-			light.getPosition( &lightPosition );
+			scene.getLightByNumber( i, light );
+			light.getPosition( lightPosition );
 			lightDirection = lightPosition - normalPos;
 						
 			//the light is on the proper side of the tangent plane
@@ -84,21 +101,20 @@ void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double w
 				double dist = lightDirection.Length();
 				
 				//Tonic: bugfix : lightpos -> normalpos
-				Ray		lightRay( &normalPos, &lightDirection );
+				Ray		lightRay( normalPos, lightDirection );
 				//there is no object between us and the light source
 				//we can compute this source's contribution
-				if(scene->Intersect(&lightRay, &dist) == NULL)
+				if(scene.Intersect(lightRay, dist) == NULL)
 				{
 					CVector lightColor;
 					lightDirection.Normalize();
-					light.getColor( &lightColor );
+					light.getColor( lightColor );
 					lightColor /= (shadeA + shadeB*dist + shadeC*dist*dist);
 					lightColor *= shadeRoD*(normalDir*lightDirection);
-					*resultColor += lightColor;
-				}
-				
-			}
-		}
+					resultColor += lightColor;
+				};
+			};
+		};
 
 		//now we trace the reflected ray if the recursion depth
 		//limit has not been exceeded
@@ -106,26 +122,34 @@ void SimpleTracer::strace(Medium *curMed, Ray *ray, Environment *scene, double w
 		{
 			CVector reflectedLight(0,0,0);
 
-			strace(curMed, &reflectedRay, scene, weight, &reflectedLight, depth - 1);
-			*resultColor += reflectedLight;
+			strace(curMed, reflectedRay, scene, weight, reflectedLight, depth - 1);
+			resultColor += reflectedLight;
 		}
+	
+		//allow for ambient light
+		CVector AmbientColor;
+		scene.GetAmbientColor( AmbientColor );
+		resultColor += AmbientColor;
+
+		//allow for material color
+		CVector materialColor;
+		nearestObject->GetColor( ray, materialColor );
+		VisibleColor( resultColor, materialColor, resultColor );
 
 		//we can have some components of the color greater than 1
 		//If this has happened, we normalize the color making
 		//the maximum component equal to 1
 
-		if( (resultColor->x > 1) || (resultColor->y > 1) || (resultColor->z > 1))
+		if( (resultColor.x > 1) || (resultColor.y > 1) || (resultColor.z > 1))
 		{
-			double maxComp = (resultColor->x > resultColor->y) ? resultColor->x : resultColor->y;
-			maxComp = (maxComp > resultColor->z) ? maxComp : resultColor->z;
-			*resultColor /= maxComp;
+			double maxComp = (resultColor.x > resultColor.y) ? resultColor.x : resultColor.y;
+			maxComp = (maxComp > resultColor.z) ? maxComp : resultColor.z;
+			resultColor /= maxComp;
 		}
 
 		//finally compute the attenuation due to distance
 
-		*resultColor *= exp ( -t * curMed->Betta ); 
+		resultColor *= exp ( -t * curMed.Betta ); 
 	};
 
-	//we do not take ambient light into account
-	//it is to be added later
 };
