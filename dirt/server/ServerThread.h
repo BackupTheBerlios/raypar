@@ -54,9 +54,8 @@ public:
   // scene_uid - uid of current scene
   // lines_count - image height
   // line_width  - image width
-  // search_step - this number is used in GetNextLine2Render algorithm. 
-                  //must be prime number greater than lines_count
-  void Init( int scene_uid, int lines_count, int line_width, int search_step = 90247 );
+
+  void Init( int scene_uid, int lines_count, int line_width );
 
   //Frees the allocated memory and sets parameters to zero
   void Free();
@@ -87,7 +86,6 @@ public:
   void* CLinesController::BuildBitmapBits(void) const;
 
 protected:
-  int  m_search_step;   //search step - is used in GetNextLine2Render algorithm
   int  m_line_width;    //image width
   int  m_lines_count;   //number of lines (image height)
   bool m_bCompleted;    //was the image completed?

@@ -316,7 +316,7 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
   delete[] bitmap_lines;
 
   int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
-  if ( count > 5 ){
+  if ( count > 1 ){
     m_srv_ctrl.StopServer();
     m_bServerStarted = false;	    
   }else{

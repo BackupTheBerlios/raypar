@@ -98,7 +98,6 @@ void CLinesController::CLineItem::Reset(void)
 CLinesController::CLinesController()
 : m_line_width(0)
 , m_lines_count(0)
-, m_search_step(0)
 , m_bCompleted(0)
 , m_lines_info(0)
 , m_scene_uid(0)
@@ -113,12 +112,10 @@ CLinesController::~CLinesController()
 
 //[Re]Initializes th object
 // search step is used in GetNeaxtLine2Render algorithm
-void CLinesController::Init( int scene_uid, int line_width, int lines_count //image height
-                            , int search_step /*= 90247*/ )
+void CLinesController::Init( int scene_uid, int line_width, int lines_count /*image height*/ )
 {
   ASSERT( lines_count > 0 );
   ASSERT( line_width > 0 );
-  ASSERT( search_step > lines_count );
   ASSERT( scene_uid > 0); //zero or negative means that the scene 
                           //wasn't loaded
                           
@@ -126,8 +123,7 @@ void CLinesController::Init( int scene_uid, int line_width, int lines_count //im
 
   m_scene_uid = scene_uid;
   m_lines_count = lines_count;
-  m_line_width  = line_width;
-  m_search_step = search_step;
+  m_line_width  = line_width;  
   m_bCompleted  = false;  
   m_rendered_count = 0;
   
@@ -144,8 +140,7 @@ void CLinesController::Free()
   delete[] m_lines_info;
   m_lines_info = 0;
   m_lines_count = 0;
-  m_line_width = 0;
-  m_search_step = 0;
+  m_line_width = 0;  
   m_bCompleted = 0;
   m_scene_uid = 0;
   m_rendered_count = 0;
@@ -159,28 +154,23 @@ int  CLinesController::GetLine2Render(void)
     return -1; //image finished
 
   ASSERT( m_lines_info );
-  ASSERT( m_lines_count < m_search_step);
-
-  int start = rand() % m_lines_count;
-  int line_num;
-
-  //First we are trying to find nongiven line itereating with step m_search_step
+  
+  //First we are trying to find nongiven line 
   
   bool bFound=false, bEverythingGiven = false;
-  int index = start;
+  int line_num= -1;
 
-  for ( int counter = 0; !bFound && counter < m_lines_count; counter++){
-    if (! m_lines_info[index].m_bGiven ){
-      m_lines_info[index].m_bGiven = true;
-      m_lines_info[index].m_timestamp_given = GetTickCount();
+  for ( int i = 0; line_num < 0 && i < m_lines_count; i++){
+    if (! m_lines_info[i].m_bGiven ){
+      m_lines_info[i].m_bGiven = true;
+      m_lines_info[i].m_timestamp_given = GetTickCount();
       bFound = true;
-      line_num = index;
-    }
-    index =  (index + m_search_step) % m_lines_count;
+      line_num = i;
+    }    
   }
 
-  if (bFound){
-    ASSERT( 0 <= line_num && line_num < m_lines_count );
+  if (line_num >=0 ){ //ungiven line found
+    ASSERT( line_num < m_lines_count );
     return line_num;
   }
 
@@ -191,7 +181,7 @@ int  CLinesController::GetLine2Render(void)
   DWORD min_timestamp_given = 0;
   line_num = -1;
 
-  for( int i=0; i<m_lines_count; i++ ){
+  for( i=0; i<m_lines_count; i++ ){
     CLineItem& li = m_lines_info[i];
     
     ASSERT( li.m_bGiven ); // We have alredy checked that 
