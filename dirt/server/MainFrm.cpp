@@ -23,11 +23,11 @@
 
 #include "MainFrm.h"
 
-#ifdef _DEBUG
+/*#ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
-#endif
+#endif*/
 
 ///////////////////////////////////////////////////////////
 // this gloabal variable is used tby lexer/parser
@@ -78,16 +78,15 @@ static UINT indicators[] =
 // CMainFrame construction/destruction
 
 CMainFrame::CMainFrame()
-: m_scene_builder( m_scene )
-, m_srv_ctrl()
-, m_settings(mainFrameSection, MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
+: m_settings(mainFrameSection, MAINFRAME_DEFAULT_LEFT, MAINFRAME_DEFAULT_TOP
                              , MAINFRAME_DEFAULT_WIDTH, MAINFRAME_DEFAULT_HEIGHT)
-{	
-  m_last_scene_uid = 1; //zero scene uid means that scene wasn't loaded
-  m_scene.SetSceneUID( 0 ); 
+{	  
   glb_scene_builder = &m_scene_builder;
 	m_settings.SetSection(mainFrameSection);
   m_bServerStarted = false;  
+  m_camera = 0;
+  m_scene = 0;
+  m_bSceneLoaded = false;
 }
 
 CMainFrame::~CMainFrame()
@@ -211,12 +210,11 @@ void CMainFrame::OnViewOptions()
 
 void CMainFrame::OnRun() 
 {
-  m_camera.SetWidth(  m_serverOptions.GetImageWidth() );
-  m_camera.SetHeight( m_serverOptions.GetImageHeight() );
-  m_camera.SetEyePoint(CVector(0,0,0));//temp KIRILL
+  m_current_scene_number = 0;
+  _FillUpCurrentScene(); 
 
   int ret = m_srv_ctrl.StartServer( this, m_serverOptions.GetServerPort(),
-                             &m_scene, &m_camera );
+                             m_scene, m_camera );
 
   if ( !ret ){
     m_bServerStarted = true;
@@ -229,6 +227,7 @@ void CMainFrame::OnRun()
 
 extern FILE *yyin; //located in ray_lex.l.cpp    
 extern int yyparse(void);
+extern void yyrestart( FILE *input_file );
 
 void CMainFrame::OnOpenScene() 
 {  
@@ -236,26 +235,30 @@ void CMainFrame::OnOpenScene()
   int ret = ofd.DoModal();
 
   if ( ret == IDOK ){
+    m_bSceneLoaded = false;
     m_scene_builder.Init(); //this will clean the scene
                //and set it uid to 0 - that means that the scene isn't loaded
     
     CString fname = ofd.GetPathName();
+    
     yyin = fopen( fname, "r");
     ASSERT( yyin );
+    yyrestart(yyin); 
+
     int ret = yyparse();
     if ( ret != 0 ){
+      m_bSceneLoaded = false;
       char err_buf[128];
-      sprintf(err_buf, "Wrong scene. Parsing stopped on line %d", 
+      sprintf(err_buf, "Wrong scene. Parser stopped on line %d", 
                         m_scene_builder.GetCurrentLineNumber() );
       ErrorMessageWithBox( err_buf );
-      m_scene.Empty();
+      m_scene_builder.Empty();
       m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "");      
-    }else{    
-      m_scene.SetSceneUID(GetNewSceneUID());
-      ASSERT( m_scene.IsValid() );
+    }else{
+      m_bSceneLoaded = true;
       m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Loaded");
+      Message( "'%s' parsed (%d lines)", (LPCSTR) fname, m_scene_builder.GetCurrentLineNumber() );
     }
-    Message( "'%s' parsed (%d lines)", (LPCSTR) fname, m_scene_builder.GetCurrentLineNumber() );
     fclose(yyin);
     yyin = 0;
   }else{
@@ -298,7 +301,7 @@ LRESULT CMainFrame::OnUserAddLogMessage(WPARAM wParam, LPARAM lParam)
       default: ASSERT(0); //unknown type!
     };
          
-    // delete (char*)lParam; //we have to clean the memory
+    delete [] (char*)lParam; //we have to clean the memory
     ret = 1; //this means that we've processed the message
   }
   return ret; 
@@ -315,8 +318,6 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
     //save result in BMP file if needed
   if(m_serverOptions.DoSaveFile())
   {
-    int number=1;  //!!!TEMPORARY
-    char tempbuf[20];
     HANDLE hf;                 // file handle 
     BITMAPINFOHEADER bmih;
     BITMAPFILEHEADER hdr;       // bitmap file-header
@@ -338,9 +339,9 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
     bmih.biClrImportant = 0;
     bmih.biClrUsed = 0;
 
-
-
-        // Create the .BMP file.
+    int number=m_current_scene_number;  
+    char tempbuf[20];
+    
     filename = m_serverOptions.GetFileName()+"rendered_"+itoa(number,tempbuf,10)+".bmp";
     hf = CreateFile(filename, 
                      GENERIC_READ | GENERIC_WRITE, 
@@ -394,13 +395,18 @@ LRESULT CMainFrame::OnServerFinishedScene(WPARAM wParam, LPARAM lParam)
 
   delete[] bitmap_lines;
 
+  ASSERT( m_camera );
+  delete m_camera;
+  m_camera = 0;
+
   int ret = m_wndStatusBar.SetPaneText(PROGRESS_INDICATOR_INDEX, "Finished");
-  if ( 1 ){
+  if ( m_current_scene_number == m_scene_builder.GetSceneCount()-1 ){
     m_srv_ctrl.StopServer();
-    m_bServerStarted = false;	    
+    m_bServerStarted = false;
   }else{
-    //temp    
-    m_srv_ctrl.SetNewScene(&m_scene, &m_camera);    
+    m_current_scene_number++; 
+    _FillUpCurrentScene();    
+    m_srv_ctrl.SetNewScene(m_scene, m_camera);    
   }
 
   m_wndView.Invalidate();  //we should repaint the window but we do it only
@@ -426,20 +432,23 @@ LRESULT CMainFrame::OnServerLineRendered(WPARAM wParam, LPARAM lParam)
 
 
 void CMainFrame::OnStop() 
-{  
+{ 
 	m_srv_ctrl.StopServer();
   m_bServerStarted = false;
+  m_camera = 0;
+  m_scene = 0;
+  m_current_scene_number = 0;
 }
 
 void CMainFrame::OnUpdateStop(CCmdUI* pCmdUI) 
 {
-	if ( !m_bServerStarted || m_scene.GetSceneUID() <= 0 )
+	if ( !m_bServerStarted )
     pCmdUI->Enable(FALSE);		
 }
 
 void CMainFrame::OnUpdateRun(CCmdUI* pCmdUI) 
 {
-	if ( m_bServerStarted || m_scene.GetSceneUID() <= 0 ) 
+	if ( m_bServerStarted || !m_bSceneLoaded ) 
     pCmdUI->Enable(FALSE);	
 }
 
@@ -453,4 +462,24 @@ void CMainFrame::OnUpdateViewOptions(CCmdUI* pCmdUI)
 {
 	if ( m_bServerStarted ) 
     pCmdUI->Enable(FALSE);	
+}
+
+void CMainFrame::_FillUpCurrentScene(void)
+{
+  CCamera* p_camera; 
+  CEnvironment* p_scene; 
+
+  m_scene_builder.GetSceneAndCamera(m_current_scene_number,
+          &p_scene, &p_camera);
+
+  ASSERT(p_scene);
+  m_scene = p_scene;
+
+  ASSERT(p_camera);
+  ASSERT(m_camera == 0);
+  m_camera = new CCamera(p_camera->GetEyePoint(), p_camera->GetViewDir(),
+    p_camera->GetTopDir(), m_serverOptions.GetImageWidth(), m_serverOptions.GetImageHeight()); 
+
+  ASSERT( m_scene->IsValid() );
+  ASSERT( m_camera->IsValid() );
 }

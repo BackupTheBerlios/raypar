@@ -97,7 +97,7 @@ int ClientInfoExchange(int rendereded_line_number, COLORREF* line_data
   if (ret)  
     return ret; //error occured, terminating connection.
 
-  camera.Init( camera_info.m_camera_pos   //?K? Needs correction?
+  camera.Init( camera_info.m_camera_pos 
               , camera_info.m_camera_z_axis 
               , camera_info.m_camera_y_axis
               , image_lines_info.m_image_width
@@ -251,8 +251,6 @@ int DoGetSceneData(CArchive& arIn, CArchive& arOut, int session_id
   //if *p_scene_changed == TRUE than p_scene isn't read.
   CGetSceneData::A get_scene_A( &server_session_id, p_scene_changed, p_scene);
   ret = get_scene_A.read( arIn );
-  
-  ASSERT( !*p_scene_changed ); //TEMP!!! ?K?
 
   p_scene->SetSceneUID(scene_uid);
 
