@@ -150,10 +150,6 @@ SOURCE=.\StdAfx.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\common\utils.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\common\Vector.cpp
 # End Source File
 # End Group
@@ -215,10 +211,6 @@ SOURCE=.\StdAfx.h
 # Begin Source File
 
 SOURCE=.\trace.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\utils.h
 # End Source File
 # Begin Source File
 

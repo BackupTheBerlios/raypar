@@ -150,17 +150,7 @@ SOURCE=..\common\protocol.cpp
 # Begin Source File
 
 SOURCE=.\ray_lex.l.cpp
-
-!IF  "$(CFG)" == "SERVER - Win32 Release"
-
 # SUBTRACT CPP /YX /Yc /Yu
-
-!ELSEIF  "$(CFG)" == "SERVER - Win32 Debug"
-
-# SUBTRACT CPP /YX /Yc /Yu
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -220,10 +210,6 @@ SOURCE=.\SrvCmd.cpp
 
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\utils.cpp
 # End Source File
 # Begin Source File
 
@@ -304,10 +290,6 @@ SOURCE=.\ServerThread.h
 # Begin Source File
 
 SOURCE=.\StdAfx.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\common\utils.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
