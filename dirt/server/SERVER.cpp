@@ -185,9 +185,12 @@ void ServerLogMessage( LPCSTR text, MessageType msg_type )
 
   CWinApp* theApp = AfxGetApp(); //theApp is the main thread of the application
   
+  char* text_copy =  new char[strlen(text)+1]; //make a copy of the string 
+  strcpy(text_copy, text);       //and send it to mainframe, which will free the memory
+
   int ret = ::PostMessage( theApp->m_pMainWnd->m_hWnd, WM_USER_ADD_LOG_MSG
                  , MAKEWPARAM( USER_ADD_LOG_MSG_CODE, msg_type )
-                   , (LPARAM) text );
+                   , (LPARAM) text_copy );
 }
 
 void CSERVERApp::WinHelp(DWORD dwData, UINT nCmd) 
