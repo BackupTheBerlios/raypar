@@ -7,7 +7,7 @@
 #define IDS_ABOUTBOX                    101
 #define IDD_CLIENT_DIALOG               102
 #define IDP_SOCKETS_INIT_FAILED         103
-#define IDR_MAINFRAME                   128
+#define IDR_MAINFRAME                   128 
 #define IDC_LOG_LIST                    1001
 #define IDC_EDIT_SERVER_ADDR            1003
 #define IDC_EDIT_SERVER_PORT            1004
