@@ -57,7 +57,7 @@ public:
 
 //This function adds a line to the server log
 //Don't use it directly!
-//Use Message() and ErrorMessage() instead.
+//Use Message(), ErrorMessage() & so on instead. Check msg.h for details.
 void ServerLogMessage( LPCSTR text, MessageType type );
 
 /////////////////////////////////////////////////////////////////////////////

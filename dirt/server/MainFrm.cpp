@@ -36,6 +36,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CFrameWnd)
 	ON_COMMAND(ID_RUN, OnRun)
 	ON_COMMAND(ID_OPEN_SCENE, OnOpenScene)
 	ON_COMMAND(ID_OPEN_CAMERA, OnOpenCamera)
+	ON_WM_DESTROY()
 	//}}AFX_MSG_MAP
 	// Global help commands
 	ON_COMMAND(ID_HELP_FINDER, CFrameWnd::OnHelpFinder)
@@ -93,7 +94,15 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 		return -1;      // fail to create
 	}
 
+  if ( !m_log_wnd.Create(IDD_DIALOG_LOG, 0) ){
+		TRACE0("Failed to create log window\n");
+		return -1;      // fail to create
+  }
+
+  m_log_box.Attach( m_log_wnd.GetDlgItem( IDC_LOG_LIST )->m_hWnd );
 	  
+  m_log_wnd.ShowWindow( SW_NORMAL );
+
   //KIRILL: Dummy caption generator
   SetWindowText( "SERVER [FPS = 3] [ 4 clients ]" );
 
@@ -149,30 +158,45 @@ BOOL CMainFrame::OnCmdMsg(UINT nID, int nCode, void* pExtra, AFX_CMDHANDLERINFO*
 
 void CMainFrame::OnViewLogwindow() 
 {
-	// TODO: Add your command handler code here
-	
+	if ( !m_log_wnd.IsWindowVisible())
+    m_log_wnd.ShowWindow(SW_SHOWNORMAL);
+  else
+    m_log_wnd.ShowWindow(SW_HIDE);
 }
 
 void CMainFrame::OnViewOptions() 
 {
 	// TODO: Add your command handler code here
-	
+	ErrorMessageWithBox("There is no realization yet");
+  
 }
 
 void CMainFrame::OnRun() 
 {
-	// TODO: Add your command handler code here
-	
+  // TODO: Add your command handler code here
+	//ErrorMessageWithBox("There is no realization yet");
+
+  
+
 }
 
 void CMainFrame::OnOpenScene() 
 {
-	// TODO: Add your command handler code here
-	
+  // TODO: Add your command handler code here
+  ErrorMessageWithBox("There is no realization yet");
+
 }
 
 void CMainFrame::OnOpenCamera() 
 {
-	// TODO: Add your command handler code here
+  ErrorMessageWithBox("There is no realization yet");
+  // TODO: Add your command handler code here
+
+}
+
+void CMainFrame::OnDestroy() 
+{
+	CFrameWnd::OnDestroy();
+  m_log_box.Detach();	
 	
 }

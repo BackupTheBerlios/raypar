@@ -18,6 +18,7 @@
 #include "SERVER.h"
 
 #include "MainFrm.h"
+#include "common/utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -167,7 +168,17 @@ void CSERVERApp::OnAppAbout()
 
 
 void ServerLogMessage( LPCSTR text, MessageType type )
-{
-  ASSERT( 0 ); 
-  //2Pasha: implement this function.
+{  
+  CWnd* p_wnd = AfxGetMainWnd();
+  CMainFrame* p_frm = (CMainFrame*) p_wnd; //Main window is CClientDlg
+
+  {
+    CCriticalSectionLock msg_lock;    
+
+    switch ( type ){
+      case msgNORMAL: p_frm->m_log_box.AddMessage( text ); break;
+      case msgERROR : p_frm->m_log_box.AddError( text ); break;
+      default: ASSERT( 0 ); //Unknown MessageType!
+    }    
+  }
 }

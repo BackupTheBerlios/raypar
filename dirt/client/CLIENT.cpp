@@ -73,6 +73,8 @@ BOOL CClientApp::InitInstance()
 	Enable3dControlsStatic();	// Call this when linking to MFC statically
 #endif
 
+  m_ClientDlgHWND = 0;
+
 	CClientDlg dlg;
 	m_pMainWnd = &dlg;
 	int nResponse = dlg.DoModal();
@@ -106,4 +108,14 @@ void ClientLogMessage( LPCSTR text, MessageType type ) //we don't use type yet
     case msgERROR : p_dlg->m_log_box.AddError( text ); break;
     default: ASSERT( 0 ); //Unknown MessageType!
   }
+}
+
+BOOL CClientApp::ProcessMessageFilter(int code, LPMSG lpMsg) 
+{
+	// TODO: Add your specialized code here and/or call the base class
+
+//  if ( m_ClientDlgHWND && lpMsg->m_ClientDlgHWND && 
+//          lpMsg->message == WM_KEYDOWN &&  )
+//  else
+    return CWinApp::ProcessMessageFilter(code, lpMsg);
 }

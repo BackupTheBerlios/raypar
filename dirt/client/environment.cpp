@@ -5,10 +5,23 @@
 // Comments: Environment class methods implementation
 //
 //***********************************
-
-//***********************************
 // COMMENT by Tonic, on 12/11/2003
 // initial revision, implemented data-centric properties only
+//
+//*********************************************************
+// REVISION by KIRILL, on 1/9/2004 03:10:10
+// Comments: I've modified header a little. My macroses are stupid 
+// and don't understand your (TONIC's) idea of header formating :)
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
+
+
+
+
 
 #include "stdafx.h"
 #include "environment.h"

@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I ".." /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /Yu"stdafx.h" /FD /c
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "NDEBUG" /d "_AFXDLL"
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_AFXDLL" /Yu"stdafx.h" /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I ".." /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_AFXDLL" /D "_MBCS" /FR /Yu"stdafx.h" /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD BASE RSC /l 0x409 /d "_DEBUG" /d "_AFXDLL"
@@ -94,11 +94,27 @@ SOURCE=.\ChildView.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\common\LogBox.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogWnd.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.cpp
 # End Source File
 # Begin Source File
 
 SOURCE=..\COMMON\msg.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\ParserVar.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\protocol.cpp
 # End Source File
 # Begin Source File
 
@@ -110,8 +126,16 @@ SOURCE=.\SERVER.rc
 # End Source File
 # Begin Source File
 
+SOURCE=.\ServerThread.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.cpp
 # ADD CPP /Yc"stdafx.h"
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\utils.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -123,11 +147,27 @@ SOURCE=.\ChildView.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\COMMON\LogBox.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\LogWnd.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\MainFrm.h
 # End Source File
 # Begin Source File
 
 SOURCE=..\COMMON\msg.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\ParserVar.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\protocol.h
 # End Source File
 # Begin Source File
 
@@ -139,7 +179,19 @@ SOURCE=.\SERVER.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\ServerThread.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\StdAfx.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\utils.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\y.tab.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"
@@ -158,6 +210,14 @@ SOURCE=.\res\SERVER.rc2
 SOURCE=.\res\Toolbar.bmp
 # End Source File
 # End Group
+# Begin Source File
+
+SOURCE=..\common\ray_lex.l
+# End Source File
+# Begin Source File
+
+SOURCE=..\common\ray_lex.y
+# End Source File
 # Begin Source File
 
 SOURCE=..\DOCS\ReadMe.txt

@@ -1,19 +1,25 @@
-//****************************************
+//*********************************************************
 //** ClientDlg.cpp **
 // Created By: KIRILL
 // On :10/29/2003 00:18:20
 // Comments: implementation file of ClientDlg
 //
-//***********************************
+//*********************************************************
+// REVISION by KIRILL, on 1/9/2004 03:03:37
+// Comments: The problem of closing dialog by pressing Enter 
+// or ESC corrected. OnSysCommand and OnCommand modified.
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
-//***********************************
+//*********************************************************
 
 
 #include "stdafx.h"
 #include "CLIENT.h"
 #include "ClientDlg.h"
+#include "common/msg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -73,15 +79,22 @@ CClientDlg::CClientDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CClientDlg::IDD, pParent)
 {
 	//{{AFX_DATA_INIT(CClientDlg)
+	m_edit_addr = _T("");
+	m_edit_port = 0;
 	//}}AFX_DATA_INIT
 	// Note that LoadIcon does not require a subsequent DestroyIcon in Win32
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+  m_bWannaClose = false;
 }
 
 void CClientDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CClientDlg)
+	DDX_Text(pDX, IDC_EDIT_SERVER_ADDR, m_edit_addr);
+	DDV_MaxChars(pDX, m_edit_addr, 512);
+	DDX_Text(pDX, IDC_EDIT_SERVER_PORT, m_edit_port);
+	DDV_MinMaxInt(pDX, m_edit_port, 1, 65535);
 	//}}AFX_DATA_MAP
 }
 
@@ -92,6 +105,8 @@ BEGIN_MESSAGE_MAP(CClientDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON_TEST, OnButtonTest)
+	ON_BN_CLICKED(IDC_BUTTON_START, OnButtonStart)
+	ON_WM_KEYDOWN()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -139,11 +154,13 @@ void CClientDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	{
 		CAboutDlg dlgAbout;
 		dlgAbout.DoModal();
-	}
-	else
-	{
-		CDialog::OnSysCommand(nID, lParam);
-	}
+  }else{
+    if (nID == SC_CLOSE)
+      m_bWannaClose = true; //we are interested wether we have 
+                          //received SC_CLOSE or not
+    
+	  CDialog::OnSysCommand(nID, lParam);
+  }
 }
 
 void CClientDlg::OnDestroy()
@@ -189,25 +206,57 @@ HCURSOR CClientDlg::OnQueryDragIcon()
 	return (HCURSOR) m_hIcon;
 }
 
-#include "Vector.h"
-
 void CClientDlg::OnButtonTest() 
 {
   //KIRILL: Temporal button and function for testing of some features
+}
+
+void CClientDlg::OnButtonStart() 
+{
+  if (!UpdateData())   //invalid input data entered
+    return;
+  
+  TRY{
+    CSocket* sock= new CSocket;
+    BOOL res;
+    res = sock->Create();
+
+    if (!res){
+      DWORD err = GetLastError();
+      CString err_text = GetErrorMessageByErrorCode(err);
+      ErrorMessageWithBox( err_text );
+    }else{
+      res = sock->Connect(m_edit_addr, m_edit_port);
+      if (!res){
+        DWORD err = GetLastError();
+        CString err_text = GetErrorMessageByErrorCode(err);
+        ErrorMessageWithBox( err_text );
+      }else{
+        sock->Close();
+      }
+    }
+  }
+  CATCH(CMemoryException, pEx){
+    ErrorMessageFromException(pEx, TRUE);
+    AfxAbort(); //can do nothing :)
+  }AND_CATCH_ALL(pEx){
+    ErrorMessageFromException(pEx, TRUE);
+  }
+  END_CATCH_ALL
+ 
+}
 
 
-//  for(int i=0; i < 10; i++){
-//    if (rand()%3 )
-//      Message( "Completed %d ...", i );  
-//    else
-//      ErrorMessage( "Error found %d", i );    
-//  }
-//
-//  CVector  v1(10, 20, 30), v2(v1); 
-//  v2 += CVector(3,4,5);
-//  afxDump << v1 << " " << v2 <<"\n";
-//  afxDump << v1 * 0.3 << " " << v1+v2 << v1-v2 <<v1*0.00001<<v1.IsZero()<<"\n";
-//  v1/=2;
-//  afxDump << -v1 << v1*v2 << "\n";
+BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam) 
+{
+	
+  //to prevent closing by pressing ENTER or ESC we ignore IDOK and IDCANCEL commands
+  //but to allow closing by pressing cross button we have to check wether we have
+  //received WM_SYSCOMMAND + SC_CLOSE message or not. We do this in OnSysCommand() function
+  //and set the value m_bWannaClose there.
 
+  if ( (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) && !m_bWannaClose )
+    return TRUE;
+  else
+    return CDialog::OnCommand(wParam, lParam);
 }

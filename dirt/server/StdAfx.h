@@ -33,6 +33,7 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 #include <afxsock.h>		// MFC socket extensions
+#include <afxmt.h>      // MFC synchronization support
 
 
 //We sometimes need to know whether we are building server or client

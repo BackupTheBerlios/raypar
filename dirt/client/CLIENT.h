@@ -32,14 +32,18 @@
 
 class CClientApp : public CWinApp
 {
-public:
+public:	
 	CClientApp();
+
+public:
+  HWND m_ClientDlgHWND; //for the purpose of dialog messages filtering 
 
 // Overrides
 	// ClassWizard generated virtual function overrides
 	//{{AFX_VIRTUAL(CClientApp)
 	public:
 	virtual BOOL InitInstance();
+	virtual BOOL ProcessMessageFilter(int code, LPMSG lpMsg);
 	//}}AFX_VIRTUAL
 
 // Implementation

@@ -164,6 +164,16 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
 END
 
+IDD_DIALOG_LOG DIALOG DISCARDABLE  0, 0, 166, 230
+STYLE DS_SETFOREGROUND | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Server log"
+FONT 8, "MS Sans Serif"
+BEGIN
+    LISTBOX         IDC_LOG_LIST,7,20,149,184,LBS_OWNERDRAWVARIABLE | 
+                    LBS_HASSTRINGS | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | 
+                    WS_TABSTOP
+END
+
 
 #ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
@@ -222,6 +232,11 @@ BEGIN
         RIGHTMARGIN, 228
         TOPMARGIN, 7
         BOTTOMMARGIN, 48
+    END
+
+    IDD_DIALOG_LOG, DIALOG
+    BEGIN
+        RIGHTMARGIN, 165
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -321,7 +336,9 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    ID_RUN                  "Run or stop rendering process"
     ID_VIEW_LOGWINDOW       "Show or hide the log window\nToggle log window"
+    ID_VIEW_OPTIONS         "Display options page"
 END
 
 #endif    // English (U.S.) resources

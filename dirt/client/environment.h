@@ -1,17 +1,27 @@
-//****************************************
+//*********************************************************
 //** environment.h **
 // Created By: Tonic
 // On: 12/11/2003
 // Comments: Defines world primitives interfaces: ray, environment, and its 
 //			abstract contents: Light and Solid
 //
-//***********************************
-
-//***********************************
+//*********************************************************
 // COMMENT by Tonic, on 12/11/2003
 // initial revision, implemented data-centric properties only
+//
+//*********************************************************
+// REVISION by KIRILL, on 1/9/2004 03:10:10
+// Comments: I've modified header a little. My macroses are stupid 
+// and don't understand your (TONIC's) idea of header formating :)
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
 
-#include "vector.h"
+
+#include "common/vector.h"
 
 //define maximal number of elements in the environment
 //using static memory allocation

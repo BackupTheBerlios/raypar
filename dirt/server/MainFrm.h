@@ -18,6 +18,8 @@
 #endif // _MSC_VER > 1000
 
 #include "ChildView.h"
+#include "LogWnd.h"
+#include "COMMON/LogBox.h"
 
 class CMainFrame : public CFrameWnd
 {
@@ -48,10 +50,13 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
 
+  CLogBox     m_log_box;
+
 protected:  // control bar embedded members
 	CStatusBar  m_wndStatusBar;
 	CToolBar    m_wndToolBar;
-	CChildView    m_wndView;
+	CChildView  m_wndView;
+  CLogWnd     m_log_wnd;
 
 // Generated message map functions
 protected:
@@ -63,6 +68,7 @@ protected:
 	afx_msg void OnRun();
 	afx_msg void OnOpenScene();
 	afx_msg void OnOpenCamera();
+	afx_msg void OnDestroy();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
