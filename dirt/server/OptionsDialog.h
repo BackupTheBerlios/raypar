@@ -27,7 +27,7 @@ class COptionsDialog : public CDialog
 // Construction
 public:
 	COptionsDialog(CWnd* pParent = NULL);   // standard constructor
-  COptionsDialog(CWnd* pParent, COptions *serverOptions);   // standard constructor
+  COptionsDialog(CWnd* pParent, COptions* serverOptions);   // standard constructor
 
 // Dialog Data
 	//{{AFX_DATA(COptionsDialog)

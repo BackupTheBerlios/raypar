@@ -5,6 +5,11 @@
 // Comments:  implementation of COptions class  (stores server
 //  options and synchronizes it with system register)
 //*********************************************************
+// REVISION by KIRILL, on 1/28/2004 14:40:09
+// Comments: Slight modificatins done. ATL calls removed.
+//   Destructor / constructor calls removed.
+//
+//*********************************************************
 // REVISION by ..., on ...
 // Comments: ...
 //
@@ -14,75 +19,70 @@
 #include "Options.h"
 
 //////////////////////////////////////////////////////////////////////
-// Construction/Destruction
-//////////////////////////////////////////////////////////////////////
+// COptions
 
 COptions::COptions()
-{
-  m_imageWidth = 0;
-  m_imageHeight = 0;
-  m_serverPort = 0;
-  int status = GetDataFromReg();
-  ASSERT(status);
-}
+: m_imageWidth( 0 )
+, m_imageHeight( 0 )
+, m_serverPort( 0 )  
+{}
 
 COptions::~COptions()
+{}
+
+//
+// Registry entry names
+//
+
+const char s_options_section[] = "Options";
+
+const char s_image_width[]  = "ImageWidth";
+const char s_image_height[] = "ImageHeight";
+const char s_server_port[]  = "ServerPort";
+
+//
+// Default registry entry values
+//
+
+const int def_image_width  = 400;
+const int def_image_height = 300;
+const int def_server_port  = 8700;
+
+
+void COptions::SaveDataToReg()
 {
-  int status = SaveDataToReg();
-  ASSERT(status);
+  CWinApp* p_app = AfxGetApp();
+  ASSERT( p_app );
+
+  ModifyInvalid(); //we check data and modify invalid ones before writing it to registry
+
+  //store data to the registry
+  p_app->WriteProfileInt(s_options_section, s_image_width, m_imageWidth );
+  p_app->WriteProfileInt(s_options_section, s_image_height, m_imageHeight );
+  p_app->WriteProfileInt(s_options_section, s_server_port, m_serverPort );
 }
 
-int COptions::SaveDataToReg()
+void COptions::GetDataFromReg()
 {
-  CRegKey key;
-  char setting[255];
+  CWinApp* p_app = AfxGetApp();
+  ASSERT( p_app );
   
-  _ltoa(m_imageHeight,setting,10);
-  LONG status = key.SetValue(HKEY_CURRENT_USER, REGISTRY_KEY, setting,"image height");
-  if(status != ERROR_SUCCESS) return 0;
-
-  _ltoa(m_imageWidth,setting,10);
-  status = key.SetValue(HKEY_CURRENT_USER, REGISTRY_KEY, setting,"image width");
-  if(status != ERROR_SUCCESS) return 0;
-
-    _ltoa(m_serverPort,setting,10);
-  status = key.SetValue(HKEY_CURRENT_USER, REGISTRY_KEY, setting,"server port");
-  if(status != ERROR_SUCCESS) return 0;
-
-  return 1;
+  //store data to the registry
+  m_imageWidth  = p_app->GetProfileInt(s_options_section, s_image_width,  def_image_width  );
+  m_imageHeight = p_app->GetProfileInt(s_options_section, s_image_height, def_image_height );
+  m_serverPort  = p_app->GetProfileInt(s_options_section, s_server_port,  def_server_port  );
+  
+  ModifyInvalid(); //we check data and modify invalid ones which might be read from registry
 }
 
-int COptions::GetDataFromReg()
+void COptions::ModifyInvalid()
 {
-  CRegKey key;
+  if ( m_imageWidth < 1 || m_imageWidth > MAX_IMAGE_WIDTH )
+    m_imageWidth = def_image_width;
 
-  LONG status = key.Open(HKEY_CURRENT_USER,REGISTRY_KEY,KEY_READ);
-  if(status != ERROR_SUCCESS) // error opening specified key
-  {
-    //try to create (may be the key does not exist)
-    return SaveDataToReg();
-  }
-  else
-  {
-    //get necessary data
-    char setting[255];
-	  DWORD settingSize=sizeof(setting);
-	  
-    status = key.QueryValue(setting, "image width", &settingSize);
-    if(status != ERROR_SUCCESS) return 0;
-    m_imageWidth = atoi(setting);
+  if ( m_imageHeight < 1 || m_imageHeight > MAX_IMAGE_WIDTH )
+    m_imageHeight= def_image_height;
 
-    settingSize=sizeof(setting);
-    status = key.QueryValue(setting, "image height", &settingSize);
-    if(status != ERROR_SUCCESS) return 0;
-    m_imageHeight = atoi(setting);
-
-
-    settingSize=sizeof(setting);
-    status = key.QueryValue(setting, "server port", &settingSize);
-    if(status != ERROR_SUCCESS) return 0;
-    m_serverPort = atoi(setting);
-  }
-  
-  return 1;
+  if ( m_serverPort < 1 || m_serverPort > 65535 ) //65535 - max port number
+    m_serverPort = def_server_port;
 }
