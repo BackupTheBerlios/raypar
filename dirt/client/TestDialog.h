@@ -1,3 +1,18 @@
+//*********************************************************
+//** TestDialog.h **
+// Created By: KIRILL
+// Comments: Test dialog is used to show rendered image.
+//
+//*********************************************************
+// REVISION by KIRILL, on 1/30/2004 05:52:19
+// Comments: Isn't used anymore.
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
+
 #if !defined(AFX_TESTDIALOG_H__E2A16E66_F271_4851_AECC_C3DAA0AE09A3__INCLUDED_)
 #define AFX_TESTDIALOG_H__E2A16E66_F271_4851_AECC_C3DAA0AE09A3__INCLUDED_
 

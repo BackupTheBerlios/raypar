@@ -53,7 +53,8 @@ public:
 protected:
 	HICON m_hIcon;  
 
-  void RenderImage(CEnvironment& scene, CCamera& camera);
+  //renders line of image
+  COLORREF* RenderImageLine(CEnvironment& scene, CCamera& camera, int line_number);
 
 	// Generated message map functions
 	//{{AFX_MSG(CClientDlg)

@@ -26,7 +26,7 @@
 #include "environment.h"
 #include "simpletracer.h"
 #include "geometry.h"
-#include "TestDialog.h"
+//#include "TestDialog.h"
 #include "ClientInfoExchange.h"
 
 //#include <atlimage.h>
@@ -35,6 +35,9 @@
 #undef THIS_FILE
 static char THIS_FILE[] = __FILE__;
 #endif
+
+//for debug purposes
+#define RENDER_FULL_IMAGE()  1
 
 /////////////////////////////////////////////////////////////////////////////
 // CAboutDlg dialog used for App About
@@ -114,7 +117,7 @@ BEGIN_MESSAGE_MAP(CClientDlg, CDialog)
   ON_WM_DESTROY()
   ON_WM_PAINT()
   ON_WM_QUERYDRAGICON()
-  ON_BN_CLICKED(IDC_BUTTON_TEST, OnButtonTest)
+  //ON_BN_CLICKED(IDC_BUTTON_TEST, OnButtonTest)
   ON_BN_CLICKED(IDC_BUTTON_START, OnButtonStart)
   ON_WM_KEYDOWN()
   //}}AFX_MSG_MAP
@@ -228,86 +231,87 @@ BOOL CClientDlg::OnCommand(WPARAM wParam, LPARAM lParam)
     return CDialog::OnCommand(wParam, lParam);
 };
 
-void CClientDlg::OnButtonTest() 
-{
-  //KIRILL: Temporal button and function for testing of some features
+//void CClientDlg::OnButtonTest() 
+//{
+//  //KIRILL: Temporal button and function for testing of some features
+//
+//  //KIRILL: This call will break with memory error every time you run this:)
+//
+//  int  imgWidth = 300, imgHeight = 300;
+//  ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
+//  COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
+//
+//  CEnvironment		scene;
+//  scene.SetAmbientColor( CVector(0.0,0.0,0.0) );
+//
+//  CVector			sphereCenter(0,0,2), sphereCenter2(1,0,5), red(1,0,0), green(0,1,0), white(1,1,1);
+//  //CSphere     solidObject( sphereCenter, 1, CVector(1.0,0.8,0), 0.2, 2.0, true, 0,1,0.5);
+//  //CColorSphere	solidObject2(sphereCenter2, 2,white);
+//  //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
+//  //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
+//  CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
+//                 CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
+//
+//  CVector			a(-1, -2, 0.5), b(1,-2,0.5), c(0,1,0.5);
+//  CTriangle		solidObject3( a, b, c, red, 0.1, 1.0, true);
+//  Ray         axis( CVector(0,-1,3), CVector(0,1,0) );
+//  CCylinder   cylinder( axis, 2, 1, CVector(1.0, 0.8, 0.0), 0.5, 1.0, true, 0.0, 2.0, 0.0, 1.0 );
+//  CLight			lightSource( 1.0, 1.0, 1.0, 0, 0, 4);
+//  CLight			lightSource2( 1.0, 1.0, 0, 0, 0, 6);
+//  CLight			lightSource3( 0, 1.0, 0, 1, -1, 2);
+//  CLight			lightSource4( 0, 0, 1.0, 1, 0, 2);
+//  CLight            lightSource5(1.0,0,0, 0,0,0); 
+//  CVector		origin(0.0,0.0,0.0), zAxis(0,0,1), yAxis(0,1,0);
+//  CCamera	  camera( origin, zAxis, yAxis, imgWidth,imgHeight );
+//  //CImage    image;
+//  //image.Create( imgWidth, imgHeight, 24);
+//
+//  Ray				rayToTrace(CVector(0,0,0), CVector(0,0,1));
+//  SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
+//  tracer.SetBackgroundColor( CVector(0,0,0.5) );
+//  CVector			color;
+//  Medium			medium;
+//
+////  cylinder.SetSmoothness(5);
+//  medium.Betta = 0;
+//  medium.nRefr = 1;
+//  //camera.Yaw(-0.4);
+//  camera.Shift(1);
+//  //camera.Move(-3);
+//  //scene.Add( &solidObject );
+//  //solidObject.SetSmoothness( 10 );
+//  //scene.Add( &solidObject2 );
+//  scene.Add( &solidObject3 );
+//  scene.Add( &cylinder );
+//
+//  //scene.Add( &lightSource );
+////  scene.Add( &lightSource2 );
+//  //scene.Add( &lightSource3 );
+//  //scene.Add( &lightSource4 );
+//
+//  tracer.trace(medium, rayToTrace, scene, color, true);
+//  //int i=56,j=143;
+//  //CRenderer::RenderPixel( scene, medium, camera, tracer, 150,149,color);
+//
+//  for( int i = 0; i < imgWidth; i ++)
+//    for (int j = 0; j < imgHeight; j++)
+//    {
+//      RenderPixel( scene, medium, camera, tracer, i,j,color);
+//
+//      BYTE c_red = (char) (color.x*255.0);
+//      BYTE c_green = (char) (color.y*255.0);
+//      BYTE c_blue = (char) (color.z*255.0);
+//
+//      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
+//      //image.SetPixelRGB( i,j, c_red, c_green, c_blue);
+//    };
+//
+//  CTestDialog test_dlg( imgWidth, imgHeight, img);
+//  test_dlg.DoModal();
+//  //image.Save("out.bmp");
+//  delete[] img;
+//};
 
-  //KIRILL: This call will break with memory error every time you run this:)
-
-  int  imgWidth = 300, imgHeight = 300;
-  ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
-  COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
-
-  CEnvironment		scene;
-  scene.SetAmbientColor( CVector(0.0,0.0,0.0) );
-
-  CVector			sphereCenter(0,0,2), sphereCenter2(1,0,5), red(1,0,0), green(0,1,0), white(1,1,1);
-  //CSphere     solidObject( sphereCenter, 1, CVector(1.0,0.8,0), 0.2, 2.0, true, 0,1,0.5);
-  //CColorSphere	solidObject2(sphereCenter2, 2,white);
-  //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
-  //CSphere   solidObject( sphereCenter,2, 0.01, 2, true, 0.0, 1, 0.01);
-  CBox        solidObject2(CVector (-1,-1,4), CVector(2,0,0),CVector(0,2,0),CVector(0,0,2),
-                 CVector(1,1,1),0.01,2,true,0.0,1,0.5,1.0);
-
-  CVector			a(-1, -2, 0.5), b(1,-2,0.5), c(0,1,0.5);
-  CTriangle		solidObject3( a, b, c, red, 0.1, 1.0, true);
-  Ray         axis( CVector(0,-1,3), CVector(0,1,0) );
-  CCylinder   cylinder( axis, 2, 1, CVector(1.0, 0.8, 0.0), 0.5, 1.0, true, 0.0, 2.0, 0.0, 1.0 );
-  CLight			lightSource( 1.0, 1.0, 1.0, 0, 0, 4);
-  CLight			lightSource2( 1.0, 1.0, 0, 0, 0, 6);
-  CLight			lightSource3( 0, 1.0, 0, 1, -1, 2);
-  CLight			lightSource4( 0, 0, 1.0, 1, 0, 2);
-  CLight            lightSource5(1.0,0,0, 0,0,0); 
-  CVector		origin(0.0,0.0,0.0), zAxis(0,0,1), yAxis(0,1,0);
-  CCamera	  camera( origin, zAxis, yAxis, imgWidth,imgHeight );
-  //CImage    image;
-  //image.Create( imgWidth, imgHeight, 24);
-
-  Ray				rayToTrace(CVector(0,0,0), CVector(0,0,1));
-  SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
-  tracer.SetBackgroundColor( CVector(0,0,0.5) );
-  CVector			color;
-  Medium			medium;
-
-//  cylinder.SetSmoothness(5);
-  medium.Betta = 0;
-  medium.nRefr = 1;
-  //camera.Yaw(-0.4);
-  camera.Shift(1);
-  //camera.Move(-3);
-  //scene.Add( &solidObject );
-  //solidObject.SetSmoothness( 10 );
-  //scene.Add( &solidObject2 );
-  scene.Add( &solidObject3 );
-  scene.Add( &cylinder );
-
-  //scene.Add( &lightSource );
-//  scene.Add( &lightSource2 );
-  //scene.Add( &lightSource3 );
-  //scene.Add( &lightSource4 );
-
-  tracer.trace(medium, rayToTrace, scene, color, true);
-  //int i=56,j=143;
-  //CRenderer::RenderPixel( scene, medium, camera, tracer, 150,149,color);
-
-  for( int i = 0; i < imgWidth; i ++)
-    for (int j = 0; j < imgHeight; j++)
-    {
-      RenderPixel( scene, medium, camera, tracer, i,j,color);
-
-      BYTE c_red = (char) (color.x*255.0);
-      BYTE c_green = (char) (color.y*255.0);
-      BYTE c_blue = (char) (color.z*255.0);
-
-      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
-      //image.SetPixelRGB( i,j, c_red, c_green, c_blue);
-    };
-
-  CTestDialog test_dlg( imgWidth, imgHeight, img);
-  test_dlg.DoModal();
-  //image.Save("out.bmp");
-  delete[] img;
-};
 
 void CClientDlg::OnButtonStart() 
 {
@@ -331,33 +335,35 @@ void CClientDlg::OnButtonStart()
         CString err_text = GetErrorMessageByErrorCode();
         ErrorMessageWithBox( err_text );
       }else{   
-        int ret = ClientInfoExchange(socket, scene, camera);
+        int line_number;
+        int ret = ClientInfoExchange(socket, scene, camera, line_number);
         socket.Close();
         if ( CIE_NORMAL_RENDER_RETURN != ret )
           ErrorMessage("Error %d!", ret);
         else{
-          RenderImage( scene, camera );          
+          RenderImageLine( scene, camera );          
         }
       }
     }
   }
-  CATCH(CMemoryException, pEx){
-    ErrorMessageFromException(pEx, TRUE);
-    AfxAbort(); //can do nothing
+  CATCH(CArchiveException, pEx){
+    //this exception probably means that the connection was closed
+    #ifdef _DEBUG
+      ErrorMessageFromException(pEx);
+    #endif//DEBUG
   }AND_CATCH_ALL(pEx){
     ErrorMessageFromException(pEx, TRUE);
   }
   END_CATCH_ALL
 };
 
-void CClientDlg::RenderImage(CEnvironment& scene, CCamera& camera)
+COLORREF* CClientDlg::RenderImageLine(CEnvironment& scene, CCamera& camera, int line_number)
 {
   int  imgWidth, imgHeight;
   camera.GetWidth( imgWidth );
   camera.GetHeight( imgHeight );
-
-  ASSERT( imgWidth % 2 == 0 ); //Width must be EVEN for my realization to work!!!
-  COLORREF * img = new COLORREF[imgWidth * imgHeight]; 
+ 
+  COLORREF * data = new COLORREF[imgWidth]; 
 
   SimpleTracer	tracer( 5, 0.08, 0.08, 0.08, 1,1,1);
   tracer.SetBackgroundColor( CVector(0,0,0.5) );
@@ -367,21 +373,14 @@ void CClientDlg::RenderImage(CEnvironment& scene, CCamera& camera)
   medium.nRefr = 1;
   CVector	color;
 
-  for( int i = 0; i < imgWidth; i ++)
-    for (int j = 0; j < imgHeight; j++)
-    {      
-      RenderPixel( scene, medium, camera, tracer, i,j,color);
+  for( int i = 0; i < imgWidth; i ++){      
+    RenderPixel( scene, medium, camera, tracer, i,j,color);
 
-      BYTE c_red = (char) (color.x*255.0);
-      BYTE c_green = (char) (color.y*255.0);
-      BYTE c_blue = (char) (color.z*255.0);
+    BYTE c_red =   (BYTE) (color.x*255.0);
+    BYTE c_green = (BYTE) (color.y*255.0);
+    BYTE c_blue =  (BYTE) (color.z*255.0);
 
-      img[i+j*imgWidth] = RGB(c_blue, c_green, c_red); //Exactly this order!
-      //image.SetPixelRGB( i,j, c_red, c_green, c_blue);
-    };
-
-  CTestDialog test_dlg( imgWidth, imgHeight, img);
-  test_dlg.DoModal();
-  //image.Save("out.bmp");
-  delete[] img;
+    data[i] = RGB(c_blue, c_green, c_red); //Exactly this order!
+      
+  };
 }

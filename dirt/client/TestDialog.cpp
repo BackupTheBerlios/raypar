@@ -1,4 +1,19 @@
-// TestDialog.cpp : implementation file
+//*********************************************************
+//** TestDialog.cpp **
+// Created By: KIRILL
+// Comments: Test dialog is used to show rendered image
+//
+//*********************************************************
+// REVISION by KIRILL, on 1/30/2004 05:50:40
+// Comments: Isn't used anymore
+//
+//*********************************************************
+// REVISION by ..., on ...
+// Comments: ...
+//
+//*********************************************************
+
+
 //
 #include "stdafx.h"
 #include "client.h"
